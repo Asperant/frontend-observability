@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  security-scan:
+  security-online:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,18 +26,5 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
 
-      - name: Build (required for the bundle secret scan)
-        run: pnpm run build
-
-      - name: Local security checks (secret scan + production dependency audit)
-        run: pnpm run security:local
-
-      - name: Generate SBOM
-        run: pnpm run sbom
-
-      - name: Upload SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom
-          path: reports/sbom.cyclonedx.json
-          retention-days: 30
+      - name: pnpm security:online (registry-backed dependency vulnerability audit)
+        run: pnpm run security:online

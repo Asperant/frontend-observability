@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
+  verify-and-secure:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,35 +24,14 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
 
-      - name: Toolchain check
-        run: node scripts/verify/check-toolchain.js
-
-      - name: Format check
-        run: pnpm run format:check
-
-      - name: Lint (zero warnings)
-        run: pnpm run lint
-
-      - name: Unit tests
-        run: pnpm run test:unit
-
-      - name: Contract tests
-        run: pnpm run test:contract
-
-      - name: Coverage
-        run: pnpm run test:coverage
-
-      - name: Build (includes the dist/ build security gate)
-        run: pnpm run build
-
-      - name: Consumer package tests (pack + install + build + runtime smoke)
-        run: pnpm run test:consumer
-
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium firefox webkit
 
-      - name: End-to-end tests (chromium, firefox, webkit)
-        run: pnpm run test:e2e
+      - name: pnpm verify (offline — format, lint, unit, contract, coverage, build, consumer, e2e, SBOM, local secret/bundle scan)
+        run: pnpm run verify
+
+      - name: pnpm security:online (registry-backed dependency vulnerability audit)
+        run: pnpm run security:online
 
       - name: Upload Playwright report
         if: always()
@@ -61,3 +40,11 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+      - name: Upload SBOM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: reports/sbom.cyclonedx.json
+          retention-days: 30

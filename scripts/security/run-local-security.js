@@ -1,8 +1,12 @@
-import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { scanForSecrets } from "./scan-secrets.js";
+
+// This script is entirely offline: it only reads files already on disk.
+// Anything that talks to a registry (e.g. `pnpm audit`) lives in
+// scripts/security/run-online-security.js / `pnpm run security:online`
+// so that `pnpm run verify` never requires network access.
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -43,13 +47,6 @@ step("bundle secret scan (dist output)", () => {
     for (const finding of findings) console.error(`  - [${finding.rule}] ${finding.file}`);
     throw new Error(`${findings.length} finding(s)`);
   }
-});
-
-step("dependency audit (production, high and critical)", () => {
-  execFileSync("pnpm", ["audit", "--audit-level", "high", "--prod"], {
-    cwd: repoRoot,
-    stdio: "inherit",
-  });
 });
 
 if (failed) {

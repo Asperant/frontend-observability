@@ -22,6 +22,7 @@ const manifest = {
   schemaVersion: "1.0.0",
   package: "@chicek/browser-observability",
   generatedAt: new Date().toISOString(),
+  builtWithNode: process.version.replace(/^v/, ""),
   algorithm: "sha256",
   files: files.map((name) => ({
     path: name,

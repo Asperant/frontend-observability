@@ -55,6 +55,7 @@ const sbom = {
   version: 1,
   metadata: {
     timestamp: new Date().toISOString(),
+    tools: [{ vendor: "nodejs.org", name: "node", version: process.version.replace(/^v/, "") }],
     component: {
       type: "application",
       name: "chicek-frontend-observability",
