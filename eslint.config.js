@@ -54,7 +54,7 @@ export default [
 
   // Default: no globals, ESM only, no CommonJS, no dangerous globals.
   {
-    files: ["**/*.js", "**/*.jsx"],
+    files: ["**/*.js", "**/*.jsx", "**/*.mjs"],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
@@ -175,7 +175,7 @@ export default [
 
   // scripts/: Node tooling scripts, console output is expected.
   {
-    files: ["scripts/**/*.js"],
+    files: ["scripts/**/*.js", "scripts/**/*.mjs"],
     languageOptions: {
       globals: {
         ...globals.node,

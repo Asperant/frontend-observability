@@ -5,6 +5,9 @@ const MOCK_API_PORT = 4311;
 
 export default defineConfig({
   testDir: "tests/e2e",
+  // lab.spec.js targets the Docker lab (https://localhost:8443, started via
+  // `pnpm lab:up`) and runs only under playwright-lab.config.js.
+  testIgnore: /lab\.spec\.js/,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

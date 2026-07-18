@@ -1,0 +1,73 @@
+name: Lab
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  docker-lab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser for the lab suite (chromium only)
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: pnpm verify (offline, Docker-independent)
+        run: pnpm run verify
+
+      - name: pnpm test:lab (Docker-independent unit tests for the lab tooling)
+        run: pnpm run test:lab
+
+      # No real secrets anywhere in this job: lab:init generates a synthetic
+      # .invalid root email and a fresh random root password locally, on the
+      # runner, every run. Image tags/digests are never re-resolved here —
+      # the Dockerfiles and compose.yaml already pin exact tag+digest pairs
+      # committed to the repo.
+      - name: pnpm lab:init (generate runtime secrets, TLS certs, runtime config)
+        run: pnpm run lab:init
+
+      - name: pnpm lab:up (build images, start the stack, wait for healthy)
+        run: pnpm run lab:up
+
+      - name: pnpm lab:verify (full Stage 6 acceptance gate)
+        run: pnpm run lab:verify
+
+      - name: pnpm test:e2e:lab (Playwright against the running lab)
+        run: pnpm run test:e2e:lab
+
+      - name: Collect redacted diagnostics
+        if: failure()
+        run: |
+          mkdir -p lab-diagnostics
+          pnpm run lab:status > lab-diagnostics/status.txt 2>&1 || true
+          pnpm run lab:logs > lab-diagnostics/logs.txt 2>&1 || true
+
+      - name: Upload redacted diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-diagnostics
+          path: lab-diagnostics/
+          retention-days: 7
+
+      # Runs even if an earlier step failed, and only ever tears down this
+      # compose project's own containers/networks (never other Docker
+      # resources on the runner).
+      - name: pnpm lab:down (always, tears down this project's containers/networks only)
+        if: always()
+        run: pnpm run lab:down

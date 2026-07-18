@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "resolvedAt": "2026-07-19T00:00:00Z",
+  "images": [
+    {
+      "purpose": "openobserve",
+      "registry": "public.ecr.aws",
+      "repository": "zinclabs/openobserve",
+      "tag": "v0.91.0",
+      "digest": "sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8",
+      "platform": "linux/amd64",
+      "prerelease": false
+    },
+    {
+      "purpose": "node-builder",
+      "registry": "docker.io",
+      "repository": "library/node",
+      "tag": "24.18.0-alpine",
+      "digest": "sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc",
+      "platform": "linux/amd64",
+      "prerelease": false
+    },
+    {
+      "purpose": "nginx-nonroot",
+      "registry": "docker.io",
+      "repository": "nginxinc/nginx-unprivileged",
+      "tag": "1.30.4-alpine",
+      "digest": "sha256:dcb6a40a82e08e071f696805a23b45d5bb6582a7508509930d3035b16b441069",
+      "platform": "linux/amd64",
+      "prerelease": false
+    },
+    {
+      "purpose": "openobserve-shell-helper",
+      "registry": "docker.io",
+      "repository": "library/busybox",
+      "tag": "1.38.0-musl",
+      "digest": "sha256:ffcc8d72c1b3749dd2240e27f79b987eb227538835a2675b1d5849b053a39195",
+      "platform": "linux/amd64",
+      "prerelease": false
+    }
+  ]
+}

@@ -6,7 +6,27 @@ Mevcut web uygulamalarına minimum müdahaleyle bağlanacak şekilde tasarlanır
 
 ## Mevcut Durum
 
-`Stage 5 Implemented — Review Pending`
+`Stage 6 Implemented — Review Pending`
+
+## Docker Referans Laboratuvarı (Aşama 6)
+
+Güvenli, tekrarlanabilir bir Docker Compose laboratuvarı: `demo-frontend` ve `mock-api` fixture'larını, gerçek stable OpenObserve OSS'i ve bunların önündeki tek giriş noktası `reverse-proxy`'yi bir araya getirir. Şirket backend'i, Collector/gateway veya alternatif dashboard yoktur; bu aşamada OpenObserve'un kendi web arayüzü kullanılır ve gerçek RUM/browser-log gönderimi henüz başlatılmaz.
+
+Servisler: `reverse-proxy`, `demo-frontend`, `mock-api`, `openobserve` — bkz. `infrastructure/docker/compose.yaml` ve `infrastructure/docker/images.lock.json`.
+
+```bash
+pnpm lab:init     # runtime secret + TLS sertifikası + runtime config üretir (.runtime/, git'e girmez)
+pnpm lab:up       # image'ları build eder, stack'i başlatır, healthy olmasını bekler
+pnpm lab:verify   # Aşama 6 kabul kapısı: güvenlik, TLS, kalıcılık, failure-isolation
+pnpm lab:status   # container/health/port/izin durumu
+pnpm lab:logs     # secret redaction uygulanmış loglar
+pnpm lab:down     # container/network kaldırır; openobserve-data volume ve .runtime/ korunur
+pnpm lab:purge --yes   # container/network/volume ve .runtime/ içeriğini tamamen siler
+```
+
+- Demo: `https://localhost:8443` (yerel lab CA sistem trust store'una kurulmaz; tarayıcıda güven uyarısı beklenir)
+- OpenObserve yönetim arayüzü: `http://localhost:5080`
+- `pnpm lab:verify` Docker'a bağımlıdır ve `pnpm verify`'dan tamamen ayrıdır; `pnpm verify` hâlâ Docker gerektirmez.
 
 ## Teknoloji
 

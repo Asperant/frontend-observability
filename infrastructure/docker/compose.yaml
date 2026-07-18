@@ -1,0 +1,209 @@
+name: chicek-lab
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "5m"
+    max-file: "3"
+
+x-restart-policy: &default-restart "on-failure:5"
+
+services:
+  reverse-proxy:
+    build:
+      context: ./reverse-proxy
+      dockerfile: Dockerfile
+    image: chicek-lab/reverse-proxy:6.0.0
+    user: "${LAB_UID:-101}:${LAB_GID:-101}"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+      - /var/cache/nginx:size=16m,mode=1777
+      - /var/run:size=8m,mode=1777
+    volumes:
+      - ../../.runtime/certs/localhost.crt:/etc/chicek/tls/localhost.crt:ro
+      - ../../.runtime/certs/localhost.key:/etc/chicek/tls/localhost.key:ro
+      - ../../.runtime/generated/runtime-config.json:/etc/chicek/runtime-config.json:ro
+    networks:
+      - app-internal
+      - observability-internal
+      # See the `edge-publish` network comment below: a Docker `internal:
+      # true` network structurally refuses to publish any host port for its
+      # member containers, so reverse-proxy also joins the narrow,
+      # non-internal `edge-publish` network purely to make 127.0.0.1:8443
+      # reachable. It never uses that network for east-west traffic.
+      - edge-publish
+    ports:
+      - "127.0.0.1:8443:8443"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-check-certificate",
+          "-q",
+          "-O",
+          "/dev/null",
+          "https://127.0.0.1:8443/healthz",
+        ]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 6
+    depends_on:
+      demo-frontend:
+        condition: service_healthy
+      mock-api:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 192M
+          pids: 128
+        reservations:
+          memory: 64M
+    logging: *default-logging
+    restart: *default-restart
+
+  demo-frontend:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/demo-frontend/Dockerfile
+    image: chicek-lab/demo-frontend:6.0.0
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+      - /var/cache/nginx:size=16m,mode=1777
+      - /var/run:size=8m,mode=1777
+    networks:
+      - app-internal
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 6
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+          pids: 128
+        reservations:
+          memory: 32M
+    logging: *default-logging
+    restart: *default-restart
+
+  mock-api:
+    build:
+      context: ../../apps/mock-api
+      dockerfile: ../../infrastructure/docker/mock-api/Dockerfile
+    image: chicek-lab/mock-api:6.0.0
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    networks:
+      - app-internal
+    environment:
+      PORT: "4311"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4311/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 6
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+          pids: 128
+        reservations:
+          memory: 32M
+    logging: *default-logging
+    restart: *default-restart
+
+  openobserve:
+    build:
+      context: ./openobserve
+      dockerfile: Dockerfile
+    image: chicek-lab/openobserve:6.0.0
+    user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    volumes:
+      - openobserve-data:/data
+    secrets:
+      - openobserve_root_email
+      - openobserve_root_password
+    networks:
+      - observability-internal
+      - edge-publish
+    ports:
+      - "127.0.0.1:5080:5080"
+    environment:
+      ZO_DATA_DIR: /data
+      ZO_TELEMETRY: "false"
+      ZO_HTTP_PORT: "5080"
+    healthcheck:
+      test: ["CMD", "/healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 6
+    deploy:
+      resources:
+        limits:
+          cpus: "2.00"
+          memory: 3G
+          pids: 512
+        reservations:
+          memory: 256M
+    logging: *default-logging
+    restart: *default-restart
+
+networks:
+  app-internal:
+    internal: true
+  observability-internal:
+    internal: true
+  # Not internal: true by necessity, not by choice. Docker refuses to
+  # publish a host port for a container whose only networks are `internal:
+  # true` (verified empirically — see the Stage 6 final report). Only
+  # reverse-proxy and openobserve join this network, and only to make their
+  # two loopback-bound host ports reachable; all inter-service traffic
+  # still flows over app-internal/observability-internal.
+  edge-publish: {}
+
+volumes:
+  openobserve-data:
+
+secrets:
+  openobserve_root_email:
+    file: ../../.runtime/secrets/openobserve-root-email
+  openobserve_root_password:
+    file: ../../.runtime/secrets/openobserve-root-password

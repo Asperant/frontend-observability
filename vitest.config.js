@@ -33,6 +33,17 @@ export default defineConfig({
           hookTimeout: 180_000,
         },
       },
+      {
+        test: {
+          // Docker-independent: exercises pure logic and reads the repo's
+          // own compose.yaml/images.lock.json/Dockerfiles from disk. Not
+          // part of `pnpm verify` — run explicitly via `pnpm test:lab`.
+          name: "lab",
+          environment: "node",
+          include: ["tests/lab/**/*.test.js"],
+          exclude: ["**/node_modules/**", "**/dist/**"],
+        },
+      },
     ],
     coverage: {
       provider: "v8",

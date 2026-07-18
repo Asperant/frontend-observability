@@ -5,6 +5,17 @@
   "description": "Remote runtime configuration accepted by @chicek/browser-observability. Every field is closed and cannot be used to weaken the privacy baseline (no session replay by default, no insecure transport, no arbitrary endpoints).",
   "type": "object",
   "additionalProperties": false,
+  "$defs": {
+    "rumEndpoint": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://",
+      "maxLength": 512,
+      "description": "Must be an https:// URL. Insecure http:// endpoints are always rejected."
+    },
+    "rumApplicationId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "rumOrganizationId": { "type": "string", "minLength": 1, "maxLength": 128 }
+  },
   "required": [
     "schemaVersion",
     "enabled",
@@ -69,17 +80,11 @@
     "rum": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["endpoint", "applicationId", "organizationId"],
+      "description": "Connection credential fields are only required when the top-level `enabled` flag is true (see the root-level `allOf`/`if`/`then` below); a disabled config must be expressible without a real or fake endpoint/applicationId/organizationId.",
       "properties": {
-        "endpoint": {
-          "type": "string",
-          "format": "uri",
-          "pattern": "^https://",
-          "maxLength": 512,
-          "description": "Must be an https:// URL. Insecure http:// endpoints are always rejected."
-        },
-        "applicationId": { "type": "string", "minLength": 1, "maxLength": 128 },
-        "organizationId": { "type": "string", "minLength": 1, "maxLength": 128 }
+        "endpoint": { "$ref": "#/$defs/rumEndpoint" },
+        "applicationId": { "$ref": "#/$defs/rumApplicationId" },
+        "organizationId": { "$ref": "#/$defs/rumOrganizationId" }
       }
     },
     "browserLogs": {
@@ -112,5 +117,26 @@
       "maxItems": 200,
       "items": { "type": "string", "minLength": 1, "maxLength": 256 }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "enabled": { "const": true } },
+        "required": ["enabled"]
+      },
+      "then": {
+        "properties": {
+          "rum": {
+            "type": "object",
+            "required": ["endpoint", "applicationId", "organizationId"],
+            "properties": {
+              "endpoint": { "$ref": "#/$defs/rumEndpoint" },
+              "applicationId": { "$ref": "#/$defs/rumApplicationId" },
+              "organizationId": { "$ref": "#/$defs/rumOrganizationId" }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

@@ -16,6 +16,8 @@
     "test:contract": "vitest run --project contract",
     "test:consumer": "vitest run --project consumer",
     "test:e2e": "playwright test",
+    "test:lab": "vitest run --project lab",
+    "test:e2e:lab": "playwright test --config playwright-lab.config.js",
     "test:coverage": "vitest run --project unit --coverage",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
@@ -24,7 +26,15 @@
     "security:online": "node scripts/security/run-online-security.js",
     "sbom": "node scripts/build/generate-sbom.js",
     "verify": "node scripts/verify/run-verify.js",
-    "fix": "pnpm run format && eslint . --fix"
+    "fix": "pnpm run format && eslint . --fix",
+    "lab:init": "node scripts/lab/init.mjs",
+    "lab:up": "node scripts/lab/up.mjs",
+    "lab:wait": "node scripts/lab/wait.mjs",
+    "lab:verify": "node scripts/lab/verify.mjs",
+    "lab:status": "node scripts/lab/status.mjs",
+    "lab:logs": "node scripts/lab/logs.mjs",
+    "lab:down": "node scripts/lab/down.mjs",
+    "lab:purge": "node scripts/lab/purge.mjs"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",
@@ -37,6 +47,7 @@
     "globals": "catalog:",
     "jsdom": "catalog:",
     "prettier": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "yaml": "2.9.0"
   }
 }
