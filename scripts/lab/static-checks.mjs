@@ -173,6 +173,64 @@ export function checkHostPortsLoopback(doc) {
   return { pass: findings.length === 0, findings };
 }
 
+const EDGE_PUBLISH_NETWORK = "edge-publish";
+const EDGE_PUBLISH_MEMBERS = new Set(["reverse-proxy", "openobserve"]);
+const EXPECTED_PUBLISHED_PORTS = new Set(["127.0.0.1:8443:8443", "127.0.0.1:5080:5080"]);
+
+function serviceNetworkNames(service) {
+  const networks = service.networks;
+  if (Array.isArray(networks)) return networks;
+  if (networks && typeof networks === "object") return Object.keys(networks);
+  return [];
+}
+
+/**
+ * `edge-publish` exists only to make the two loopback-bound host ports
+ * reachable (Docker's `internal: true` networks refuse to publish any host
+ * port for their member containers). It must stay narrowly scoped: only
+ * reverse-proxy and openobserve may join it, demo-frontend and mock-api
+ * must not, and no port besides 127.0.0.1:8443 and 127.0.0.1:5080 may be
+ * published anywhere in the compose file.
+ */
+export function checkEdgePublishScope(doc) {
+  const findings = [];
+  const services = doc.services ?? {};
+
+  for (const [name, service] of Object.entries(services)) {
+    const isMember = serviceNetworkNames(service).includes(EDGE_PUBLISH_NETWORK);
+    const shouldBeMember = EDGE_PUBLISH_MEMBERS.has(name);
+    if (isMember && !shouldBeMember) {
+      findings.push(`${name}: must not join the "${EDGE_PUBLISH_NETWORK}" network.`);
+    }
+    if (!isMember && shouldBeMember) {
+      findings.push(
+        `${name}: must join the "${EDGE_PUBLISH_NETWORK}" network to publish its host port.`,
+      );
+    }
+  }
+
+  const publishedPorts = new Set();
+  for (const [name, service] of Object.entries(services)) {
+    for (const portEntry of service.ports ?? []) {
+      const spec =
+        typeof portEntry === "string"
+          ? portEntry
+          : `${portEntry.host_ip}:${portEntry.published}:${portEntry.target}`;
+      publishedPorts.add(spec);
+      if (!EXPECTED_PUBLISHED_PORTS.has(spec)) {
+        findings.push(`${name}: publishes unexpected port "${spec}".`);
+      }
+    }
+  }
+  for (const expected of EXPECTED_PUBLISHED_PORTS) {
+    if (!publishedPorts.has(expected)) {
+      findings.push(`Expected published port "${expected}" is missing.`);
+    }
+  }
+
+  return { pass: findings.length === 0, findings };
+}
+
 /** No privileged mode, docker socket mounts, host networking, or added capabilities. */
 export function checkNoDangerousPrivileges(doc) {
   const findings = [];
@@ -255,6 +313,7 @@ export function runAllStaticChecks() {
     ["no floating image tags", checkNoFloatingImages(doc)],
     ["images.lock.json consistency", checkImagesLockConsistency()],
     ["host ports bound to loopback", checkHostPortsLoopback(doc)],
+    ["edge-publish network scope", checkEdgePublishScope(doc)],
     ["no dangerous privileges", checkNoDangerousPrivileges(doc)],
     ["resource/reliability limits", checkResourceAndReliabilityLimits(doc)],
     ["named openobserve volume", checkNamedOpenobserveVolume(doc)],

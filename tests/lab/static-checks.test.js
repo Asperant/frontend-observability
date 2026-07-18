@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  checkEdgePublishScope,
   checkHostPortsLoopback,
   checkImagesLockConsistency,
   checkNamedOpenobserveVolume,
@@ -51,6 +52,77 @@ describe("static compose safety checks (against the real infrastructure/docker/c
     const doc = { services: { web: { ports: ["0.0.0.0:8080:8080"] } } };
     const result = checkHostPortsLoopback(doc);
     expect(result.pass).toBe(false);
+  });
+
+  it("edge-publish is joined only by reverse-proxy and openobserve, publishing only their two loopback ports", () => {
+    const { doc } = loadComposeDocument();
+    expect(checkEdgePublishScope(doc)).toEqual({ pass: true, findings: [] });
+
+    const services = doc.services;
+    expect(services["reverse-proxy"].networks).toContain("edge-publish");
+    expect(services.openobserve.networks).toContain("edge-publish");
+    expect(services["demo-frontend"].networks ?? []).not.toContain("edge-publish");
+    expect(services["mock-api"].networks ?? []).not.toContain("edge-publish");
+
+    const publishedPorts = Object.values(services).flatMap((service) => service.ports ?? []);
+    expect(new Set(publishedPorts)).toEqual(
+      new Set(["127.0.0.1:8443:8443", "127.0.0.1:5080:5080"]),
+    );
+  });
+
+  it("flags demo-frontend or mock-api if they join edge-publish", () => {
+    const doc = {
+      services: {
+        "reverse-proxy": {
+          networks: ["app-internal", "edge-publish"],
+          ports: ["127.0.0.1:8443:8443"],
+        },
+        "demo-frontend": { networks: ["app-internal", "edge-publish"] },
+        "mock-api": { networks: ["app-internal", "edge-publish"] },
+        openobserve: {
+          networks: ["observability-internal", "edge-publish"],
+          ports: ["127.0.0.1:5080:5080"],
+        },
+      },
+    };
+    const result = checkEdgePublishScope(doc);
+    expect(result.pass).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("demo-frontend"),
+        expect.stringContaining("mock-api"),
+      ]),
+    );
+  });
+
+  it("flags reverse-proxy or openobserve if they are missing from edge-publish", () => {
+    const doc = {
+      services: {
+        "reverse-proxy": { networks: ["app-internal"], ports: ["127.0.0.1:8443:8443"] },
+        "demo-frontend": { networks: ["app-internal"] },
+        "mock-api": { networks: ["app-internal"] },
+        openobserve: { networks: ["observability-internal"], ports: ["127.0.0.1:5080:5080"] },
+      },
+    };
+    const result = checkEdgePublishScope(doc);
+    expect(result.pass).toBe(false);
+    expect(result.findings.some((f) => f.includes("reverse-proxy"))).toBe(true);
+    expect(result.findings.some((f) => f.includes("openobserve"))).toBe(true);
+  });
+
+  it("flags an unexpected published port", () => {
+    const doc = {
+      services: {
+        "reverse-proxy": {
+          networks: ["edge-publish"],
+          ports: ["127.0.0.1:8443:8443", "127.0.0.1:9999:9999"],
+        },
+        openobserve: { networks: ["edge-publish"], ports: ["127.0.0.1:5080:5080"] },
+      },
+    };
+    const result = checkEdgePublishScope(doc);
+    expect(result.pass).toBe(false);
+    expect(result.findings.some((f) => f.includes("9999"))).toBe(true);
   });
 
   it("has no privileged mode, docker socket mount, host networking, or cap_add", () => {

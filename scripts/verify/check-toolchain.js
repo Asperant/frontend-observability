@@ -2,6 +2,8 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { checkExactNodeVersion, checkExactPnpmVersion } from "./toolchain.js";
+
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 
 function fail(message) {
@@ -10,20 +12,12 @@ function fail(message) {
 }
 
 const expectedNodeVersion = readFileSync(`${repoRoot}.node-version`, "utf8").trim();
-const actualNodeVersion = process.version.replace(/^v/, "");
-
-if (actualNodeVersion.split(".")[0] !== expectedNodeVersion.split(".")[0]) {
-  fail(
-    `Node.js major version mismatch: .node-version=${expectedNodeVersion} actual=${actualNodeVersion}`,
-  );
+const nodeResult = checkExactNodeVersion(expectedNodeVersion, process.version);
+if (!nodeResult.ok) {
+  fail(nodeResult.message);
 }
 
 const pkg = JSON.parse(readFileSync(`${repoRoot}package.json`, "utf8"));
-const expectedPnpm = pkg.packageManager?.split("@")[1];
-
-if (!expectedPnpm) {
-  fail("package.json is missing a pinned packageManager field for pnpm.");
-}
 
 let actualPnpm;
 try {
@@ -32,8 +26,9 @@ try {
   fail(`Unable to run "pnpm --version": ${error.message}`);
 }
 
-if (actualPnpm.split(".")[0] !== expectedPnpm.split(".")[0]) {
-  fail(`pnpm major version mismatch: expected=${expectedPnpm} actual=${actualPnpm}`);
+const pnpmResult = checkExactPnpmVersion(pkg.packageManager, actualPnpm);
+if (!pnpmResult.ok) {
+  fail(pnpmResult.message);
 }
 
-console.log(`Toolchain OK: node=${actualNodeVersion} pnpm=${actualPnpm}`);
+console.log(`Toolchain OK: node=${nodeResult.actual} pnpm=${pnpmResult.actual}`);
