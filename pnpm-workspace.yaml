@@ -1,0 +1,29 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+catalog:
+  react: 19.2.7
+  react-dom: 19.2.7
+  vite: 8.1.5
+  "@vitejs/plugin-react": 6.0.3
+  vitest: 4.1.10
+  "@vitest/coverage-v8": 4.1.10
+  jsdom: 29.1.1
+  "@playwright/test": 1.61.1
+  eslint: 10.7.0
+  "@eslint/js": 10.0.1
+  eslint-plugin-react: 7.37.5
+  eslint-plugin-react-hooks: 7.1.1
+  eslint-config-prettier: 10.1.8
+  globals: 17.7.0
+  prettier: 3.9.5
+  ajv: 8.20.0
+  ajv-formats: 3.0.1
+
+# Dependency lifecycle scripts (install/postinstall/preinstall) are disabled
+# by default for all dependencies. Nothing is allowlisted here because no
+# dependency used by this workspace requires a build script to function;
+# Playwright browser binaries are fetched via an explicit `playwright install`
+# step in scripts/verify, never via an implicit lifecycle hook.
+onlyBuiltDependencies: []

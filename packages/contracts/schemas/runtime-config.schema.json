@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chicek.internal/schemas/runtime-config.schema.json",
+  "title": "ChicekRuntimeConfig",
+  "description": "Remote runtime configuration accepted by @chicek/browser-observability. Every field is closed and cannot be used to weaken the privacy baseline (no session replay by default, no insecure transport, no arbitrary endpoints).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "enabled",
+    "issuedAt",
+    "expiresAt",
+    "killSwitch",
+    "privacyProfile",
+    "sampling",
+    "rum",
+    "browserLogs",
+    "sessionReplay",
+    "allowedRoutes",
+    "allowedSelectors"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["1.0.0"],
+      "description": "Version of this schema the payload was authored against."
+    },
+    "enabled": {
+      "type": "boolean",
+      "description": "Global on/off switch for the entire observability package."
+    },
+    "issuedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "killSwitch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["engaged"],
+      "properties": {
+        "engaged": {
+          "type": "boolean",
+          "description": "When true, the SDK must stop all data collection immediately, regardless of other fields."
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 256
+        }
+      }
+    },
+    "privacyProfile": {
+      "type": "string",
+      "enum": ["strict", "balanced"],
+      "description": "Closed set of privacy profiles. Neither profile permits body, credential, cookie, or session-token capture."
+    },
+    "sampling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionSampleRate", "errorSampleRate"],
+      "properties": {
+        "sessionSampleRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "errorSampleRate": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "rum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["endpoint", "applicationId", "organizationId"],
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://",
+          "maxLength": 512,
+          "description": "Must be an https:// URL. Insecure http:// endpoints are always rejected."
+        },
+        "applicationId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "organizationId": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    },
+    "browserLogs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    },
+    "sessionReplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "const": false,
+          "description": "Session replay is off by default and cannot be enabled through this schema version."
+        }
+      }
+    },
+    "allowedRoutes": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "type": "string", "minLength": 1, "maxLength": 256 }
+    },
+    "allowedSelectors": {
+      "type": "array",
+      "maxItems": 200,
+      "items": { "type": "string", "minLength": 1, "maxLength": 256 }
+    }
+  }
+}

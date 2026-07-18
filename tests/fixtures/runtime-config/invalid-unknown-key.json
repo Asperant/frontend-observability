@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "enabled": true,
+  "issuedAt": "2026-07-19T00:00:00.000Z",
+  "expiresAt": "2026-08-19T00:00:00.000Z",
+  "killSwitch": { "engaged": false },
+  "privacyProfile": "strict",
+  "sampling": { "sessionSampleRate": 0.1, "errorSampleRate": 1 },
+  "rum": {
+    "endpoint": "https://telemetry.example-test.invalid/api/rum",
+    "applicationId": "demo-frontend-fixture",
+    "organizationId": "chicek-fixture-org"
+  },
+  "browserLogs": { "enabled": true },
+  "sessionReplay": { "enabled": false },
+  "allowedRoutes": ["/"],
+  "allowedSelectors": ["#app"],
+  "unexpectedField": true
+}

@@ -1,0 +1,41 @@
+{
+  "name": "chicek-frontend-observability",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.15.0+sha512.266f8957a30d2be6e9468e5e66bcdedd35a794175f71b067ba8504d686cce1d0c0f429b33c323c3c569ad4891e667574a49ff71d1b89a22cc66f13c65818c578",
+  "engines": {
+    "node": "24.x",
+    "pnpm": "11.x"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @chicek/demo-frontend dev",
+    "build": "pnpm --filter @chicek/browser-observability build && node scripts/build/generate-artifact-manifest.js && node scripts/build/verify-build-gate.js && pnpm --filter @chicek/demo-frontend build",
+    "test": "pnpm run test:unit && pnpm run test:contract",
+    "test:unit": "vitest run --project unit",
+    "test:contract": "vitest run --project contract",
+    "test:consumer": "vitest run --project consumer",
+    "test:e2e": "playwright test",
+    "test:coverage": "vitest run --project unit --coverage",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "security:local": "node scripts/security/run-local-security.js",
+    "sbom": "node scripts/build/generate-sbom.js",
+    "verify": "node scripts/verify/run-verify.js",
+    "fix": "pnpm run format && eslint . --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@playwright/test": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-prettier": "catalog:",
+    "eslint-plugin-react": "catalog:",
+    "eslint-plugin-react-hooks": "catalog:",
+    "globals": "catalog:",
+    "jsdom": "catalog:",
+    "prettier": "catalog:",
+    "vitest": "catalog:"
+  }
+}

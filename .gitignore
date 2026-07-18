@@ -3,7 +3,7 @@
 !.env.example
 node_modules/
 dist/
-build/
+/build/
 coverage/
 .tmp/
 .cache/
@@ -11,3 +11,9 @@ coverage/
 .DS_Store
 .idea/
 .vscode/
+playwright-report/
+test-results/
+blob-report/
+.pnpm-store/
+reports/
+*.tsbuildinfo

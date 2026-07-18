@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "checkout.submit",
+  "attributes": {
+    "itemCount": 3,
+    "isReturningUser": false,
+    "planTier": "standard"
+  }
+}

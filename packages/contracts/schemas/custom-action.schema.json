@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chicek.internal/schemas/custom-action.schema.json",
+  "title": "ChicekCustomAction",
+  "description": "Payload shape accepted by recordAction(name, attributes).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "name"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["1.0.0"]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "description": "Lowercase dot-separated identifier, e.g. 'checkout.submit'."
+    },
+    "attributes": {
+      "type": "object",
+      "maxProperties": 20,
+      "propertyNames": {
+        "maxLength": 64,
+        "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": ["string", "number", "boolean"]
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chicek.internal/schemas/diagnostic-event.schema.json",
+  "title": "ChicekDiagnosticEvent",
+  "description": "Internal diagnostic/status event shape used by getObservabilityStatus() and internal error reporting.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "level", "code", "timestamp"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["1.0.0"]
+    },
+    "level": {
+      "type": "string",
+      "enum": ["debug", "info", "warn", "error"]
+    },
+    "code": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9_.-]*$"
+    },
+    "message": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "context": {
+      "type": "object",
+      "maxProperties": 20,
+      "additionalProperties": {
+        "type": ["string", "number", "boolean", "null"]
+      }
+    }
+  }
+}

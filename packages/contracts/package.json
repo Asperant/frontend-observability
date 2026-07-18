@@ -1,0 +1,22 @@
+{
+  "name": "@chicek/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./schemas/runtime-config": "./schemas/runtime-config.schema.json",
+    "./schemas/custom-action": "./schemas/custom-action.schema.json",
+    "./schemas/diagnostic-event": "./schemas/diagnostic-event.schema.json"
+  },
+  "files": [
+    "src",
+    "schemas"
+  ],
+  "dependencies": {
+    "ajv": "catalog:",
+    "ajv-formats": "catalog:"
+  }
+}
