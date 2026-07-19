@@ -47,6 +47,12 @@ Runtime config varsayılan olarak `/observability/config.json` adresinden same-o
 
 Lifecycle durumları `idle`, `initializing`, `active`, `disabled`, `degraded`, `shutting-down` ve `shutdown` değerlerinden oluşur. Status snapshot her çağrıda yeni, immutable ve secretsiz bir object döndürür.
 
+## Session Replay — Aşama 11 — Security Blocked
+
+Session Replay is disabled and unsupported with the pinned OpenObserve OSS version.
+
+OpenObserve OSS v0.91.0 replay masking client-side'dır ve sunucu tarafında herhangi bir segment içeriği doğrulaması yapılmaz. Gerçek RUM client token'ıyla browser'ı atlayarak gönderilen, şema açısından geçerli ve doğru şekilde deflate ile sıkıştırılmış kötücül bir replay payload'ı doğrudan kabul edilip `_sessionreplay` stream'ine olduğu gibi yazılabiliyor. RUM token browser-visible bir capability olduğundan (zaten `/rum` ve `/logs` için kabul edilmiş model), client-side masking bir güvenlik sınırı değildir. Bu proje kapsamında custom gateway/Lua/njs sanitizer eklenmesi kabul edilmez. Bu nedenle replay ingestion path allowlist'te açık değildir, replay sampling her zaman `0`'dır ve runtime config şeması replay'i etkinleştirecek hiçbir alan sunmaz. Ayrıntılar için bkz. [`docs/session-replay-security-decision.md`](docs/session-replay-security-decision.md).
+
 ## OpenObserve Entegrasyonu (Aşama 8)
 
 `src/adapter/openobserve/` altındaki adapter, runtime config `enabled:true` olduğunda gerçek `@openobserve/browser-rum` + `@openobserve/browser-logs` SDK'larını (exact-pinned) tarayıcıda dinamik olarak yükler; host uygulamaya ham SDK referansı hiçbir zaman sızmaz.

@@ -13,7 +13,7 @@ Bu roadmap, test sonuçları ve yeni bulgularla ortak karar sonucu değiştirile
 8. OpenObserve RUM ve browser logs
 9. Sanitization ve veri doğrulama
 10. Trace ve korelasyon
-11. Session replay güvenlik profili
+11. Session replay güvenlik profili — **Security Blocked**: Session Replay is disabled and unsupported with the pinned OpenObserve OSS version (bkz. `docs/session-replay-security-decision.md`)
 12. Gateway ve Collector pipeline
 13. Sampling, queue, retry ve kesinti davranışı
 14. Runtime config ve kill switch
