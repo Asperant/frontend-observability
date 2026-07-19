@@ -53,6 +53,14 @@ describe("buildRumOptions", () => {
     expect(options).not.toHaveProperty("account");
   });
 
+  it("does not enable distributed tracing or propagation headers", () => {
+    const options = buildRumOptions(identity, policy);
+    expect(options).not.toHaveProperty("allowedTracingUrls");
+    expect(options).not.toHaveProperty("traceSampleRate");
+    expect(options).not.toHaveProperty("traceContextInjection");
+    expect(options).not.toHaveProperty("propagateTraceBaggage");
+  });
+
   it("clamps an out-of-range or non-numeric sampling rate to 0", () => {
     const weirdPolicy = {
       ...policy,

@@ -4,6 +4,15 @@ export const MAX_DELAY_MS = 5000;
 const TIMEOUT_HOLD_MS = 3000;
 const LARGE_RESPONSE_ITEM_COUNT = 5000;
 const SUPPORTED_STATUS_CODES = new Set([200, 400, 404, 429, 500, 503]);
+const FORBIDDEN_CORRELATION_HEADERS = Object.freeze([
+  "traceparent",
+  "tracestate",
+  "baggage",
+  "x-request-id",
+  "x-correlation-id",
+  "x-datadog-trace-id",
+  "x-datadog-parent-id",
+]);
 
 function sendJson(res, statusCode, body) {
   const payload = JSON.stringify(body);
@@ -51,6 +60,14 @@ function handleLargeResponse(res) {
   sendJson(res, 200, { items });
 }
 
+function handleHeaderPresence(req, res) {
+  sendJson(res, 200, {
+    forbiddenCorrelationHeaders: Object.fromEntries(
+      FORBIDDEN_CORRELATION_HEADERS.map((header) => [header, header in req.headers]),
+    ),
+  });
+}
+
 /**
  * Deterministic, dependency-free mock HTTP API for the demo frontend and
  * end-to-end tests. It has no business logic: every route returns a fixed,
@@ -91,6 +108,11 @@ export function createMockApiServer() {
 
     if (segments.length === 1 && segments[0] === "large-response") {
       handleLargeResponse(res);
+      return;
+    }
+
+    if (segments.length === 1 && segments[0] === "headers") {
+      handleHeaderPresence(req, res);
       return;
     }
 

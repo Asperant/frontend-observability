@@ -12,6 +12,15 @@ import { DEMO_IDENTITY } from "./identity.js";
 const MOCK_API_BASE_URL = import.meta.env.VITE_MOCK_API_BASE_URL ?? "http://127.0.0.1:4311";
 
 const BASE_OPTIONS = DEMO_IDENTITY;
+const TEST_RUN_ID_PATTERN = /^[a-zA-Z0-9_.:-]{1,80}$/;
+
+function testRunContext(extra = {}) {
+  const testRunId = globalThis.__CHICEK_TEST_RUN_ID__;
+  if (typeof testRunId === "string" && TEST_RUN_ID_PATTERN.test(testRunId)) {
+    return { ...extra, test_run_id: testRunId };
+  }
+  return extra;
+}
 
 export function initializeScenario() {
   return initializeObservability({
@@ -120,11 +129,11 @@ export function statusScenario() {
 }
 
 export function recordActionScenario() {
-  return recordAction("demo.record-action", { source: "button" });
+  return recordAction("demo.record-action", testRunContext({ source: "button" }));
 }
 
 export function recordErrorScenario() {
-  return recordError(new Error("Demo recorded error"), { source: "button" });
+  return recordError(new Error("Demo recorded error"), testRunContext({ source: "button" }));
 }
 
 export function runtimeErrorScenario() {
@@ -159,15 +168,21 @@ export function longTaskScenario() {
   while (performance.now() - start < 60) {
     // busy wait
   }
-  return recordAction("demo.long-task", { durationMs: Math.round(performance.now() - start) });
+  return recordAction(
+    "demo.long-task",
+    testRunContext({ durationMs: Math.round(performance.now() - start) }),
+  );
 }
 
 async function fetchScenario(path, options) {
   try {
     const response = await fetch(`${MOCK_API_BASE_URL}${path}`, options);
-    return recordAction("demo.request-completed", { path, status: response.status });
+    return recordAction(
+      "demo.request-completed",
+      testRunContext({ path, status: response.status }),
+    );
   } catch (error) {
-    return recordError(error, { scenario: "request-failed", path });
+    return recordError(error, testRunContext({ scenario: "request-failed", path }));
   }
 }
 
@@ -205,19 +220,19 @@ export function telemetryFailureScenario() {
 }
 
 export function safeActionScenario() {
-  return recordAction("demo.safe-action", { source: "panel", result: "ok" });
+  return recordAction("demo.safe-action", testRunContext({ source: "panel", result: "ok" }));
 }
 
 export function piiRedactedActionScenario() {
   return recordAction("demo.pii-action", {
-    source: "panel",
+    ...testRunContext({ source: "panel" }),
     synthetic: "alice.test@example.invalid 12345678901234567890",
   });
 }
 
 export function secretDroppedActionScenario() {
   return recordAction("demo.secret-action", {
-    source: "panel",
+    ...testRunContext({ source: "panel" }),
     secret: "Bearer abcdefghijklmnopqrstuvwxyz",
   });
 }
@@ -225,25 +240,25 @@ export function secretDroppedActionScenario() {
 export function piiRedactedErrorScenario() {
   return recordError(
     new Error("Synthetic contact alice.test@example.invalid id 12345678901234567890"),
-    { source: "panel" },
+    testRunContext({ source: "panel" }),
   );
 }
 
 export function secretDroppedErrorScenario() {
   return recordError(new Error("Authorization: Bearer abcdefghijklmnopqrstuvwxyz"), {
-    source: "panel",
+    ...testRunContext({ source: "panel" }),
   });
 }
 
 export function urlNormalizationScenario() {
   return recordError(new Error("Synthetic URL /users/12345678901234567890?email=a#token"), {
-    source: "panel",
+    ...testRunContext({ source: "panel" }),
   });
 }
 
 export function unsafeAttributesScenario() {
   return recordAction("demo.unsafe-attributes", {
-    source: "panel",
+    ...testRunContext({ source: "panel" }),
     nested: { unsafe: true },
     email: "alice.test@example.invalid",
   });

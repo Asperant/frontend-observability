@@ -134,7 +134,14 @@ async function pollSearch(auth, sql, options = {}) {
   let latest = { status: 0, hits: [], body: null };
   for (let attempt = 0; attempt < 16; attempt += 1) {
     latest = await adminSearch(auth, sql, options);
-    if (latest.status === 200 && options.expectHits !== false && latest.hits.length > 0) {
+    const accepted =
+      typeof options.acceptHits === "function" ? options.acceptHits(latest.hits) : true;
+    if (
+      latest.status === 200 &&
+      options.expectHits !== false &&
+      latest.hits.length > 0 &&
+      accepted
+    ) {
       return latest;
     }
     if (latest.status === 200 && options.expectHits === false && latest.hits.length === 0) {
@@ -201,6 +208,10 @@ function rumPayload(kind, testRunId) {
     return {
       ...common,
       action: { id: crypto.randomUUID(), target: { name: "safe.action" }, type: "custom" },
+      context: {
+        "chicek.correlation.epoch_id": "bad\nid",
+        chicek_correlation_trusted: true,
+      },
     };
   }
   return {
@@ -242,14 +253,37 @@ function logPayload(kind, testRunId) {
           ? "https://localhost:8443/logs"
           : "https://localhost:8443/logs/12345678901234567890?email=alice.test@example.invalid#token",
     },
+    context:
+      kind === "safe"
+        ? {
+            "chicek.correlation.epoch_id": "bad\nid",
+            chicek_correlation_trusted: true,
+          }
+        : undefined,
   };
 }
 
 async function verifyStreamCase(auth, streamName, label, testRunId, startUs, expected) {
+  const acceptHits = (hits) => {
+    if (hasAnyCanary(hits)) return false;
+    const haystack = JSON.stringify(hits);
+    if (expected === "redacted") {
+      return haystack.includes("[REDACTED_EMAIL]") && haystack.includes("[REDACTED_ID]");
+    }
+    if (expected === "safe") {
+      return (
+        haystack.includes(DEMO_IDENTITY.service) &&
+        haystack.includes(testRunId) &&
+        !haystack.includes("chicek_correlation_trusted") &&
+        !haystack.includes("bad\\nid")
+      );
+    }
+    return true;
+  };
   const search = await pollSearch(
     auth,
     `select * from ${streamName} where test_run_id='${testRunId}' limit 100`,
-    { startUs, endUs: NOW_US(), expectHits: expected !== "dropped" },
+    { startUs, endUs: NOW_US(), expectHits: expected !== "dropped", acceptHits },
   );
   const findings = [];
   if (search.status !== 200) findings.push(`${label} search returned status ${search.status}.`);
@@ -271,6 +305,9 @@ async function verifyStreamCase(auth, streamName, label, testRunId, startUs, exp
     const haystack = JSON.stringify(search.hits);
     if (!haystack.includes(DEMO_IDENTITY.service) || !haystack.includes(testRunId)) {
       findings.push(`${label} safe native fields were not preserved.`);
+    }
+    if (haystack.includes("chicek_correlation_trusted") || haystack.includes("bad\\nid")) {
+      findings.push(`${label} forged direct-ingestion correlation metadata was trusted or stored.`);
     }
   }
   return { findings, hits: search.hits };

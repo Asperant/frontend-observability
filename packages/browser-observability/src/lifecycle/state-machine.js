@@ -1,4 +1,5 @@
 import { CONSENT } from "../internal/constants.js";
+import { createCorrelationContext } from "../correlation/correlation-context.js";
 import { createCounters } from "../diagnostics/counters.js";
 import { ReasonCodes, isReasonCode } from "../diagnostics/reason-codes.js";
 import { canTransition, LifecycleStates } from "./transitions.js";
@@ -19,6 +20,7 @@ export function createInitialRuntimeState() {
     initializedAt: null,
     lastTransitionAt: now,
     counters: createCounters(),
+    correlation: createCorrelationContext(),
     diagnostics: [],
     abortController: null,
     acceptingEvents: true,

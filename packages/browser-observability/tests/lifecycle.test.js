@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getObservabilityStatus,
   initializeObservability,
+  setTrackingConsent,
   shutdownObservability,
 } from "../src/index.js";
 import {
@@ -70,7 +71,51 @@ describe("state machine transitions", () => {
     const reinit = await initializeObservability(options);
     expect(reinit.reasonCode).toBe("CONFIG_DISABLED");
   });
+
+  it("fails closed on same-fingerprint resume if a preserved grant cannot create a new epoch", async () => {
+    const adapter = fakeAdapter();
+    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    setAdapterFactoryForTests(() => adapter);
+
+    await initializeObservability(options);
+    expect(setTrackingConsent("granted").ok).toBe(true);
+    await shutdownObservability();
+
+    vi.stubGlobal("crypto", {});
+    const reinit = await initializeObservability(options);
+    expect(reinit.ok).toBe(false);
+    expect(reinit.reasonCode).toBe("CORRELATION_CONTEXT_UNAVAILABLE");
+    vi.unstubAllGlobals();
+  });
+
+  it("creates a fresh epoch when same-fingerprint resume preserves granted consent", async () => {
+    const adapter = fakeAdapter();
+    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    setAdapterFactoryForTests(() => adapter);
+
+    await initializeObservability(options);
+    expect(setTrackingConsent("granted").ok).toBe(true);
+    await shutdownObservability();
+
+    const reinit = await initializeObservability(options);
+    expect(reinit.ok).toBe(true);
+    expect(reinit.status.correlation.state).toBe("active");
+  });
 });
+
+function fakeAdapter() {
+  return {
+    name: "fake",
+    initialize: vi.fn(),
+    setTrackingConsent: vi.fn(),
+    recordAction: vi.fn(),
+    recordError: vi.fn(),
+    startSessionReplay: vi.fn(),
+    stopSessionReplay: vi.fn(),
+    shutdown: vi.fn(),
+    getCapabilities: vi.fn(() => ({})),
+  };
+}
 
 function validEnabledConfig() {
   return {

@@ -1,4 +1,9 @@
-import { snapshotCounters, snapshotSanitization } from "../diagnostics/counters.js";
+import { snapshotCorrelation } from "../correlation/correlation-context.js";
+import {
+  snapshotCorrelationCounters,
+  snapshotCounters,
+  snapshotSanitization,
+} from "../diagnostics/counters.js";
 
 export function createStatusSnapshot(runtime) {
   return deepFreeze({
@@ -15,6 +20,11 @@ export function createStatusSnapshot(runtime) {
     lastTransitionAt: runtime.lastTransitionAt,
     counters: snapshotCounters(runtime.counters),
     sanitization: snapshotSanitization(runtime.counters),
+    correlation: snapshotCorrelation(
+      runtime.correlation,
+      snapshotCorrelationCounters(runtime.counters),
+      runtime,
+    ),
   });
 }
 

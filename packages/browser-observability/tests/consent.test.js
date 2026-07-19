@@ -78,6 +78,16 @@ describe("setTrackingConsent", () => {
     expect(localStorageSpy).not.toHaveBeenCalled();
     expect(sessionStorageSpy).not.toHaveBeenCalled();
   });
+
+  it("fails closed without granting consent when epoch creation is unavailable", () => {
+    vi.stubGlobal("crypto", {});
+    const result = setTrackingConsent("granted");
+    expect(result.ok).toBe(false);
+    expect(result.reasonCode).toBe("CORRELATION_CONTEXT_UNAVAILABLE");
+    expect(getObservabilityStatus().consent).toBe("not-granted");
+    expect(getObservabilityStatus().correlation.state).toBe("unavailable");
+    vi.unstubAllGlobals();
+  });
 });
 
 function fakeAdapter() {

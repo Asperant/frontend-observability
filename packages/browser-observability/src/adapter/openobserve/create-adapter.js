@@ -1,4 +1,11 @@
 import { ReasonCodes } from "../../diagnostics/reason-codes.js";
+import { enrichLogEvent } from "../../correlation/enrich-log-event.js";
+import { enrichRumEvent } from "../../correlation/enrich-rum-event.js";
+import {
+  clearCorrelationContext,
+  updateCorrelationCapabilities,
+} from "../../correlation/correlation-context.js";
+import { stripReservedFields } from "../../correlation/reserved-fields.js";
 import { buildLogsOptions } from "./build-logs-options.js";
 import { buildRumOptions } from "./build-rum-options.js";
 import { createCapabilities, UNAVAILABLE_CAPABILITIES } from "./capabilities.js";
@@ -43,11 +50,14 @@ export function createAdapter() {
   let logs = null;
   let capabilities = UNAVAILABLE_CAPABILITIES;
   let canaryLogged = false;
+  let counters = null;
+  let correlation = null;
 
   function applyConsent(consent) {
     const mapped = mapConsent(consent);
     rum?.setTrackingConsent(mapped);
     logs?.setTrackingConsent(mapped);
+    if (mapped !== "granted") clearCorrelationContext(correlation);
     if (mapped === "granted" && logs && !canaryLogged) {
       canaryLogged = true;
       logs.logger.log(CANARY_MESSAGE, CANARY_CONTEXT, "info");
@@ -62,6 +72,8 @@ export function createAdapter() {
       version: context.version,
     };
     const policy = context.policy;
+    counters = context.counters;
+    correlation = context.correlation;
 
     // The fingerprint is a SHA-256 digest (see sdk-fingerprint.js) and its
     // computation is genuinely async (Web Crypto's subtle.digest returns a
@@ -97,9 +109,11 @@ export function createAdapter() {
 
       try {
         sdk.rum.init(
-          buildRumOptions(identity, policy, (event) =>
-            sanitizeRumEvent(event, { counters: context.counters, policy }),
-          ),
+          buildRumOptions(identity, policy, (event, domainContext) => {
+            const sanitized = sanitizeRumEvent(event, { counters, policy });
+            if (sanitized === false) return false;
+            return enrichRumEvent(event, domainContext, correlation, { counters });
+          }),
         );
       } catch {
         throw initializationFailure();
@@ -115,9 +129,17 @@ export function createAdapter() {
       if (policy.browserLogs?.enabled) {
         try {
           sdk.logs.init(
-            buildLogsOptions(identity, policy, (event) =>
-              sanitizeLogEvent(event, { counters: context.counters, policy }),
-            ),
+            buildLogsOptions(identity, policy, (event, domainContext) => {
+              const sanitized = sanitizeLogEvent(event, { counters, policy });
+              if (sanitized === false) return false;
+              return enrichLogEvent(event, domainContext, correlation, {
+                counters,
+                getInternalContext:
+                  typeof sdk.rum?.getInternalContext === "function"
+                    ? (startTime) => sdk.rum.getInternalContext(startTime)
+                    : undefined,
+              });
+            }),
           );
           logsModule = sdk.logs;
         } catch {
@@ -142,6 +164,11 @@ export function createAdapter() {
       logs: sdkSingleton.logsOk,
       sessionReplay: false,
     });
+    updateCorrelationCapabilities(correlation, {
+      epoch: true,
+      nativeContext: typeof rum?.getInternalContext === "function",
+      logs: sdkSingleton.logsOk,
+    });
 
     // The SDK itself is always initialized with trackingConsent:"not-granted"
     // (see build-rum-options.js/build-logs-options.js) regardless of this
@@ -160,13 +187,13 @@ export function createAdapter() {
 
   function recordAction(name, attributes) {
     if (!rum) return { ok: false };
-    const mapped = mapAction(name, attributes);
+    const mapped = mapAction(name, stripReservedFields(attributes, { counters }).value);
     rum.addAction(mapped.name, mapped.context);
     return { ok: true };
   }
 
   function recordError(error, context) {
-    const mapped = mapError(error, context);
+    const mapped = mapError(error, stripReservedFields(context, { counters }).value);
     // Use whichever real, native SDK API is actually available; never send
     // the same error through both channels.
     if (rum) {
@@ -207,6 +234,7 @@ export function createAdapter() {
     rum?.setTrackingConsent("not-granted");
     logs?.setTrackingConsent("not-granted");
     rum?.stopSession();
+    clearCorrelationContext(correlation);
     return { ok: true };
   }
 

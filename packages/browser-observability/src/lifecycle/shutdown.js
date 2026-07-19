@@ -1,4 +1,5 @@
 import { getRuntimeState, replaceRuntimeState } from "../bootstrap/runtime-registry.js";
+import { clearCorrelationContext } from "../correlation/correlation-context.js";
 import { ReasonCodes } from "../diagnostics/reason-codes.js";
 import { createInitialRuntimeState, transition } from "./state-machine.js";
 import { LifecycleStates } from "./transitions.js";
@@ -17,6 +18,7 @@ export async function shutdownObservability() {
   }
 
   runtime.acceptingEvents = false;
+  clearCorrelationContext(runtime.correlation);
   runtime.abortController?.abort();
   transition(runtime, LifecycleStates.SHUTTING_DOWN, ReasonCodes.SHUTDOWN);
 

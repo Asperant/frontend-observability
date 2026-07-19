@@ -6,7 +6,7 @@ Mevcut web uygulamalarına minimum müdahaleyle bağlanacak şekilde tasarlanır
 
 ## Mevcut Durum
 
-`Aşama 9 Implemented — Verification Pending`
+`Aşama 10 Implemented — Verification Pending`
 
 ## Frontend Bootstrap (Aşama 7)
 
@@ -32,6 +32,16 @@ Sanitizer genel PII ve identifier sızıntılarını sabit placeholder'larla red
 OpenObserve OSS tarafında Enterprise Sensitive Data Redaction'a bağımlı olunmaz. `infrastructure/openobserve/sanitization/` altında version-controlled VRL function/pipeline tanımları bulunur ve `pnpm lab:up` bunları idempotent olarak provision etmeye çalışır. Desteklenen API veya fail-closed pipeline davranışı doğrulanamazsa lab akışı başarısız olur.
 
 Bu katman yalnız genel identifier, secret ve PII koruması sağlar. TCKN/VKN, faktoring alanları, ülke/şirket özel doğrulama algoritmaları, gerçek kullanıcı kimliği, session replay, source maps, dashboard/alert, retention, production sampling, queue/retry, backend tracing ve Collector/gateway kapsam dışıdır.
+
+## Frontend Correlation (Aşama 10)
+
+Frontend telemetry correlation yalnız browser içinde ve consent epoch seviyesinde çalışır. `not-granted → granted` geçişinde memory-only bir epoch üretilir; revoke ve shutdown sırasında temizlenir; regrant yeni epoch oluşturur. Epoch, native OpenObserve session/view/action context'iyle birlikte SDK `beforeSend` aşamasında güvenli `chicek.correlation.*` metadata olarak eklenir. Status ve diagnostics gerçek correlation ID içermez, yalnız capability ve sayaç verir.
+
+RUM view/action/resource/error/long-task/vital event'leri native session ve view ID'leriyle zenginleşir; native action ID varsa korunur. Browser log event'leri önce event/native RUM context'i, sonra desteklenen SDK internal context API'si ile eşleşir; destek yoksa yalnız epoch taşır. Son görülen view/action üzerinden tahmin yapılmaz.
+
+OpenObserve backstop pipeline'ı Stage 9 fail-closed graph'ını korur ve allow condition'dan sonra correlation normalize node'u çalıştırır. Invalid/oversized correlation alanları silinir, güvenli event sadece bu yüzden düşürülmez, direct-ingestion ile gelen correlation metadata trusted sayılmaz. Query şablonları `infrastructure/openobserve/correlation/` altında version-controlled tutulur ve event timeline'ı `_timestamp` sırasıyla sorgular.
+
+Bu aşama frontend-only correlation sağlar. Backend tracing, distributed trace header propagation (`traceparent`, `tracestate`, `baggage`, Datadog trace headers), `x-request-id`/`x-correlation-id`, user/tenant/customer/account kimliği, cross-tab/cross-device correlation ve persistent correlation storage kapsam dışıdır. Gerçek lab correlation gate'leri Chromium ve Firefox için zorunludur; WebKit non-blocking kalır.
 
 Runtime config varsayılan olarak `/observability/config.json` adresinden same-origin, timeout'lu, cache/cookie kullanmadan ve body sınırıyla çekilir. Consent varsayılanı `not-granted` değeridir; bootstrap bunu `localStorage`, `sessionStorage` veya IndexedDB'ye yazmaz.
 

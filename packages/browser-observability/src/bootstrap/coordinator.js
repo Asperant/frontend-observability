@@ -2,7 +2,9 @@ import { initializeAdapter } from "../adapter/adapter-contract.js";
 import { loadConfig } from "../config/load-config.js";
 import { mergePrivacyPolicy } from "../config/merge-policy.js";
 import { normalizeOptions, validateOptions } from "../config/validate-options.js";
+import { grantCorrelationEpoch } from "../correlation/correlation-context.js";
 import { ReasonCodes } from "../diagnostics/reason-codes.js";
+import { CONSENT } from "../internal/constants.js";
 import { fingerprintOptions } from "../internal/fingerprint.js";
 import { isBrowserRuntime } from "../internal/environment.js";
 import {
@@ -89,6 +91,13 @@ async function runInitialization(registry, options) {
     return result(false, runtime);
   }
 
+  if (runtime.consent === CONSENT.GRANTED && !runtime.correlation.epochId) {
+    if (!grantCorrelationEpoch(runtime.correlation)) {
+      disableRuntime(runtime, ReasonCodes.CORRELATION_CONTEXT_UNAVAILABLE);
+      return result(false, runtime);
+    }
+  }
+
   const adapterResult = await initializeAdapter(getAdapterFactory(), {
     service: options.service,
     environment: options.environment,
@@ -96,6 +105,7 @@ async function runInitialization(registry, options) {
     consent: runtime.consent,
     policy,
     counters: runtime.counters,
+    correlation: runtime.correlation,
   }).catch(() => ({ ok: false, adapter: null, thrown: true }));
 
   if (!adapterResult.ok) {

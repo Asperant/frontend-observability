@@ -22,6 +22,7 @@
     "test:e2e:stage9": "playwright test --config playwright-stage9.config.js",
     "test:stage8:openobserve": "node scripts/lab/verify-stage8-openobserve.mjs",
     "test:stage9:leakage": "node scripts/lab/verify-sanitization-leakage.mjs",
+    "test:stage10:correlation": "node scripts/lab/verify-stage10-correlation.mjs",
     "test:coverage": "vitest run --project unit --coverage",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",

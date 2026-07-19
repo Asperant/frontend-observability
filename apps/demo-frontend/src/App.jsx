@@ -153,6 +153,14 @@ function StatusPanel({ status }) {
       <dd>{status.sanitization?.redacted ?? 0}</dd>
       <dt>sanitizationDropped</dt>
       <dd>{status.sanitization?.dropped ?? 0}</dd>
+      <dt>correlationState</dt>
+      <dd>{status.correlation?.state ?? "unavailable"}</dd>
+      <dt>correlationEnriched</dt>
+      <dd>{status.correlation?.counters?.enriched ?? 0}</dd>
+      <dt>correlationPartial</dt>
+      <dd>{status.correlation?.counters?.partial ?? 0}</dd>
+      <dt>correlationReservedRemoved</dt>
+      <dd>{status.correlation?.counters?.reservedFieldRemoved ?? 0}</dd>
     </dl>
   );
 }

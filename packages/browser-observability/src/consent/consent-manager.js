@@ -1,4 +1,8 @@
 import { CONSENT } from "../internal/constants.js";
+import {
+  clearCorrelationContext,
+  grantCorrelationEpoch,
+} from "../correlation/correlation-context.js";
 import { getRuntimeState } from "../bootstrap/runtime-registry.js";
 import { ReasonCodes } from "../diagnostics/reason-codes.js";
 import { LifecycleStates } from "../lifecycle/transitions.js";
@@ -15,6 +19,17 @@ export function setConsent(consent) {
 
   const previous = runtime.consent;
   runtime.consent = consent;
+
+  if (previous !== CONSENT.GRANTED && consent === CONSENT.GRANTED) {
+    if (!grantCorrelationEpoch(runtime.correlation)) {
+      runtime.consent = previous;
+      clearCorrelationContext(runtime.correlation);
+      return result(false, runtime, ReasonCodes.CORRELATION_CONTEXT_UNAVAILABLE);
+    }
+  }
+  if (previous === CONSENT.GRANTED && consent === CONSENT.NOT_GRANTED) {
+    clearCorrelationContext(runtime.correlation);
+  }
 
   if (previous === CONSENT.GRANTED && consent === CONSENT.NOT_GRANTED && hasAdapter(runtime)) {
     safeAdapterCall(runtime, () => runtime.adapterInstance.stopSessionReplay());

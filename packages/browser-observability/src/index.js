@@ -30,6 +30,25 @@ const ERROR_STATUS_FALLBACK = Object.freeze({
     dropped: 0,
     reasons: Object.freeze({}),
   }),
+  correlation: Object.freeze({
+    state: "unavailable",
+    schemaVersion: 1,
+    capabilities: Object.freeze({
+      epoch: false,
+      session: false,
+      view: false,
+      action: false,
+      crossStream: false,
+    }),
+    counters: Object.freeze({
+      enriched: 0,
+      partial: 0,
+      unavailable: 0,
+      invalidNativeId: 0,
+      reservedFieldRemoved: 0,
+    }),
+    lastReasonCode: "INTERNAL_ERROR",
+  }),
 });
 
 /**

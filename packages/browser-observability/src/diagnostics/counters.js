@@ -1,3 +1,5 @@
+import { createCorrelationCounters, snapshotCorrelationCounters } from "../correlation/counters.js";
+
 const COUNTER_KEYS = Object.freeze([
   "acceptedActions",
   "droppedActions",
@@ -19,6 +21,7 @@ export function createCounters() {
       dropped: 0,
       reasons: {},
     },
+    correlation: createCorrelationCounters(),
   };
 }
 
@@ -69,3 +72,5 @@ export function snapshotSanitization(counters) {
     ),
   });
 }
+
+export { snapshotCorrelationCounters };

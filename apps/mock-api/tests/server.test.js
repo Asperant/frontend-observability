@@ -75,6 +75,26 @@ describe("GET /large-response", () => {
   });
 });
 
+describe("GET /headers", () => {
+  it("reports forbidden correlation/tracing header presence without returning values", async () => {
+    const response = await fetch(`${baseUrl}/headers`, {
+      headers: { traceparent: "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01" },
+    });
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      forbiddenCorrelationHeaders: {
+        traceparent: true,
+        tracestate: false,
+        baggage: false,
+        "x-request-id": false,
+        "x-correlation-id": false,
+        "x-datadog-trace-id": false,
+        "x-datadog-parent-id": false,
+      },
+    });
+  });
+});
+
 describe("GET /timeout", () => {
   it("never responds within a short client-side window", async () => {
     const controller = new AbortController();

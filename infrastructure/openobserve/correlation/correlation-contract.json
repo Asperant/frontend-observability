@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "namespace": "chicek.correlation",
+  "logicalFields": [
+    "chicek.correlation.schema_version",
+    "chicek.correlation.epoch_id",
+    "chicek.correlation.session_id",
+    "chicek.correlation.view_id",
+    "chicek.correlation.action_id"
+  ],
+  "expectedFlattenedFields": [
+    "chicek_correlation_schema_version",
+    "chicek_correlation_epoch_id",
+    "chicek_correlation_session_id",
+    "chicek_correlation_view_id",
+    "chicek_correlation_action_id",
+    "context_chicek_correlation_schema_version",
+    "context_chicek_correlation_epoch_id",
+    "context_chicek_correlation_session_id",
+    "context_chicek_correlation_view_id",
+    "context_chicek_correlation_action_id"
+  ],
+  "trustedOnDirectIngestion": false,
+  "usesArrivalOrder": false,
+  "createsDashboardOrAlert": false
+}

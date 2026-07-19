@@ -71,6 +71,12 @@ export default defineConfig({
           functions: 100,
           branches: 100,
         },
+        "packages/browser-observability/src/correlation/**": {
+          statements: 100,
+          lines: 100,
+          functions: 100,
+          branches: 100,
+        },
         "packages/browser-observability/src/config/**": {
           statements: 100,
           lines: 100,

@@ -19,6 +19,7 @@ const SANITIZATION_DIR = join(repoRoot, "infrastructure/openobserve/sanitization
 const FUNCTIONS = {
   rum: "chicek_rum_sanitize_v1",
   rumlog: "chicek_rumlog_sanitize_v1",
+  correlation: "chicek_correlation_normalize_v1",
   cleanup: "chicek_sanitization_cleanup_v1",
 };
 
@@ -216,24 +217,32 @@ function createPipelinePayload({ name, stream, sanitizeFunction }) {
         440,
       ),
       createPipelineNode(
+        "correlation-normalize",
+        "function",
+        "default",
+        { name: FUNCTIONS.correlation, after_flatten: false },
+        660,
+      ),
+      createPipelineNode(
         "cleanup",
         "function",
         "default",
         { name: FUNCTIONS.cleanup, after_flatten: false },
-        660,
+        880,
       ),
       createPipelineNode(
         "destination",
         "stream",
         "output",
         { org_id: ORG_ID, stream_type: STREAM_TYPE, stream_name: stream },
-        880,
+        1100,
       ),
     ],
     edges: [
       createPipelineEdge("source", "classify-and-sanitize"),
       createPipelineEdge("classify-and-sanitize", "allow-sanitized"),
-      createPipelineEdge("allow-sanitized", "cleanup"),
+      createPipelineEdge("allow-sanitized", "correlation-normalize"),
+      createPipelineEdge("correlation-normalize", "cleanup"),
       createPipelineEdge("cleanup", "destination"),
     ],
   };
@@ -389,10 +398,12 @@ export async function provisionSanitization() {
   const auth = basicAuthHeader(email, password);
   const rumVrl = readFileSync(join(SANITIZATION_DIR, "rum.vrl"), "utf8");
   const rumlogVrl = readFileSync(join(SANITIZATION_DIR, "rumlog.vrl"), "utf8");
+  const correlationVrl = readFileSync(join(SANITIZATION_DIR, "correlation.vrl"), "utf8");
   const cleanupVrl = readFileSync(join(SANITIZATION_DIR, "cleanup.vrl"), "utf8");
   const functionSources = {
     [FUNCTIONS.rum]: rumVrl,
     [FUNCTIONS.rumlog]: rumlogVrl,
+    [FUNCTIONS.correlation]: correlationVrl,
     [FUNCTIONS.cleanup]: cleanupVrl,
   };
 
