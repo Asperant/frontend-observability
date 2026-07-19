@@ -1,3 +1,11 @@
+// Declares how this adapter's initialize()/shutdown() relate to the real
+// vendor SDK: the SDK is a page-global singleton with no destroy/dispose
+// API, so shutdown never tears it down and a later reinitialize resumes the
+// same SDK instance rather than creating a new one. This is a fixed,
+// structural property of this adapter (not a per-call outcome), so it is
+// always reported the same way.
+const LIFECYCLE_MODEL = "singleton-resume";
+
 /**
  * Generic (adapter-agnostic) capability flags read by
  * bootstrap/coordinator.js to decide between an active and a degraded
@@ -10,6 +18,7 @@ export function createCapabilities({ telemetry, logs, sessionReplay = false }) {
     telemetry: Boolean(telemetry),
     logs: Boolean(logs),
     sessionReplay: Boolean(sessionReplay),
+    lifecycleModel: LIFECYCLE_MODEL,
   });
 }
 

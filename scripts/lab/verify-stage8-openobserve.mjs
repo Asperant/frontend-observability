@@ -9,6 +9,8 @@ import {
   passwordSecretPath,
   runtimeConfigPath,
 } from "./common.mjs";
+import { DEMO_IDENTITY } from "../../apps/demo-frontend/src/identity.js";
+import { RUM_APPLICATION_ID } from "./generate-runtime-config.mjs";
 
 const DEMO_URL = "https://localhost:8443";
 const OPENOBSERVE_ADMIN_URL = "http://127.0.0.1:5080";
@@ -173,13 +175,27 @@ export async function verifyStage8OpenObserve() {
     }
   }
 
-  for (const hit of [...views.hits, ...actions.hits, ...errors.hits, ...(canary.hits ?? [])]) {
-    if (hit.service !== "demo-frontend")
-      findings.push(`Ingested record has unexpected service: ${hit.service}`);
-    if (hit.env !== "development") findings.push(`Ingested record has unexpected env: ${hit.env}`);
-    if (hit.application_id && hit.application_id !== "chicek-demo-frontend") {
-      findings.push(`Ingested record has unexpected application_id: ${hit.application_id}`);
-    }
+  const rumdataHits = [...views.hits, ...actions.hits, ...errors.hits, ...resources.hits];
+  for (const hit of rumdataHits) {
+    if (hit.service !== DEMO_IDENTITY.service)
+      findings.push(`_rumdata record has unexpected service: ${hit.service}`);
+    if (hit.env !== DEMO_IDENTITY.environment)
+      findings.push(`_rumdata record has unexpected env: ${hit.env}`);
+    if (hit.version !== DEMO_IDENTITY.version)
+      findings.push(`_rumdata record has unexpected version: ${hit.version}`);
+    if (hit.application_id !== RUM_APPLICATION_ID)
+      findings.push(`_rumdata record has unexpected application_id: ${hit.application_id}`);
+  }
+
+  for (const hit of canary.hits ?? []) {
+    if (hit.service !== DEMO_IDENTITY.service)
+      findings.push(`_rumlog record has unexpected service: ${hit.service}`);
+    if (hit.env !== DEMO_IDENTITY.environment)
+      findings.push(`_rumlog record has unexpected env: ${hit.env}`);
+    if (hit.version !== DEMO_IDENTITY.version)
+      findings.push(`_rumlog record has unexpected version: ${hit.version}`);
+    if (hit.application_id !== RUM_APPLICATION_ID)
+      findings.push(`_rumlog record has unexpected application_id: ${hit.application_id}`);
   }
 
   log("verify:stage8:openobserve — checking absence of forbidden data...");

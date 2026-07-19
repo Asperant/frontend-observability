@@ -11,6 +11,7 @@ describe("createCapabilities", () => {
       telemetry: true,
       logs: false,
       sessionReplay: true,
+      lifecycleModel: "singleton-resume",
     });
   });
 
@@ -19,7 +20,14 @@ describe("createCapabilities", () => {
       telemetry: true,
       logs: true,
       sessionReplay: false,
+      lifecycleModel: "singleton-resume",
     });
+  });
+
+  it("always reports the singleton-resume lifecycle model (a fixed adapter property, not per-call state)", () => {
+    expect(createCapabilities({ telemetry: false, logs: false }).lifecycleModel).toBe(
+      "singleton-resume",
+    );
   });
 
   it("returns a frozen object", () => {
@@ -33,6 +41,7 @@ describe("UNAVAILABLE_CAPABILITIES", () => {
       telemetry: false,
       logs: false,
       sessionReplay: false,
+      lifecycleModel: "singleton-resume",
     });
   });
 });

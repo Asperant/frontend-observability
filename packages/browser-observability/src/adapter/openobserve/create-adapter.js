@@ -6,9 +6,29 @@ import { loadOpenObserveSdk } from "./load-sdk.js";
 import { mapAction } from "./map-action.js";
 import { mapConsent } from "./map-consent.js";
 import { mapError } from "./map-error.js";
+import { computeSdkFingerprint } from "./sdk-fingerprint.js";
 
 const CANARY_MESSAGE = "stage8.browser_logs.canary";
 const CANARY_CONTEXT = Object.freeze({ component: "demo-fixture", outcome: "success" });
+
+// The vendor SDK (@openobserve/browser-rum / @openobserve/browser-logs) is a
+// true page-global singleton: both packages resolve to the same module
+// instance for the lifetime of the page, they expose no destroy/dispose
+// API, and a second real init() call on either is a documented, silent
+// no-op (see build-rum-options.js's silentMultipleInit). createAdapter()
+// itself is a cheap factory that the coordinator calls fresh on every
+// initialize — including a real shutdown()+reinitialize() cycle — so "has
+// the real SDK actually been initialized, and for which connection
+// identity" cannot live in the per-call closure below; it has to live here,
+// at module scope, for as long as the page/module instance is alive. This
+// is exactly the state the duplicate-SDK-bundling contract test guards:
+// there must only ever be one copy of this module (and therefore one copy
+// of this singleton) per page.
+let sdkSingleton = null;
+
+export function resetOpenObserveAdapterForTests() {
+  sdkSingleton = null;
+}
 
 /**
  * Adapter factory for the real OpenObserve browser RUM + Logs integration.
@@ -41,37 +61,66 @@ export function createAdapter() {
       version: context.version,
     };
     const policy = context.policy;
+    const fingerprint = computeSdkFingerprint(identity, policy.rum);
 
-    let sdk;
-    try {
-      sdk = await loadOpenObserveSdk();
-    } catch {
-      throw initializationFailure();
+    if (sdkSingleton && sdkSingleton.fingerprint !== fingerprint) {
+      // A real reinitialize with a different SDK connection identity is not
+      // supported: the vendor SDK cannot be reconfigured once initialized,
+      // and there is no way to guarantee the previously-sent data and the
+      // newly-requested identity would not collide in OpenObserve. Fail
+      // closed without touching the already-running SDK singleton at all —
+      // its config, session, and consent state are left exactly as they
+      // were.
+      throw reinitializationUnsupported();
     }
 
-    try {
-      sdk.rum.init(buildRumOptions(identity, policy));
-    } catch {
-      throw initializationFailure();
-    }
-    rum = sdk.rum;
-
-    // Browser logs are a secondary channel: attempting it only when the
-    // runtime config actually requests it, and only reporting a failure
-    // (which the coordinator turns into a degraded state) when it was
-    // requested but did not come up — never for a channel nobody asked for.
-    let logsOk = true;
-    if (policy.browserLogs?.enabled) {
+    if (!sdkSingleton) {
+      let sdk;
       try {
-        sdk.logs.init(buildLogsOptions(identity, policy));
-        logs = sdk.logs;
+        sdk = await loadOpenObserveSdk();
       } catch {
-        logsOk = false;
-        logs = null;
+        throw initializationFailure();
       }
+
+      try {
+        sdk.rum.init(buildRumOptions(identity, policy));
+      } catch {
+        throw initializationFailure();
+      }
+
+      // Browser logs are a secondary channel: attempting it only when the
+      // runtime config actually requests it, and only reporting a failure
+      // (which the coordinator turns into a degraded state) when it was
+      // requested but did not come up — never for a channel nobody asked
+      // for.
+      let logsOk = true;
+      let logsModule = null;
+      if (policy.browserLogs?.enabled) {
+        try {
+          sdk.logs.init(buildLogsOptions(identity, policy));
+          logsModule = sdk.logs;
+        } catch {
+          logsOk = false;
+          logsModule = null;
+        }
+      }
+
+      // Store only the fingerprint (a hash, never the raw clientToken) and
+      // the live SDK module references — nothing here is exposed through
+      // getCapabilities()/status/diagnostics.
+      sdkSingleton = { fingerprint, rum: sdk.rum, logs: logsModule, logsOk };
     }
 
-    capabilities = createCapabilities({ telemetry: true, logs: logsOk, sessionReplay: false });
+    // Same fingerprint as an already-initialized singleton (either the
+    // first initialize() above, or a resume after shutdown()): reuse the
+    // existing SDK instance rather than calling its init() a second time.
+    rum = sdkSingleton.rum;
+    logs = sdkSingleton.logs;
+    capabilities = createCapabilities({
+      telemetry: true,
+      logs: sdkSingleton.logsOk,
+      sessionReplay: false,
+    });
 
     // The SDK itself is always initialized with trackingConsent:"not-granted"
     // (see build-rum-options.js/build-logs-options.js) regardless of this
@@ -81,7 +130,10 @@ export function createAdapter() {
     // already "granted" before shutdown and never changes again afterward
     // (the coordinator only re-applies consent to the adapter when a caller
     // calls setTrackingConsent() with a *new* value), so without this the
-    // real SDK would stay silently un-consented forever after a reinit.
+    // real SDK would stay silently un-consented forever after a reinit. On
+    // the resume path this is also what makes the SDK start tracking a new
+    // session again: the SDK creates one lazily on the next accepted event
+    // once consent is granted, there is no separate "start session" call.
     applyConsent(context.consent);
   }
 
@@ -123,7 +175,14 @@ export function createAdapter() {
     // silent no-op). Shutdown therefore closes consent and ends the current
     // session — the real, supported way to stop this adapter from sending
     // anything further — rather than pretending to tear down a singleton
-    // the SDK itself never lets go of.
+    // the SDK itself never lets go of. The module-level sdkSingleton is
+    // deliberately left in place (not cleared) so that a later
+    // reinitialize() with the same fingerprint can resume it instead of
+    // calling init() again; it carries no token value, only the fingerprint
+    // hash and the live SDK module references. Everything else — this
+    // adapter instance itself, the runtime's config/abort-controller state —
+    // is discarded by the coordinator's own shutdown path
+    // (lifecycle/shutdown.js), not retained here.
     rum?.setTrackingConsent("not-granted");
     logs?.setTrackingConsent("not-granted");
     rum?.stopSession();
@@ -153,5 +212,15 @@ function initializationFailure() {
   // the vendor SDK's internal failure should be retained even transiently.
   const error = new Error("openobserve adapter initialization failed");
   error.reasonCode = ReasonCodes.ADAPTER_INITIALIZATION_FAILED;
+  return error;
+}
+
+function reinitializationUnsupported() {
+  // Carries no detail beyond the reasonCode: not which fields differed, and
+  // never the fingerprint or token values themselves.
+  const error = new Error(
+    "openobserve adapter reinitialization with a different SDK identity is not supported",
+  );
+  error.reasonCode = ReasonCodes.SDK_REINITIALIZATION_UNSUPPORTED;
   return error;
 }

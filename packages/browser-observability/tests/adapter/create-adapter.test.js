@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createAdapter } from "../../src/adapter/openobserve/create-adapter.js";
+import {
+  createAdapter,
+  resetOpenObserveAdapterForTests,
+} from "../../src/adapter/openobserve/create-adapter.js";
 import { loadOpenObserveSdk } from "../../src/adapter/openobserve/load-sdk.js";
 
 vi.mock("../../src/adapter/openobserve/load-sdk.js", () => ({
@@ -53,6 +56,10 @@ function baseContext({ consent = "not-granted", browserLogsEnabled = true } = {}
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // The real vendor SDK is a page-global singleton (see create-adapter.js);
+  // this resets that module-level state between tests so each test's own
+  // fakeRum()/fakeLogs() mocks are the ones actually exercised.
+  resetOpenObserveAdapterForTests();
 });
 
 describe("createAdapter", () => {
@@ -81,6 +88,7 @@ describe("createAdapter", () => {
       telemetry: false,
       logs: false,
       sessionReplay: false,
+      lifecycleModel: "singleton-resume",
     });
   });
 
@@ -98,6 +106,7 @@ describe("createAdapter", () => {
       telemetry: true,
       logs: true,
       sessionReplay: false,
+      lifecycleModel: "singleton-resume",
     });
   });
 
@@ -115,6 +124,7 @@ describe("createAdapter", () => {
       telemetry: true,
       logs: true,
       sessionReplay: false,
+      lifecycleModel: "singleton-resume",
     });
   });
 
@@ -133,6 +143,7 @@ describe("createAdapter", () => {
       telemetry: true,
       logs: false,
       sessionReplay: false,
+      lifecycleModel: "singleton-resume",
     });
   });
 
@@ -277,5 +288,137 @@ describe("createAdapter", () => {
     const adapter = createAdapter();
     expect(adapter.recordAction("checkout.submit", {})).toEqual({ ok: false });
     expect(adapter.recordError(new Error("boom"), {})).toEqual({ ok: false });
+  });
+
+  describe("singleton lifecycle across shutdown + reinitialize", () => {
+    function contextWithRum(rumOverrides, { consent = "not-granted" } = {}) {
+      const base = baseContext({ consent });
+      return { ...base, policy: { ...base.policy, rum: { ...base.policy.rum, ...rumOverrides } } };
+    }
+
+    it("initializes the real SDK exactly once across a full shutdown+reinitialize cycle with the same fingerprint", async () => {
+      const rum = fakeRum();
+      const logs = fakeLogs();
+      loadOpenObserveSdk.mockResolvedValue({ rum, logs });
+
+      const firstAdapter = createAdapter();
+      await firstAdapter.initialize(baseContext());
+      firstAdapter.shutdown();
+
+      // The coordinator calls the factory fresh on every initialize — this
+      // is a brand-new adapter closure, simulating the real
+      // shutdown()->reinitialize() flow.
+      const secondRum = fakeRum();
+      const secondLogs = fakeLogs();
+      loadOpenObserveSdk.mockResolvedValue({ rum: secondRum, logs: secondLogs });
+
+      const secondAdapter = createAdapter();
+      await secondAdapter.initialize(baseContext({ consent: "granted" }));
+
+      expect(rum.init).toHaveBeenCalledTimes(1);
+      expect(logs.init).toHaveBeenCalledTimes(1);
+      // The second, distinct SDK mock was never touched: the resume path
+      // reused the original singleton instead of loading/initializing again.
+      expect(loadOpenObserveSdk).toHaveBeenCalledTimes(1);
+      expect(secondRum.init).not.toHaveBeenCalled();
+      expect(secondLogs.init).not.toHaveBeenCalled();
+    });
+
+    it("reapplies consent and resumes telemetry through the original SDK instance on a same-fingerprint resume", async () => {
+      const rum = fakeRum();
+      const logs = fakeLogs();
+      loadOpenObserveSdk.mockResolvedValue({ rum, logs });
+
+      const firstAdapter = createAdapter();
+      await firstAdapter.initialize(baseContext());
+      firstAdapter.shutdown();
+
+      const secondAdapter = createAdapter();
+      await secondAdapter.initialize(baseContext({ consent: "granted" }));
+
+      expect(rum.setTrackingConsent).toHaveBeenLastCalledWith("granted");
+      secondAdapter.recordAction("checkout.submit", { itemCount: 1 });
+      expect(rum.addAction).toHaveBeenCalledWith("checkout.submit", { itemCount: 1 });
+    });
+
+    it("does not re-call init() across many same-fingerprint resume cycles", async () => {
+      const rum = fakeRum();
+      const logs = fakeLogs();
+      loadOpenObserveSdk.mockResolvedValue({ rum, logs });
+
+      for (let cycle = 0; cycle < 3; cycle += 1) {
+        const adapter = createAdapter();
+        await adapter.initialize(baseContext());
+        adapter.shutdown();
+      }
+
+      expect(rum.init).toHaveBeenCalledTimes(1);
+      expect(logs.init).toHaveBeenCalledTimes(1);
+    });
+
+    it("fails closed with SDK_REINITIALIZATION_UNSUPPORTED when reinitializing with a different fingerprint, leaving the existing SDK singleton untouched", async () => {
+      const rum = fakeRum();
+      const logs = fakeLogs();
+      loadOpenObserveSdk.mockResolvedValue({ rum, logs });
+
+      const firstAdapter = createAdapter();
+      await firstAdapter.initialize(baseContext());
+      firstAdapter.shutdown();
+
+      const otherRum = fakeRum();
+      const otherLogs = fakeLogs();
+      loadOpenObserveSdk.mockResolvedValue({ rum: otherRum, logs: otherLogs });
+
+      const secondAdapter = createAdapter();
+      await expect(
+        secondAdapter.initialize(contextWithRum({ clientToken: "b".repeat(48) })),
+      ).rejects.toMatchObject({ reasonCode: "SDK_REINITIALIZATION_UNSUPPORTED" });
+
+      // The rejected identity never touched the SDK, and the original
+      // singleton's own state (already-called init, consent) is unchanged.
+      expect(otherRum.init).not.toHaveBeenCalled();
+      expect(rum.init).toHaveBeenCalledTimes(1);
+
+      // The original adapter (still holding the untouched singleton) keeps
+      // working normally.
+      firstAdapter.setTrackingConsent("granted");
+      firstAdapter.recordAction("checkout.submit", {});
+      expect(rum.addAction).toHaveBeenCalledWith("checkout.submit", {});
+    });
+
+    it("fails closed on a different fingerprint from a service/environment/version change alone", async () => {
+      const rum = fakeRum();
+      const logs = fakeLogs();
+      loadOpenObserveSdk.mockResolvedValue({ rum, logs });
+
+      const firstAdapter = createAdapter();
+      await firstAdapter.initialize(baseContext());
+
+      const secondAdapter = createAdapter();
+      const differentIdentityContext = { ...baseContext(), environment: "production-eu" };
+      await expect(secondAdapter.initialize(differentIdentityContext)).rejects.toMatchObject({
+        reasonCode: "SDK_REINITIALIZATION_UNSUPPORTED",
+      });
+    });
+
+    it("never propagates a raw exception to the caller on a rejected reinitialize — only the controlled reasonCode", async () => {
+      const rum = fakeRum();
+      const logs = fakeLogs();
+      loadOpenObserveSdk.mockResolvedValue({ rum, logs });
+
+      const firstAdapter = createAdapter();
+      await firstAdapter.initialize(baseContext());
+
+      const secondAdapter = createAdapter();
+      const error = await secondAdapter
+        .initialize(contextWithRum({ site: "other-host:8443" }))
+        .catch((caught) => caught);
+
+      expect(error).toBeInstanceOf(Error);
+      expect(error.reasonCode).toBe("SDK_REINITIALIZATION_UNSUPPORTED");
+      // No connection detail (old or new site/token) leaks into the message.
+      expect(error.message).not.toContain("other-host");
+      expect(error.message).not.toContain("localhost:8443");
+    });
   });
 });

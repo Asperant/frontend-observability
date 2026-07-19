@@ -2,7 +2,7 @@ import { getRuntimeOrigin } from "../internal/environment.js";
 
 export const DEFAULT_CONFIG_URL = "/observability/config.json";
 const MAX_CONFIG_URL_LENGTH = 256;
-const VALID_ENVIRONMENTS = Object.freeze(["development", "test", "staging", "production"]);
+const VALID_ENVIRONMENTS = Object.freeze(["development", "test", "staging", "production", "lab"]);
 const OPTION_KEYS = Object.freeze(["configUrl", "service", "environment", "version"]);
 const SERVICE_PATTERN = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

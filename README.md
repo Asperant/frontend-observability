@@ -27,6 +27,20 @@ Runtime config varsayılan olarak `/observability/config.json` adresinden same-o
 
 Lifecycle durumları `idle`, `initializing`, `active`, `disabled`, `degraded`, `shutting-down` ve `shutdown` değerlerinden oluşur. Status snapshot her çağrıda yeni, immutable ve secretsiz bir object döndürür.
 
+## OpenObserve Entegrasyonu (Aşama 8)
+
+`src/adapter/openobserve/` altındaki adapter, runtime config `enabled:true` olduğunda gerçek `@openobserve/browser-rum` + `@openobserve/browser-logs` SDK'larını (exact-pinned) tarayıcıda dinamik olarak yükler; host uygulamaya ham SDK referansı hiçbir zaman sızmaz.
+
+**Vendor SDK lifecycle kısıtı:** Vendor SDK, sayfa boyunca gerçek bir singleton'dır ve destroy/dispose API'si yoktur — ikinci bir `init()` çağrısı SDK içinde sessiz bir no-op'tur. Bu paket bunu, `shutdown()`'ın SDK'yı gerçekten yok etmiş gibi göstermeden, dürüstçe modelliyor:
+
+- Bir bağlantı kimliği fingerprint'i (`site`, `organizationIdentifier`, `applicationId`, `clientToken`'ın hash'i, `service`, `environment`, `version`) hesaplanır; token'ın kendisi hiçbir zaman saklanmaz, yalnızca bu hash tutulur.
+- İlk `initialize()` gerçek SDK `init()`'ini bir kez çağırır. `shutdown()` consent'i `not-granted` yapar ve session'ı kapatır, ancak SDK singleton'ını (ve fingerprint'i) bozmadan bırakır.
+- Aynı fingerprint ile bir sonraki `initialize()` (gerçek shutdown→reinitialize akışı) SDK `init()`'ini **tekrar çağırmaz**; yalnız consent'i yeniden uygular ve SDK kendi session'ını bir sonraki kabul edilen event'te yeniden başlatır.
+- Farklı bir fingerprint ile reinitialize denemesi fail-closed reddedilir (`reasonCode: SDK_REINITIALIZATION_UNSUPPORTED`); zaten çalışan SDK singleton'ının config/session/consent durumu hiç dokunulmadan kalır.
+- Adapter capability'si bu modeli `lifecycleModel: "singleton-resume"` olarak bildirir (sabit, adapter'a özgü bir özelliktir).
+
+**Tarayıcı kapsamı:** Zorunlu gerçek entegrasyon kapıları yalnızca **Chromium** ve **Firefox**'tur (bkz. `playwright-stage8.config.js`, `tests/e2e/stage8-lab.spec.js`, `scripts/lab/verify-stage8-openobserve.mjs`). WebKit/Safari bu aşamanın kabul kapısı değildir; mevcut WebKit smoke testi (`tests/e2e/stage8-adapter.spec.js`, plain HTTP, lab dışı) korunur ama bu self-signed HTTPS lab'ına karşı yeni bir WebKit/OpenObserve E2E veya HTTP forwarder eklenmez — bilinen bir Playwright/WebKit-Linux kısıtı nedeniyle non-blocking kabul edilir.
+
 ## Docker Referans Laboratuvarı (Aşama 6)
 
 Güvenli, tekrarlanabilir bir Docker Compose laboratuvarı: `demo-frontend` ve `mock-api` fixture'larını, gerçek stable OpenObserve OSS'i ve bunların önündeki tek giriş noktası `reverse-proxy`'yi bir araya getirir. Şirket backend'i, Collector/gateway veya alternatif dashboard yoktur; bu aşamada OpenObserve'un kendi web arayüzü kullanılır ve gerçek RUM/browser-log gönderimi henüz başlatılmaz.

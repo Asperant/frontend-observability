@@ -55,6 +55,13 @@ describe("validateOptions", () => {
     },
   );
 
+  it.each(["development", "test", "staging", "production", "lab"])(
+    "accepts valid environment: %s",
+    (environment) => {
+      expect(validateOptions({ ...valid, environment }).valid).toBe(true);
+    },
+  );
+
   it("includes configUrl validation errors in option validation", () => {
     const result = validateOptions({ ...valid, configUrl: "/observability/config.json?x=1" });
     expect(result.valid).toBe(false);

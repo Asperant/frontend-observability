@@ -7,13 +7,11 @@ import {
   shutdownObservability,
 } from "@chicek/browser-observability";
 
+import { DEMO_IDENTITY } from "./identity.js";
+
 const MOCK_API_BASE_URL = import.meta.env.VITE_MOCK_API_BASE_URL ?? "http://127.0.0.1:4311";
 
-const BASE_OPTIONS = Object.freeze({
-  service: "demo-frontend",
-  environment: "development",
-  version: "2026.07.1",
-});
+const BASE_OPTIONS = DEMO_IDENTITY;
 
 export function initializeScenario() {
   return initializeObservability({
