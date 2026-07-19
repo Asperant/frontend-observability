@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fetchRouter } from "./helpers/control-fetch.js";
 
 import {
   getObservabilityStatus,
@@ -47,7 +48,9 @@ describe("state machine transitions", () => {
     // adapter factory the same way an environment with no adapter available
     // would fail closed.
     setAdapterFactoryForTests(() => null);
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     const result = await initializeObservability(options);
     expect(result.reasonCode).toBe("ADAPTER_UNAVAILABLE");
     expect(globalThis[RUNTIME_SYMBOL]).toMatchObject({
@@ -58,7 +61,9 @@ describe("state machine transitions", () => {
   });
 
   it("is idempotent and allows reinitialization after shutdown", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validDisabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validDisabledConfig()))),
+    );
     await initializeObservability(options);
     expect(getObservabilityStatus().state).toBe("disabled");
 
@@ -74,7 +79,9 @@ describe("state machine transitions", () => {
 
   it("fails closed on same-fingerprint resume if a preserved grant cannot create a new epoch", async () => {
     const adapter = fakeAdapter();
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => adapter);
 
     await initializeObservability(options);
@@ -90,7 +97,9 @@ describe("state machine transitions", () => {
 
   it("creates a fresh epoch when same-fingerprint resume preserves granted consent", async () => {
     const adapter = fakeAdapter();
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => adapter);
 
     await initializeObservability(options);

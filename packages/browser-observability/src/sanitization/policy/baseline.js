@@ -1,3 +1,5 @@
+import { CONTROL_ENDPOINT_PATH } from "../../runtime-control/constants.js";
+
 export const SANITIZATION_POLICY_VERSION = "telemetry-sanitization-v1";
 
 export const PLACEHOLDERS = Object.freeze({
@@ -33,6 +35,7 @@ export const OBSERVABILITY_RESOURCE_PATHS = Object.freeze([
   "/rum/v1/default/rum",
   "/rum/v1/default/logs",
   "/observability/config.json",
+  CONTROL_ENDPOINT_PATH,
 ]);
 
 export const FORBIDDEN_KEY_CATEGORIES = Object.freeze([

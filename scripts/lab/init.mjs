@@ -1,6 +1,8 @@
 import { certPermissionsOk, ensureCertificates } from "./generate-certs.mjs";
 import { ensureSecrets } from "./generate-secrets.mjs";
 import { generateRuntimeConfig } from "./generate-runtime-config.mjs";
+import { generateRuntimeControl } from "./generate-runtime-control.mjs";
+import { writeProxyGate } from "./proxy-gate.mjs";
 import { assertExactLabToolchain, log } from "./common.mjs";
 
 export function labInit() {
@@ -25,6 +27,19 @@ export function labInit() {
 
   generateRuntimeConfig();
   log("  runtime config: written to .runtime/generated/runtime-config.json (enabled=true)");
+
+  // Kill switch starts fully open: a normal, inactive control document and
+  // an open proxy gate. The reverse-proxy container is not running yet at
+  // lab:init time, so this only writes the bind-mounted files it will read
+  // on its very first start — no reload is needed (or possible) here.
+  const controlDocument = generateRuntimeControl({
+    killSwitch: { active: false, reasonCode: "none" },
+  });
+  writeProxyGate(false);
+  log(
+    `  runtime control: written to .runtime/generated/runtime-control.json ` +
+      `(revision=${controlDocument.revision}, killSwitch inactive); proxy gate open`,
+  );
 
   log("lab:init complete.");
 }

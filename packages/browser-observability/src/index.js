@@ -49,6 +49,23 @@ const ERROR_STATUS_FALLBACK = Object.freeze({
     }),
     lastReasonCode: "INTERNAL_ERROR",
   }),
+  runtimeControl: Object.freeze({
+    state: "invalid",
+    revision: null,
+    expiresAt: null,
+    lastCheckedAt: null,
+    lastAppliedAt: null,
+    consecutiveFailures: 0,
+    killSwitch: Object.freeze({ active: false, latched: false, reasonCode: "none" }),
+    counters: Object.freeze({
+      refreshSucceeded: 0,
+      refreshFailed: 0,
+      invalidRejected: 0,
+      rollbackRejected: 0,
+      expiredFailClosed: 0,
+      killSwitchActivated: 0,
+    }),
+  }),
 });
 
 /**

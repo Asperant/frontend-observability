@@ -28,6 +28,11 @@ services:
       - ../../.runtime/certs/localhost.crt:/etc/chicek/tls/localhost.crt:ro
       - ../../.runtime/certs/localhost.key:/etc/chicek/tls/localhost.key:ro
       - ../../.runtime/generated/runtime-config.json:/etc/chicek/runtime-config.json:ro
+      # A directory bind mount, not two single-file mounts: the kill switch
+      # must take effect on an `nginx -s reload` alone, and single-file
+      # binds pin an already-running container to the inode they saw at
+      # mount time (see scripts/lab/common.mjs's proxyDynamicDir comment).
+      - ../../.runtime/generated/proxy-dynamic:/etc/chicek/dynamic:ro
     secrets:
       - openobserve_rum_client_token
     networks:

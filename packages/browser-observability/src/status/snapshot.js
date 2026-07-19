@@ -4,6 +4,7 @@ import {
   snapshotCounters,
   snapshotSanitization,
 } from "../diagnostics/counters.js";
+import { snapshotRuntimeControl } from "../runtime-control/status.js";
 
 export function createStatusSnapshot(runtime) {
   return deepFreeze({
@@ -25,6 +26,7 @@ export function createStatusSnapshot(runtime) {
       snapshotCorrelationCounters(runtime.counters),
       runtime,
     ),
+    runtimeControl: snapshotRuntimeControl(),
   });
 }
 

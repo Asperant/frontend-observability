@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fetchRouter } from "./helpers/control-fetch.js";
 
 import {
   getObservabilityStatus,
@@ -41,7 +42,9 @@ describe("setTrackingConsent", () => {
 
   it("uses pre-init consent and forwards post-init changes to the adapter", async () => {
     const adapter = fakeAdapter();
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => adapter);
 
     setTrackingConsent("granted");
@@ -58,7 +61,9 @@ describe("setTrackingConsent", () => {
     adapter.setTrackingConsent.mockImplementation(() => {
       throw new Error("adapter failed");
     });
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => adapter);
 
     await initializeObservability(options);

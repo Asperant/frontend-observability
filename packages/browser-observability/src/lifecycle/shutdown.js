@@ -1,6 +1,7 @@
 import { getRuntimeState, replaceRuntimeState } from "../bootstrap/runtime-registry.js";
 import { clearCorrelationContext } from "../correlation/correlation-context.js";
 import { ReasonCodes } from "../diagnostics/reason-codes.js";
+import { stopRuntimeControlLoop } from "../runtime-control/refresh-engine.js";
 import { createInitialRuntimeState, transition } from "./state-machine.js";
 import { LifecycleStates } from "./transitions.js";
 import { createStatusSnapshot } from "../status/snapshot.js";
@@ -20,6 +21,12 @@ export async function shutdownObservability() {
   runtime.acceptingEvents = false;
   clearCorrelationContext(runtime.correlation);
   runtime.abortController?.abort();
+  // Stops the runtime-control timer/listeners only — the page-lifetime
+  // control registry itself (last-known-good document, revision, and most
+  // importantly the kill-switch latch) is deliberately left intact so a
+  // later reinitialize() on this same page resumes it rather than starting
+  // over. See runtime-control/registry.js.
+  stopRuntimeControlLoop();
   transition(runtime, LifecycleStates.SHUTTING_DOWN, ReasonCodes.SHUTDOWN);
 
   try {

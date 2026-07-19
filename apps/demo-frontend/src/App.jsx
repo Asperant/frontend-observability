@@ -161,6 +161,18 @@ function StatusPanel({ status }) {
       <dd>{status.correlation?.counters?.partial ?? 0}</dd>
       <dt>correlationReservedRemoved</dt>
       <dd>{status.correlation?.counters?.reservedFieldRemoved ?? 0}</dd>
+      <dt>runtimeControlState</dt>
+      <dd data-testid="runtime-control-state">{status.runtimeControl?.state ?? "—"}</dd>
+      <dt>runtimeControlRevision</dt>
+      <dd data-testid="runtime-control-revision">{status.runtimeControl?.revision ?? "—"}</dd>
+      <dt>killSwitchActive</dt>
+      <dd data-testid="kill-switch-active">
+        {String(status.runtimeControl?.killSwitch?.active ?? false)}
+      </dd>
+      <dt>killSwitchLatched</dt>
+      <dd data-testid="kill-switch-latched">
+        {String(status.runtimeControl?.killSwitch?.latched ?? false)}
+      </dd>
     </dl>
   );
 }
@@ -186,6 +198,16 @@ export default function App() {
       window.removeEventListener("error", handleWindowError);
       window.removeEventListener("unhandledrejection", handleUnhandledRejection);
     };
+  }, []);
+
+  useEffect(() => {
+    // The Stage 14 runtime-control refresh loop runs entirely inside the
+    // package's own internal timer, with no public event to subscribe to —
+    // this keeps the visible status panel live (e.g. for the kill switch
+    // taking effect) without requiring a button click, purely for this
+    // fixture's own observability.
+    const interval = setInterval(() => setStatus(getObservabilityStatus()), 1000);
+    return () => clearInterval(interval);
   }, []);
 
   async function run(item) {

@@ -24,6 +24,7 @@
     "test:stage9:leakage": "node scripts/lab/verify-sanitization-leakage.mjs",
     "test:stage10:correlation": "node scripts/lab/verify-stage10-correlation.mjs",
     "test:stage12:proxy-security": "node scripts/lab/verify-proxy-security.mjs",
+    "test:stage14:runtime-control": "node scripts/lab/verify-stage14-runtime-control.mjs",
     "test:coverage": "vitest run --project unit --coverage",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
@@ -41,7 +42,10 @@
     "lab:status": "node scripts/lab/status.mjs",
     "lab:logs": "node scripts/lab/logs.mjs",
     "lab:down": "node scripts/lab/down.mjs",
-    "lab:purge": "node scripts/lab/purge.mjs"
+    "lab:purge": "node scripts/lab/purge.mjs",
+    "lab:kill-switch:on": "node scripts/lab/kill-switch.mjs on",
+    "lab:kill-switch:off": "node scripts/lab/kill-switch.mjs off",
+    "lab:kill-switch:status": "node scripts/lab/kill-switch.mjs status"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",

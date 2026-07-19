@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fetchRouter } from "./helpers/control-fetch.js";
 
 import { isValidActionName } from "../src/actions/validate-action-name.js";
 import {
@@ -47,7 +48,9 @@ describe("recordAction lifecycle", () => {
   });
 
   it("drops without granted consent", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => fakeAdapter());
     await initializeObservability(options);
 
@@ -58,7 +61,9 @@ describe("recordAction lifecycle", () => {
 
   it("records through the adapter once active and consented", async () => {
     const adapter = fakeAdapter();
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => adapter);
     await initializeObservability(options);
     setTrackingConsent("granted");
@@ -72,7 +77,9 @@ describe("recordAction lifecycle", () => {
   });
 
   it("drops structurally invalid active actions", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => fakeAdapter());
     await initializeObservability(options);
     setTrackingConsent("granted");
@@ -87,7 +94,9 @@ describe("recordAction lifecycle", () => {
     adapter.recordAction.mockImplementation(() => {
       throw new Error("adapter failed");
     });
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => adapter);
     await initializeObservability(options);
     setTrackingConsent("granted");

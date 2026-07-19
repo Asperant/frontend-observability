@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fetchRouter } from "./helpers/control-fetch.js";
 
 import {
   getObservabilityStatus,
@@ -33,7 +34,9 @@ beforeEach(() => {
 
 describe("runtime config loading", () => {
   it("uses the required fetch security options", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     await loadConfig("/observability/config.json");
     expect(globalThis.fetch).toHaveBeenCalledWith(
       "/observability/config.json",
@@ -330,7 +333,9 @@ describe("initialization coordination", () => {
   });
 
   it("returns active same-options no-op and different-options conflict", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => fakeAdapter());
     await initializeObservability(options);
 
@@ -340,12 +345,17 @@ describe("initialization coordination", () => {
     expect(duplicate.state).toBe("active");
     expect(conflict.ok).toBe(false);
     expect(conflict.reasonCode).toBe("INITIALIZATION_CONFLICT");
-    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    // One real initialization: one runtime-config fetch + one runtime-control
+    // fetch. The same-options duplicate and the conflicting-options call
+    // both short-circuit without fetching anything further.
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
   });
 
   it("fails closed when enabled config has no adapter", async () => {
     setAdapterFactoryForTests(() => null);
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     const result = await initializeObservability(options);
     expect(result.reasonCode).toBe("ADAPTER_UNAVAILABLE");
     expect(getObservabilityStatus().state).toBe("disabled");
@@ -354,7 +364,7 @@ describe("initialization coordination", () => {
   it("falls back to schemaVersion when configVersion is absent", async () => {
     const config = validDisabledConfig();
     delete config.configVersion;
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(config)));
+    globalThis.fetch = vi.fn(fetchRouter(() => Promise.resolve(jsonResponse(config))));
     const result = await initializeObservability(options);
     expect(result.status.configVersion).toBe("1.0.0");
   });
@@ -367,7 +377,9 @@ describe("initialization coordination", () => {
     adapter.shutdown.mockImplementation(() => {
       throw new Error("shutdown failed");
     });
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => adapter);
 
     const result = await initializeObservability(options);

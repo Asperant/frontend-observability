@@ -8,6 +8,10 @@ import { CONSENT } from "../internal/constants.js";
 import { fingerprintOptions } from "../internal/fingerprint.js";
 import { isBrowserRuntime } from "../internal/environment.js";
 import {
+  performInitialControlFetch,
+  startRuntimeControlLoop,
+} from "../runtime-control/refresh-engine.js";
+import {
   activateRuntime,
   createInitialRuntimeState,
   degradeRuntime,
@@ -77,8 +81,8 @@ async function runInitialization(registry, options) {
   }
 
   const loaded = await loadConfig(options.configUrl, { signal: runtime.abortController.signal });
-  runtime.abortController = null;
   if (!loaded.ok) {
+    runtime.abortController = null;
     disableRuntime(runtime, loaded.reasonCode);
     return result(false, runtime);
   }
@@ -87,7 +91,23 @@ async function runInitialization(registry, options) {
   runtime.configVersion = loaded.config.configVersion ?? loaded.config.schemaVersion;
 
   if (!policy.telemetryEnabled) {
+    runtime.abortController = null;
     disableRuntime(runtime, ReasonCodes.CONFIG_DISABLED);
+    return result(false, runtime);
+  }
+
+  // The narrow runtime-control overlay (Stage 14) is a hard gate on
+  // activation, independent of the immutable runtime config above: no
+  // browser/log telemetry may ever leave this page before a first valid
+  // control document has been obtained. A shutdown()+reinitialize() cycle on
+  // the same page reuses whatever the page-lifetime control registry
+  // already holds rather than re-blocking on a second document.
+  const controlResult = await performInitialControlFetch({
+    signal: runtime.abortController.signal,
+  });
+  runtime.abortController = null;
+  if (!controlResult.ok) {
+    disableRuntime(runtime, ReasonCodes.RUNTIME_CONTROL_UNAVAILABLE);
     return result(false, runtime);
   }
 
@@ -122,6 +142,7 @@ async function runInitialization(registry, options) {
   }
 
   activateRuntime(runtime, adapterResult.adapter);
+  startRuntimeControlLoop();
   const capabilities = safeGetCapabilities(adapterResult.adapter);
   if (capabilities.telemetry && capabilities.logs === false) {
     // Primary telemetry (RUM actions/errors) came up, but the adapter's

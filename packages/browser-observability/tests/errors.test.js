@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fetchRouter } from "./helpers/control-fetch.js";
 
 import {
   getObservabilityStatus,
@@ -32,7 +33,9 @@ describe("recordError lifecycle", () => {
 
   it("records through the adapter once active and consented", async () => {
     const adapter = fakeAdapter();
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => adapter);
     await initializeObservability(options);
     setTrackingConsent("granted");
@@ -48,7 +51,9 @@ describe("recordError lifecycle", () => {
   });
 
   it("drops without consent and rejects invalid context", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => fakeAdapter());
     await initializeObservability(options);
 
@@ -63,7 +68,9 @@ describe("recordError lifecycle", () => {
     adapter.recordError.mockImplementation(() => {
       throw new Error("adapter failed");
     });
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => adapter);
     await initializeObservability(options);
     setTrackingConsent("granted");
@@ -75,7 +82,9 @@ describe("recordError lifecycle", () => {
   });
 
   it("never throws for unusual error values", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => fakeAdapter());
     await initializeObservability(options);
     setTrackingConsent("granted");

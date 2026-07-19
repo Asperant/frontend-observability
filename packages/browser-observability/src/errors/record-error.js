@@ -4,6 +4,7 @@ import { incrementCounter } from "../diagnostics/counters.js";
 import { ReasonCodes } from "../diagnostics/reason-codes.js";
 import { degradeRuntime } from "../lifecycle/state-machine.js";
 import { LifecycleStates } from "../lifecycle/transitions.js";
+import { isCollectionGateOpen } from "../runtime-control/gate.js";
 import { createStatusSnapshot } from "../status/snapshot.js";
 import { recordSanitization } from "../diagnostics/counters.js";
 import { sanitizeError as sanitizeErrorEvent } from "../sanitization/sanitizers/error.js";
@@ -14,6 +15,10 @@ export function recordError(error, context) {
   if (runtime.state !== LifecycleStates.ACTIVE || !runtime.acceptingEvents) {
     incrementCounter(runtime.counters, "droppedErrors");
     return result(false, runtime, ReasonCodes.NOT_ACTIVE);
+  }
+  if (!isCollectionGateOpen()) {
+    incrementCounter(runtime.counters, "droppedErrors");
+    return result(false, runtime, ReasonCodes.RUNTIME_CONTROL_GATE_CLOSED);
   }
   if (runtime.consent !== CONSENT.GRANTED) {
     incrementCounter(runtime.counters, "droppedErrors");

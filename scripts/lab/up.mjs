@@ -1,6 +1,7 @@
 import { assertExactLabToolchain, run, log, runDockerCompose } from "./common.mjs";
 import { fetchRealRumToken, persistRumToken } from "./fetch-rum-token.mjs";
 import { generateRuntimeConfig } from "./generate-runtime-config.mjs";
+import { generateRuntimeControl } from "./generate-runtime-control.mjs";
 import { labInit } from "./init.mjs";
 import { provisionSanitization } from "./provision-sanitization.mjs";
 import { runAllStaticChecks } from "./static-checks.mjs";
@@ -86,6 +87,13 @@ export async function labUp() {
     for (const finding of sanitizationResult.findings) log(`  FAIL: ${finding}`);
     throw new Error("OpenObserve sanitization backstop could not be provisioned.");
   }
+
+  // Republish the runtime-control document last, right before handing back
+  // to the caller: its issuedAt/expiresAt window (max 10 minutes) is
+  // deliberately short, so re-stamping it as the very last step maximizes
+  // how much of that window is left for whatever runs against the lab next.
+  generateRuntimeControl({ killSwitch: { active: false, reasonCode: "none" } });
+  log("  runtime control: re-stamped with a fresh issuedAt/expiresAt window.");
 
   log("lab:up complete. Demo: https://localhost:8443  OpenObserve UI: http://localhost:5080");
 }

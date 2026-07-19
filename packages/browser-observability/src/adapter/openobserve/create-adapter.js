@@ -13,6 +13,7 @@ import { loadOpenObserveSdk } from "./load-sdk.js";
 import { mapAction } from "./map-action.js";
 import { mapConsent } from "./map-consent.js";
 import { mapError } from "./map-error.js";
+import { isCollectionGateOpen } from "../../runtime-control/gate.js";
 import { sanitizeLogEvent, sanitizeRumEvent } from "../../sanitization/sanitizers/events.js";
 import { computeSdkFingerprint } from "./sdk-fingerprint.js";
 
@@ -110,6 +111,7 @@ export function createAdapter() {
       try {
         sdk.rum.init(
           buildRumOptions(identity, policy, (event, domainContext) => {
+            if (!isCollectionGateOpen()) return false;
             const sanitized = sanitizeRumEvent(event, { counters, policy });
             if (sanitized === false) return false;
             return enrichRumEvent(event, domainContext, correlation, { counters });
@@ -130,6 +132,7 @@ export function createAdapter() {
         try {
           sdk.logs.init(
             buildLogsOptions(identity, policy, (event, domainContext) => {
+              if (!isCollectionGateOpen()) return false;
               const sanitized = sanitizeLogEvent(event, { counters, policy });
               if (sanitized === false) return false;
               return enrichLogEvent(event, domainContext, correlation, {

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fetchRouter } from "./helpers/control-fetch.js";
 
 import { getObservabilityStatus, initializeObservability } from "../src/index.js";
 import {
@@ -31,7 +32,9 @@ describe("getObservabilityStatus", () => {
   });
 
   it("reports active runtime identity without exposing config payload", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => fakeAdapter());
 
     await initializeObservability(options);

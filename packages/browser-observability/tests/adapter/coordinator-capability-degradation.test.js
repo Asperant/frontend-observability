@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fetchRouter } from "../helpers/control-fetch.js";
 
 import { getObservabilityStatus, initializeObservability } from "../../src/index.js";
 import {
@@ -64,7 +65,9 @@ function jsonResponse(body) {
 
 describe("coordinator capability-driven state (generic, adapter-agnostic)", () => {
   it("stays active when the adapter reports telemetry available and logs not degraded", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() =>
       fakeAdapter({ telemetry: true, logs: true, sessionReplay: false }),
     );
@@ -76,7 +79,9 @@ describe("coordinator capability-driven state (generic, adapter-agnostic)", () =
   });
 
   it("degrades when telemetry is available but logs explicitly failed", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() =>
       fakeAdapter({ telemetry: true, logs: false, sessionReplay: false }),
     );
@@ -90,7 +95,9 @@ describe("coordinator capability-driven state (generic, adapter-agnostic)", () =
   });
 
   it("stays active when getCapabilities is missing/empty (adapters that don't report logs at all)", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => fakeAdapter({}));
 
     const result = await initializeObservability(options);
@@ -98,7 +105,9 @@ describe("coordinator capability-driven state (generic, adapter-agnostic)", () =
   });
 
   it("tolerates getCapabilities() returning a non-object without crashing the initialize flow", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => fakeAdapter(null));
 
     const result = await initializeObservability(options);
@@ -106,7 +115,9 @@ describe("coordinator capability-driven state (generic, adapter-agnostic)", () =
   });
 
   it("tolerates getCapabilities() throwing without crashing the initialize flow", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     const adapter = fakeAdapter({});
     adapter.getCapabilities.mockImplementation(() => {
       throw new Error("boom");
@@ -118,7 +129,9 @@ describe("coordinator capability-driven state (generic, adapter-agnostic)", () =
   });
 
   it("degrades gracefully when the adapter factory itself throws synchronously (not just adapter.initialize())", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     setAdapterFactoryForTests(() => {
       throw new Error("factory boom");
     });
@@ -130,7 +143,9 @@ describe("coordinator capability-driven state (generic, adapter-agnostic)", () =
   });
 
   it("disables (not degrades) with a controlled reasonCode when the adapter's own init reports a recognized failure", async () => {
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    globalThis.fetch = vi.fn(
+      fetchRouter(() => Promise.resolve(jsonResponse(validEnabledConfig()))),
+    );
     const adapter = fakeAdapter({});
     adapter.initialize.mockImplementation(() => {
       const error = new Error("openobserve adapter initialization failed");

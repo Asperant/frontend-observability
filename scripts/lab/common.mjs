@@ -33,6 +33,19 @@ export const caKeyPath = join(certsDir, "lab-ca.key");
 export const leafCertPath = join(certsDir, "localhost.crt");
 export const leafKeyPath = join(certsDir, "localhost.key");
 export const runtimeConfigPath = join(generatedDir, "runtime-config.json");
+// A single-file bind mount pins an already-running container to the inode
+// it saw at mount time: an atomic-rename rewrite of the host file (as
+// atomicWriteFile always does) is then invisible to that container even
+// after `nginx -s reload`, until the container itself is recreated (see
+// up.mjs's runtime-config.json handling, which works around exactly this by
+// force-recreating on token change). The kill switch cannot pay that cost —
+// it must take effect on an `nginx -s reload` alone — so these two files
+// live in their own subdirectory, bind-mounted as a *directory* instead
+// (infrastructure/docker/compose.yaml), which stays live across renames of
+// the files inside it.
+export const proxyDynamicDir = join(generatedDir, "proxy-dynamic");
+export const runtimeControlPath = join(proxyDynamicDir, "runtime-control.json");
+export const proxyGatePath = join(proxyDynamicDir, "proxy-gate.conf");
 
 export const COMPOSE_PROJECT_NAME = "chicek-lab";
 
