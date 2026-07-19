@@ -61,7 +61,19 @@ export function createAdapter() {
       version: context.version,
     };
     const policy = context.policy;
-    const fingerprint = computeSdkFingerprint(identity, policy.rum);
+
+    // The fingerprint is a SHA-256 digest (see sdk-fingerprint.js) and its
+    // computation is genuinely async (Web Crypto's subtle.digest returns a
+    // Promise) — initialize() is already async, so this fits naturally. If
+    // crypto.subtle isn't available in this runtime, fail closed rather
+    // than falling back to a weaker, non-cryptographic comparison for a
+    // security-relevant decision.
+    let fingerprint;
+    try {
+      fingerprint = await computeSdkFingerprint(identity, policy.rum);
+    } catch {
+      throw initializationFailure();
+    }
 
     if (sdkSingleton && sdkSingleton.fingerprint !== fingerprint) {
       // A real reinitialize with a different SDK connection identity is not

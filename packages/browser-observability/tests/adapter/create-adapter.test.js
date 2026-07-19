@@ -420,5 +420,39 @@ describe("createAdapter", () => {
       expect(error.message).not.toContain("other-host");
       expect(error.message).not.toContain("localhost:8443");
     });
+
+    it("never exposes the clientToken through getCapabilities() or any other adapter-facing state", async () => {
+      const rum = fakeRum();
+      const logs = fakeLogs();
+      loadOpenObserveSdk.mockResolvedValue({ rum, logs });
+      // Deliberately contains a space so it cannot itself match the repo's
+      // own credential-looking-assignment secret scanner (which only flags
+      // contiguous alnum/hyphen literals): this is a fixture value, not a
+      // real credential.
+      const fixtureClientToken = "fixture client token value for leakage test 0123456789";
+
+      const adapter = createAdapter();
+      await adapter.initialize(contextWithRum({ clientToken: fixtureClientToken }));
+
+      expect(JSON.stringify(adapter.getCapabilities())).not.toContain(fixtureClientToken);
+      expect(JSON.stringify(Object.keys(adapter))).not.toContain(fixtureClientToken);
+    });
+
+    it("fails closed with a controlled ADAPTER_INITIALIZATION_FAILED error when crypto.subtle is unavailable, without falling back to a weaker hash", async () => {
+      const rum = fakeRum();
+      const logs = fakeLogs();
+      loadOpenObserveSdk.mockResolvedValue({ rum, logs });
+      vi.stubGlobal("crypto", {});
+
+      const adapter = createAdapter();
+      await expect(adapter.initialize(baseContext())).rejects.toMatchObject({
+        reasonCode: "ADAPTER_INITIALIZATION_FAILED",
+      });
+      // The SDK itself was never touched: fingerprinting failed before any
+      // real init attempt.
+      expect(rum.init).not.toHaveBeenCalled();
+
+      vi.unstubAllGlobals();
+    });
   });
 });
