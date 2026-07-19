@@ -15,7 +15,7 @@ Bu roadmap, test sonuçları ve yeni bulgularla ortak karar sonucu değiştirile
 10. Trace ve korelasyon
 11. Session replay güvenlik profili — **Security Blocked**: Session Replay is disabled and unsupported with the pinned OpenObserve OSS version (bkz. `docs/session-replay-security-decision.md`)
 12. Gateway ve Collector pipeline
-13. Sampling, queue, retry ve kesinti davranışı
+13. Sampling, queue, retry ve kesinti davranışı — **Security Blocked**: OpenObserve browser SDK 0.3.4'ün native retry queue'su consent revoke/shutdown sırasında purge edilemiyor (bkz. `docs/telemetry-delivery-security-decision.md`)
 14. Runtime config ve kill switch
 15. OpenObserve stream ve veri yaşam döngüsü
 16. Dashboard ve sorgular
