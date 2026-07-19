@@ -1,8 +1,10 @@
 import { readFileSync } from "node:fs";
+import { request as httpsRequest } from "node:https";
 import { chromium } from "@playwright/test";
 
 import {
   assertExactLabToolchain,
+  caCertPath,
   emailSecretPath,
   log,
   logError,
@@ -13,9 +15,12 @@ import { DEMO_IDENTITY } from "../../apps/demo-frontend/src/identity.js";
 import { RUM_APPLICATION_ID } from "./generate-runtime-config.mjs";
 
 const DEMO_URL = "https://localhost:8443";
+const PROXY_URL = "https://localhost:8443";
 const OPENOBSERVE_ADMIN_URL = "http://127.0.0.1:5080";
 const ORG_ID = "default";
 const NOW_US = () => Date.now() * 1000;
+const POLL_TIMEOUT_MS = 30_000;
+const POLL_INTERVAL_MS = 500;
 
 // Admin credentials live only in this process's memory for the lifetime of
 // this script; they are read once, used to call the OpenObserve API
@@ -40,6 +45,143 @@ async function adminSearch(auth, sql, { startUs = NOW_US() - 60 * 60 * 1_000_000
   });
   const body = await response.json().catch(() => ({}));
   return { status: response.status, hits: body.hits ?? [], body };
+}
+
+async function pollSearch(auth, sql, { startUs, expectHits = true } = {}) {
+  const deadline = Date.now() + POLL_TIMEOUT_MS;
+  let latest;
+  do {
+    latest = await adminSearch(auth, sql, { startUs });
+    if (latest.status === 200 && expectHits && latest.hits.length > 0) return latest;
+    if (latest.status === 200 && !expectHits && latest.hits.length === 0) return latest;
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+  } while (Date.now() < deadline);
+  return latest ?? { status: 0, hits: [], body: null };
+}
+
+function escapeSqlLiteral(value) {
+  return String(value).replaceAll("'", "''");
+}
+
+function intakeUrl(runtimeConfig, stream, requestId) {
+  const params = new URLSearchParams({
+    o2source: "browser",
+    "o2-api-key": runtimeConfig.rum.clientToken,
+    "o2-evp-origin-version": "0.3.4",
+    "o2-evp-origin": "browser",
+    "o2-request-id": requestId,
+  });
+  if (stream === "rum") {
+    params.set("batch_time", String(Date.now()));
+    params.set("_o2.api", "manual");
+  }
+  return `${PROXY_URL}/rum/v1/default/${stream}?${params.toString()}`;
+}
+
+function postHttpsText(url, body) {
+  const ca = readFileSync(caCertPath, "utf8");
+  return new Promise((resolve, reject) => {
+    const request = httpsRequest(
+      url,
+      {
+        method: "POST",
+        ca,
+        headers: {
+          "Content-Type": "text/plain;charset=UTF-8",
+          "Content-Length": Buffer.byteLength(body),
+        },
+      },
+      (response) => {
+        const chunks = [];
+        response.on("data", (chunk) => chunks.push(chunk));
+        response.on("end", () => {
+          const text = Buffer.concat(chunks).toString("utf8");
+          let parsed;
+          try {
+            parsed = text ? JSON.parse(text) : null;
+          } catch {
+            parsed = null;
+          }
+          resolve({ status: response.statusCode ?? 0, body: parsed });
+        });
+      },
+    );
+    request.on("error", reject);
+    request.end(body);
+  });
+}
+
+async function sendIntake(runtimeConfig, stream, events) {
+  const requestId = crypto.randomUUID();
+  const body = events.map((event) => JSON.stringify(event)).join("\n");
+  const response = await postHttpsText(intakeUrl(runtimeConfig, stream, requestId), body);
+  return { requestId, ...response };
+}
+
+function createRumCanaries(testRunId) {
+  const sessionId = crypto.randomUUID();
+  const viewId = crypto.randomUUID();
+  const base = {
+    date: Date.now(),
+    test_run_id: testRunId,
+    application_id: RUM_APPLICATION_ID,
+    service: DEMO_IDENTITY.service,
+    env: DEMO_IDENTITY.environment,
+    version: DEMO_IDENTITY.version,
+    session: { id: sessionId },
+    view: {
+      id: viewId,
+      url: "https://localhost:8443/openobserve-regression",
+    },
+  };
+  return [
+    { ...base, type: "view" },
+    {
+      ...base,
+      type: "resource",
+      resource: {
+        id: crypto.randomUUID(),
+        type: "fetch",
+        method: "GET",
+        status_code: 200,
+        url: "https://localhost:8443/api/status/200",
+      },
+    },
+    {
+      ...base,
+      type: "action",
+      action: {
+        id: crypto.randomUUID(),
+        type: "custom",
+        target: { name: "openobserve.regression-action" },
+      },
+    },
+    {
+      ...base,
+      type: "error",
+      error: {
+        id: crypto.randomUUID(),
+        source: "source",
+        source_type: "browser",
+        type: "Error",
+        message: "OpenObserve regression error canary",
+      },
+    },
+  ];
+}
+
+function createLogCanary(testRunId) {
+  return {
+    date: Date.now(),
+    test_run_id: testRunId,
+    message: "openobserve.regression-log",
+    status: "info",
+    origin: "logger",
+    application_id: RUM_APPLICATION_ID,
+    service: DEMO_IDENTITY.service,
+    env: DEMO_IDENTITY.environment,
+    version: DEMO_IDENTITY.version,
+  };
 }
 
 async function driveDemoBrowser() {
@@ -106,6 +248,8 @@ export async function verifyStage8OpenObserve() {
   const auth = basicAuthHeader(email, password);
   const runtimeConfig = JSON.parse(readFileSync(runtimeConfigPath, "utf8"));
   const rumToken = runtimeConfig.rum?.clientToken;
+  const testRunId = `openobserve-regression-${crypto.randomUUID()}`;
+  const startedUs = NOW_US() - 5_000_000;
 
   if (typeof rumToken !== "string" || rumToken.length < 16) {
     findings.push("Generated runtime config has no usable rum.clientToken.");
@@ -134,44 +278,69 @@ export async function verifyStage8OpenObserve() {
     );
   }
 
-  // Give the ingest pipeline a moment to become searchable.
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  const rumCanaries = await sendIntake(runtimeConfig, "rum", createRumCanaries(testRunId));
+  const logCanary = await sendIntake(runtimeConfig, "logs", [createLogCanary(testRunId)]);
+  if (rumCanaries.status >= 400) {
+    findings.push(`Deterministic RUM canary ingestion returned status ${rumCanaries.status}.`);
+  }
+  if (logCanary.status >= 400) {
+    findings.push(`Deterministic log canary ingestion returned status ${logCanary.status}.`);
+  }
 
   log("verify:stage8:openobserve — searching OpenObserve for real ingested telemetry...");
 
-  const views = await adminSearch(auth, "select * from _rumdata where type='view' limit 5");
-  if (views.status !== 200 || views.hits.length === 0) {
-    findings.push("No RUM session/view records found in _rumdata.");
-  }
-
-  const actions = await adminSearch(auth, "select * from _rumdata where type='action' limit 20");
-  if (actions.status !== 200 || actions.hits.length === 0) {
-    findings.push("No RUM custom action records found in _rumdata.");
-  }
-
-  const errors = await adminSearch(auth, "select * from _rumdata where type='error' limit 20");
-  if (errors.status !== 200 || errors.hits.length === 0) {
-    findings.push("No RUM error records (runtime error / unhandled rejection) found in _rumdata.");
-  }
-
-  const resources = await adminSearch(
+  const testRunFilter = `test_run_id='${escapeSqlLiteral(testRunId)}'`;
+  const views = await pollSearch(
     auth,
-    "select * from _rumdata where type='resource' limit 20",
+    `select * from _rumdata where ${testRunFilter} and type='view' limit 5`,
+    {
+      startUs: startedUs,
+    },
+  );
+  if (views.status !== 200 || views.hits.length === 0) {
+    findings.push(`No current-run RUM session/view records found in _rumdata for ${testRunId}.`);
+  }
+
+  const actions = await pollSearch(
+    auth,
+    `select * from _rumdata where ${testRunFilter} and type='action' limit 20`,
+    { startUs: startedUs },
+  );
+  if (actions.status !== 200 || actions.hits.length === 0) {
+    findings.push(`No current-run RUM custom action records found in _rumdata for ${testRunId}.`);
+  }
+
+  const errors = await pollSearch(
+    auth,
+    `select * from _rumdata where ${testRunFilter} and type='error' limit 20`,
+    { startUs: startedUs },
+  );
+  if (errors.status !== 200 || errors.hits.length === 0) {
+    findings.push(`No current-run RUM error records found in _rumdata for ${testRunId}.`);
+  }
+
+  const resources = await pollSearch(
+    auth,
+    `select * from _rumdata where ${testRunFilter} and type='resource' limit 20`,
+    { startUs: startedUs },
   );
   if (resources.status !== 200 || resources.hits.length === 0) {
-    findings.push("No RUM network/resource records found in _rumdata.");
+    findings.push(
+      `No current-run RUM network/resource records found in _rumdata for ${testRunId}.`,
+    );
   }
 
-  const canary = await adminSearch(
+  const canary = await pollSearch(
     auth,
-    "select * from _rumlog where message='browser_logs.canary' limit 5",
+    `select * from _rumlog where ${testRunFilter} and message='openobserve.regression-log' limit 5`,
+    { startUs: startedUs },
   );
   if (canary.status !== 200 || canary.hits.length === 0) {
-    findings.push("Browser-log canary (browser_logs.canary) not found in _rumlog.");
+    findings.push(`No current-run browser-log canary found in _rumlog for ${testRunId}.`);
   } else {
     const hit = canary.hits[0];
-    if (hit.component !== "demo-fixture" || hit.outcome !== "success") {
-      findings.push("Browser-log canary is missing expected component/outcome fields.");
+    if (hit.message !== "openobserve.regression-log" || hit.test_run_id !== testRunId) {
+      findings.push("Browser-log canary is missing expected message/test_run_id fields.");
     }
   }
 
