@@ -22,6 +22,17 @@ export function initializeScenario() {
   });
 }
 
+/**
+ * Initializes against the served /observability/config.json with no
+ * override. In the Docker lab this is nginx's alias for the real,
+ * generated runtime config (real RUM site/token); everywhere else it is
+ * this app's own bundled, disabled-by-default config.json. This is the
+ * scenario Stage 8's OpenObserve integration verification drives.
+ */
+export function initializeRuntimeConfigScenario() {
+  return initializeObservability(BASE_OPTIONS);
+}
+
 export function duplicateInitializeScenario() {
   return initializeObservability({
     ...BASE_OPTIONS,

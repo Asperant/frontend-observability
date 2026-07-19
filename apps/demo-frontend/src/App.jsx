@@ -9,6 +9,11 @@ const SCENARIO_GROUPS = [
     items: [
       { id: "initialize", label: "Initialize", run: scenarios.initializeScenario },
       {
+        id: "initialize-runtime-config",
+        label: "Initialize (runtime config)",
+        run: scenarios.initializeRuntimeConfigScenario,
+      },
+      {
         id: "concurrent-init",
         label: "Concurrent initialize",
         run: scenarios.concurrentInitializeScenario,

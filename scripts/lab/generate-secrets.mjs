@@ -1,4 +1,4 @@
-import { randomInt } from "node:crypto";
+import { randomBytes, randomInt } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 
 import {
@@ -8,6 +8,7 @@ import {
   isWorldOrGroupReadableSecret,
   passwordSecretPath,
   rejectSymlink,
+  rumClientTokenSecretPath,
   secretsDir,
 } from "./common.mjs";
 
@@ -17,9 +18,26 @@ const UPPER = LOWER.toUpperCase();
 const DIGITS = "0123456789";
 const SPECIAL = "!@#$%^&*()-_=+";
 const ALL = LOWER + UPPER + DIGITS + SPECIAL;
+const RUM_CLIENT_TOKEN_BYTES = 32;
 
 function pick(alphabet) {
   return alphabet[randomInt(alphabet.length)];
+}
+
+/**
+ * A cryptographically-random placeholder for the RUM client token secret
+ * file. OpenObserve does not accept an operator-chosen value for real RUM
+ * ingestion authorization: it validates the incoming token against a
+ * specific user's server-generated `rum_token`, fetched via the admin-only
+ * `GET /api/{org}/rumtoken` (see scripts/lab/fetch-rum-token.mjs). This
+ * placeholder only exists so the secret file — and therefore the Docker
+ * secret bind mount that requires it — is present for the very first
+ * `docker compose up`; scripts/lab/up.mjs overwrites it with the real,
+ * fetched token as soon as openobserve is healthy, exactly once per lab
+ * lifetime (`lab:purge` resets it).
+ */
+export function generateRumClientToken() {
+  return randomBytes(RUM_CLIENT_TOKEN_BYTES).toString("hex");
 }
 
 /**
@@ -61,7 +79,7 @@ function assertSecretFileIsSafe(path) {
 export function ensureSecrets() {
   mkdirSync(secretsDir, { recursive: true, mode: 0o700 });
 
-  const results = { emailCreated: false, passwordCreated: false };
+  const results = { emailCreated: false, passwordCreated: false, rumClientTokenCreated: false };
 
   if (existsSync(emailSecretPath)) {
     assertSecretFileIsSafe(emailSecretPath);
@@ -83,9 +101,24 @@ export function ensureSecrets() {
     results.passwordCreated = true;
   }
 
+  if (existsSync(rumClientTokenSecretPath)) {
+    assertSecretFileIsSafe(rumClientTokenSecretPath);
+    if (readFileSync(rumClientTokenSecretPath, "utf8").length === 0) {
+      throw new Error(`existing secret file is empty: ${rumClientTokenSecretPath}`);
+    }
+  } else {
+    atomicWriteFile(rumClientTokenSecretPath, generateRumClientToken(), { mode: 0o600 });
+    results.rumClientTokenCreated = true;
+  }
+
   assertSecretFileIsSafe(emailSecretPath);
   assertSecretFileIsSafe(passwordSecretPath);
-  if (fileMode(emailSecretPath) !== 0o600 || fileMode(passwordSecretPath) !== 0o600) {
+  assertSecretFileIsSafe(rumClientTokenSecretPath);
+  if (
+    fileMode(emailSecretPath) !== 0o600 ||
+    fileMode(passwordSecretPath) !== 0o600 ||
+    fileMode(rumClientTokenSecretPath) !== 0o600
+  ) {
     throw new Error("secret files must be exactly 0600 after generation.");
   }
 

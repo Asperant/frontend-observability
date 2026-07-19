@@ -5,7 +5,11 @@ import {
   initializeObservability,
   shutdownObservability,
 } from "../src/index.js";
-import { RUNTIME_SYMBOL, resetRuntimeRegistryForTests } from "../src/bootstrap/runtime-registry.js";
+import {
+  RUNTIME_SYMBOL,
+  resetRuntimeRegistryForTests,
+  setAdapterFactoryForTests,
+} from "../src/bootstrap/runtime-registry.js";
 import { canTransition, LifecycleStates } from "../src/lifecycle/transitions.js";
 
 const options = {
@@ -37,6 +41,11 @@ describe("state machine transitions", () => {
   it("starts idle and creates the package-duplication registry only on initialize", async () => {
     expect(getObservabilityStatus().state).toBe(LifecycleStates.IDLE);
     expect(globalThis[RUNTIME_SYMBOL]).toBeUndefined();
+    // This test is only about registry/state-machine bookkeeping, not about
+    // the real OpenObserve adapter, so it opts out of the default (real)
+    // adapter factory the same way an environment with no adapter available
+    // would fail closed.
+    setAdapterFactoryForTests(() => null);
     globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
     const result = await initializeObservability(options);
     expect(result.reasonCode).toBe("ADAPTER_UNAVAILABLE");
@@ -71,9 +80,11 @@ function validEnabledConfig() {
     killSwitch: { engaged: false },
     sampling: { sessionSampleRate: 0.5, errorSampleRate: 0.5 },
     rum: {
-      endpoint: "https://observability.example.invalid/rum",
+      site: "observability.example.invalid",
+      organizationIdentifier: "org",
       applicationId: "app",
-      organizationId: "org",
+      clientToken: "test client token fixture value",
+      apiVersion: "v1",
     },
   };
 }

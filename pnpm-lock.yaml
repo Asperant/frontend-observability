@@ -58,6 +58,9 @@ catalogs:
       specifier: 4.1.10
       version: 4.1.10
 
+overrides:
+  uuid: 13.0.2
+
 importers:
 
   .:
@@ -121,6 +124,13 @@ importers:
   apps/mock-api: {}
 
   packages/browser-observability:
+    dependencies:
+      '@openobserve/browser-logs':
+        specifier: 0.3.4
+        version: 0.3.4(@openobserve/browser-rum@0.3.4)
+      '@openobserve/browser-rum':
+        specifier: 0.3.4
+        version: 0.3.4(@openobserve/browser-logs@0.3.4)
     devDependencies:
       vite:
         specifier: 'catalog:'
@@ -361,6 +371,28 @@ packages:
     peerDependencies:
       '@emnapi/core': ^1.7.1
       '@emnapi/runtime': ^1.7.1
+
+  '@openobserve/browser-core@0.3.4':
+    resolution: {integrity: sha512-Gm7sIxTkxqO37a1hOoQpFojdswWyGCOJzEpNMJVbP4lbMpgxLm4KNhEyzMmrCzB9aK1jlb0c02R8xUqCLVGIFg==}
+
+  '@openobserve/browser-logs@0.3.4':
+    resolution: {integrity: sha512-5uOuYxr9InwPcuhstraUXzE3ka0CWulZtjMb/eg1Op1LEbwkuqy5tjAk+HomzUbWoCzgm/A+uW3CGVAqbxtC3A==}
+    peerDependencies:
+      '@openobserve/browser-rum': 0.3.4
+    peerDependenciesMeta:
+      '@openobserve/browser-rum':
+        optional: true
+
+  '@openobserve/browser-rum-core@0.3.4':
+    resolution: {integrity: sha512-M7QMIWS/gibQUitnMDmdXcONd06Xv/4y1YQa1iuFQchNr7hnQsM6mGWrEfymaU3j+QsUpO/EjqOqj6qGcdj6nA==}
+
+  '@openobserve/browser-rum@0.3.4':
+    resolution: {integrity: sha512-Xg8vzlpNemWQhdLKFtRjOcQLK3E+zKOgldW0v3q40r7SfgLL/vbwgfYF5ejqogy7ZMFHkYXWp24shIov9S+Vtw==}
+    peerDependencies:
+      '@openobserve/browser-logs': 0.3.4
+    peerDependenciesMeta:
+      '@openobserve/browser-logs':
+        optional: true
 
   '@oxc-project/types@0.139.0':
     resolution: {integrity: sha512-r9gHphtCs+1M7J0pw6Sn/hh/Wpa/iQrOOkrNAlVLF/gHq+/CJmHIWKKUUhdWjcD6CIa8idarspCsASiXCXvFUw==}
@@ -1613,6 +1645,10 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
+  uuid@13.0.2:
+    resolution: {integrity: sha512-vzi9uRZ926x4XV73S/4qQaTwPXM2JBj6/6lI/byHH1jOpCzb0zDbfytgA9LcN/hzb2l7WQSQnxITOVx5un/wGw==}
+    hasBin: true
+
   vite@8.1.5:
     resolution: {integrity: sha512-7ULLwsCdYx/nRyrpiEwvqb5TFHrMVZyBt+rg/OAXT7rgj/z+DtTDyKFeLAdDkubDVDKD8jOsndmy7m55XcfUsw==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -2016,6 +2052,26 @@ snapshots:
       '@emnapi/runtime': 1.11.1
       '@tybys/wasm-util': 0.10.3
     optional: true
+
+  '@openobserve/browser-core@0.3.4': {}
+
+  '@openobserve/browser-logs@0.3.4(@openobserve/browser-rum@0.3.4)':
+    dependencies:
+      '@openobserve/browser-core': 0.3.4
+    optionalDependencies:
+      '@openobserve/browser-rum': 0.3.4(@openobserve/browser-logs@0.3.4)
+
+  '@openobserve/browser-rum-core@0.3.4':
+    dependencies:
+      '@openobserve/browser-core': 0.3.4
+      uuid: 13.0.2
+
+  '@openobserve/browser-rum@0.3.4(@openobserve/browser-logs@0.3.4)':
+    dependencies:
+      '@openobserve/browser-core': 0.3.4
+      '@openobserve/browser-rum-core': 0.3.4
+    optionalDependencies:
+      '@openobserve/browser-logs': 0.3.4(@openobserve/browser-rum@0.3.4)
 
   '@oxc-project/types@0.139.0': {}
 
@@ -3440,6 +3496,8 @@ snapshots:
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
+
+  uuid@13.0.2: {}
 
   vite@8.1.5(yaml@2.9.0):
     dependencies:

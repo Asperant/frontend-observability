@@ -155,18 +155,27 @@ function isSampling(value) {
   );
 }
 
+const RUM_SITE_PATTERN = /^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?(:[0-9]{1,5})?$/;
+const RUM_KEYS = Object.freeze([
+  "site",
+  "organizationIdentifier",
+  "applicationId",
+  "clientToken",
+  "apiVersion",
+]);
+
 function isRumConfig(value, enabled) {
   if (!isObject(value)) return false;
   const keys = Object.keys(value);
-  if (keys.some((key) => !["endpoint", "applicationId", "organizationId"].includes(key))) {
-    return false;
-  }
+  if (keys.some((key) => !RUM_KEYS.includes(key))) return false;
   if (!enabled && keys.length === 0) return true;
   return (
-    isString(value.endpoint, 1, 512) &&
-    value.endpoint.startsWith("https://") &&
+    isString(value.site, 1, 256) &&
+    RUM_SITE_PATTERN.test(value.site) &&
+    isString(value.organizationIdentifier, 1, 128) &&
     isString(value.applicationId, 1, 128) &&
-    isString(value.organizationId, 1, 128)
+    isString(value.clientToken, 16, 256) &&
+    value.apiVersion === "v1"
   );
 }
 

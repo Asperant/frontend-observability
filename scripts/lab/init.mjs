@@ -9,7 +9,9 @@ export function labInit() {
   const secretResult = ensureSecrets();
   log(
     `  secrets: email ${secretResult.emailCreated ? "generated" : "reused"}, ` +
-      `password ${secretResult.passwordCreated ? "generated" : "reused"} (0600, values never printed)`,
+      `password ${secretResult.passwordCreated ? "generated" : "reused"}, ` +
+      `RUM client token ${secretResult.rumClientTokenCreated ? "generated" : "reused"} ` +
+      `(0600, values never printed)`,
   );
 
   const certResult = ensureCertificates();
@@ -22,7 +24,7 @@ export function labInit() {
   );
 
   generateRuntimeConfig();
-  log("  runtime config: written to .runtime/generated/runtime-config.json (enabled=false)");
+  log("  runtime config: written to .runtime/generated/runtime-config.json (enabled=true)");
 
   log("lab:init complete.");
 }

@@ -27,3 +27,12 @@ catalog:
 # Playwright browser binaries are fetched via an explicit `playwright install`
 # step in scripts/verify, never via an implicit lifecycle hook.
 onlyBuiltDependencies: []
+
+# @openobserve/browser-rum-core@0.3.4 pins the transitive `uuid` dependency
+# to the exact vulnerable release 13.0.0 (GHSA-w5hq-g745-h8pq, missing buffer
+# bounds check). 13.0.1/13.0.2 contain no other breaking change for this
+# workspace's usage (session/request-id UUID generation only), so the
+# transitive version is pinned forward to the fixed release here instead of
+# waiting on an upstream @openobserve/browser-rum-core release.
+overrides:
+  uuid: 13.0.2

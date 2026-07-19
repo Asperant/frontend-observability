@@ -160,6 +160,7 @@ services:
     secrets:
       - openobserve_root_email
       - openobserve_root_password
+      - openobserve_rum_client_token
     networks:
       - observability-internal
       - edge-publish
@@ -169,6 +170,19 @@ services:
       ZO_DATA_DIR: /data
       ZO_TELEMETRY: "false"
       ZO_HTTP_PORT: "5080"
+      # Official OpenObserve RUM environment model. ZO_RUM_CLIENT_TOKEN is
+      # never set directly here — the entrypoint reads it from the
+      # openobserve_rum_client_token secret file at process start and
+      # exports it, so the token literal never appears in this compose file
+      # or in `docker compose config` output.
+      ZO_RUM_ENABLED: "true"
+      ZO_RUM_APPLICATION_ID: chicek-demo-frontend
+      ZO_RUM_SITE: "localhost:8443"
+      ZO_RUM_SERVICE: chicek-demo-frontend
+      ZO_RUM_ENV: lab
+      ZO_RUM_VERSION: "2026.07.1"
+      ZO_RUM_ORGANIZATION_IDENTIFIER: default
+      ZO_RUM_API_VERSION: v1
     healthcheck:
       test: ["CMD", "/healthcheck.sh"]
       interval: 10s
@@ -207,3 +221,5 @@ secrets:
     file: ../../.runtime/secrets/openobserve-root-email
   openobserve_root_password:
     file: ../../.runtime/secrets/openobserve-root-password
+  openobserve_rum_client_token:
+    file: ../../.runtime/secrets/openobserve-rum-client-token

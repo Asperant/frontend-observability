@@ -211,9 +211,12 @@ describe("runtime config schema and lifetime helpers", () => {
     ).toBe(false);
     expect(validateRuntimeConfigShape({ ...base, rum: null })).toBe(false);
     expect(validateRuntimeConfigShape({ ...base, rum: { ...base.rum, extra: true } })).toBe(false);
-    expect(
-      validateRuntimeConfigShape({ ...base, rum: { ...base.rum, endpoint: "http://bad" } }),
-    ).toBe(false);
+    expect(validateRuntimeConfigShape({ ...base, rum: { ...base.rum, site: "http://bad" } })).toBe(
+      false,
+    );
+    expect(validateRuntimeConfigShape({ ...base, rum: { ...base.rum, apiVersion: "v2" } })).toBe(
+      false,
+    );
     expect(validateRuntimeConfigShape({ ...base, browserLogs: null })).toBe(false);
     expect(
       validateRuntimeConfigShape({ ...base, browserLogs: { enabled: false, extra: true } }),
@@ -341,6 +344,7 @@ describe("initialization coordination", () => {
   });
 
   it("fails closed when enabled config has no adapter", async () => {
+    setAdapterFactoryForTests(() => null);
     globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
     const result = await initializeObservability(options);
     expect(result.reasonCode).toBe("ADAPTER_UNAVAILABLE");
@@ -449,9 +453,11 @@ function validEnabledConfig() {
     killSwitch: { engaged: false },
     sampling: { sessionSampleRate: 0.5, errorSampleRate: 0.5 },
     rum: {
-      endpoint: "https://observability.example.invalid/rum",
+      site: "observability.example.invalid",
+      organizationIdentifier: "org",
       applicationId: "app",
-      organizationId: "org",
+      clientToken: "test client token fixture value",
+      apiVersion: "v1",
     },
   };
 }

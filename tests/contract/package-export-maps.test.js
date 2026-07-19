@@ -28,8 +28,17 @@ describe("@chicek/browser-observability package.json export map", () => {
     expect(JSON.stringify(pkg.exports)).not.toMatch(/"require"/);
   });
 
-  it("stays dependency-free at this stage (no OpenObserve SDK, no framework)", () => {
-    expect(pkg.dependencies ?? {}).toEqual({});
+  it("depends on exactly the two pinned OpenObserve SDK packages, nothing else", () => {
+    expect(pkg.dependencies).toEqual({
+      "@openobserve/browser-logs": "0.3.4",
+      "@openobserve/browser-rum": "0.3.4",
+    });
+  });
+
+  it("pins exact SDK versions (no ^, ~, or dist-tag ranges)", () => {
+    for (const version of Object.values(pkg.dependencies)) {
+      expect(version).toMatch(/^\d+\.\d+\.\d+$/);
+    }
   });
 });
 

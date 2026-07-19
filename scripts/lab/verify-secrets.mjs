@@ -12,6 +12,7 @@ import {
   leafKeyPath,
   passwordSecretPath,
   repoRoot,
+  rumClientTokenSecretPath,
   runtimeConfigPath,
   runtimeDir,
 } from "./common.mjs";
@@ -29,12 +30,20 @@ function readSecrets() {
   return {
     email: readFileSync(emailSecretPath, "utf8"),
     password: readFileSync(passwordSecretPath, "utf8"),
+    rumClientToken: readFileSync(rumClientTokenSecretPath, "utf8").trim(),
   };
 }
 
 /**
  * Never prints the secret values themselves — only whether a sha256 canary
- * of each value shows up somewhere it must not.
+ * of each value shows up somewhere it must not. The RUM client token is
+ * intentionally treated differently from the root email/password: it is
+ * *expected* to appear in the generated runtime config (browsers must read
+ * it to call the SDK) and in the openobserve container's env (ZO_RUM_CLIENT_TOKEN,
+ * so the server can authorize ingestion) — it is a browser-exposed ingestion
+ * credential, not an admin/root one. What must still hold is that it is its
+ * own distinct secret (never equal to the root email/password), stored with
+ * the same file hygiene, and never printed to logs.
  */
 export function checkSecretSecurity() {
   const findings = [];
@@ -43,7 +52,7 @@ export function checkSecretSecurity() {
     findings.push(".runtime/ is not covered by .gitignore.");
   }
 
-  for (const path of [emailSecretPath, passwordSecretPath]) {
+  for (const path of [emailSecretPath, passwordSecretPath, rumClientTokenSecretPath]) {
     if (lstatSync(path).isSymbolicLink()) findings.push(`${path} is a symlink.`);
     if (fileMode(path) !== 0o600)
       findings.push(`${path} is not mode 0600 (got ${fileMode(path).toString(8)}).`);
@@ -54,8 +63,12 @@ export function checkSecretSecurity() {
       findings.push(`${path} is not mode 0600 (got ${fileMode(path).toString(8)}).`);
   }
 
-  const { email, password } = readSecrets();
+  const { email, password, rumClientToken } = readSecrets();
   const secretHashes = new Set([sha256(email), sha256(password)]);
+
+  if (rumClientToken === email || rumClientToken === password) {
+    findings.push("The RUM client token must be distinct from the root email/password secret.");
+  }
 
   const composeConfig = spawnSync("docker", composeArgs(["config"]), {
     cwd: dockerDir,
@@ -67,7 +80,7 @@ export function checkSecretSecurity() {
     composeConfig.includes(password) ||
     composeConfig.includes(email)
   ) {
-    findings.push("A secret value literal appears in `docker compose config` output.");
+    findings.push("A root secret value literal appears in `docker compose config` output.");
   }
 
   const containerEnv = spawnSync(
@@ -77,28 +90,31 @@ export function checkSecretSecurity() {
   ).stdout;
   if (containerEnv.includes(password) || containerEnv.includes(email)) {
     findings.push(
-      "A secret value literal appears in the openobserve container's config environment.",
+      "A root secret value literal appears in the openobserve container's config environment.",
     );
   }
 
+  // The RUM client token is deliberately not checked against container logs
+  // here: it is a browser-exposed ingestion credential, and openobserve's
+  // own access log legitimately records every RUM/log ingestion request's
+  // full query string (including o2-api-key=<this token>) — that is
+  // expected, safe RUM traffic, not a leaked admin/root secret.
   const logs = spawnSync("docker", ["logs", "chicek-lab-openobserve-1"], { encoding: "utf8" });
   const logText = `${logs.stdout ?? ""}${logs.stderr ?? ""}`;
   if (logText.includes(password) || logText.includes(email)) {
-    findings.push("A secret value literal appears in openobserve container logs.");
+    findings.push("A root secret value literal appears in openobserve container logs.");
   }
 
   if (existsSync(runtimeConfigPath)) {
     const runtimeConfigText = readFileSync(runtimeConfigPath, "utf8");
     if (runtimeConfigText.includes(password) || runtimeConfigText.includes(email)) {
-      findings.push("A secret value literal appears in the generated runtime config.");
+      findings.push("The root email/password secret appears in the generated runtime config.");
     }
     const runtimeConfig = JSON.parse(runtimeConfigText);
-    if (
-      runtimeConfig.rum?.endpoint ||
-      runtimeConfig.rum?.applicationId ||
-      runtimeConfig.rum?.organizationId
-    ) {
-      findings.push("Runtime config unexpectedly contains RUM connection fields while disabled.");
+    if (runtimeConfig.enabled && runtimeConfig.rum?.clientToken !== rumClientToken) {
+      findings.push(
+        "Runtime config's rum.clientToken does not match the generated RUM secret file.",
+      );
     }
   } else {
     findings.push("Generated runtime config is missing.");

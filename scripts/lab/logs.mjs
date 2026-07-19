@@ -7,6 +7,7 @@ import {
   dockerEnv,
   emailSecretPath,
   passwordSecretPath,
+  rumClientTokenSecretPath,
   assertExactLabToolchain,
   log,
   redactSecrets,
@@ -14,7 +15,7 @@ import {
 
 function secretValues() {
   const values = [];
-  for (const path of [emailSecretPath, passwordSecretPath]) {
+  for (const path of [emailSecretPath, passwordSecretPath, rumClientTokenSecretPath]) {
     if (existsSync(path)) values.push(readFileSync(path, "utf8"));
   }
   return values;

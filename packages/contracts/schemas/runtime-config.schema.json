@@ -6,15 +6,22 @@
   "type": "object",
   "additionalProperties": false,
   "$defs": {
-    "rumEndpoint": {
+    "rumSite": {
       "type": "string",
-      "format": "uri",
-      "pattern": "^https://",
-      "maxLength": 512,
-      "description": "Must be an https:// URL. Insecure http:// endpoints are always rejected."
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?(:[0-9]{1,5})?$",
+      "description": "Bare host[:port] of the OpenObserve RUM ingestion endpoint the SDK will call over HTTPS, e.g. 'localhost:8443'. Never a full URL: no scheme, path, query, credentials, or whitespace, so an insecure 'http://' (or any other) scheme can never be smuggled in through this field."
     },
+    "rumOrganizationIdentifier": { "type": "string", "minLength": 1, "maxLength": 128 },
     "rumApplicationId": { "type": "string", "minLength": 1, "maxLength": 128 },
-    "rumOrganizationId": { "type": "string", "minLength": 1, "maxLength": 128 }
+    "rumClientToken": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 256,
+      "description": "OpenObserve RUM ingestion token. This is a browser-exposed client credential, not an admin/root credential, and carries no search/management authority."
+    },
+    "rumApiVersion": { "type": "string", "enum": ["v1"] }
   },
   "required": [
     "schemaVersion",
@@ -86,11 +93,13 @@
     "rum": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Connection credential fields are only required when the top-level `enabled` flag is true (see the root-level `allOf`/`if`/`then` below); a disabled config must be expressible without a real or fake endpoint/applicationId/organizationId.",
+      "description": "Connection fields are only required when the top-level `enabled` flag is true (see the root-level `allOf`/`if`/`then` below); a disabled config must be expressible without real or fake connection fields.",
       "properties": {
-        "endpoint": { "$ref": "#/$defs/rumEndpoint" },
+        "site": { "$ref": "#/$defs/rumSite" },
+        "organizationIdentifier": { "$ref": "#/$defs/rumOrganizationIdentifier" },
         "applicationId": { "$ref": "#/$defs/rumApplicationId" },
-        "organizationId": { "$ref": "#/$defs/rumOrganizationId" }
+        "clientToken": { "$ref": "#/$defs/rumClientToken" },
+        "apiVersion": { "$ref": "#/$defs/rumApiVersion" }
       }
     },
     "browserLogs": {
@@ -134,11 +143,19 @@
         "properties": {
           "rum": {
             "type": "object",
-            "required": ["endpoint", "applicationId", "organizationId"],
+            "required": [
+              "site",
+              "organizationIdentifier",
+              "applicationId",
+              "clientToken",
+              "apiVersion"
+            ],
             "properties": {
-              "endpoint": { "$ref": "#/$defs/rumEndpoint" },
+              "site": { "$ref": "#/$defs/rumSite" },
+              "organizationIdentifier": { "$ref": "#/$defs/rumOrganizationIdentifier" },
               "applicationId": { "$ref": "#/$defs/rumApplicationId" },
-              "organizationId": { "$ref": "#/$defs/rumOrganizationId" }
+              "clientToken": { "$ref": "#/$defs/rumClientToken" },
+              "apiVersion": { "$ref": "#/$defs/rumApiVersion" }
             }
           }
         }

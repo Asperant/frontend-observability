@@ -11,6 +11,7 @@ test.describe("demo frontend smoke", () => {
     await page.goto("/");
     for (const id of [
       "initialize",
+      "initialize-runtime-config",
       "concurrent-init",
       "duplicate-init",
       "conflict-init",
@@ -88,11 +89,22 @@ test.describe("demo frontend smoke", () => {
     await expect(page.locator("body")).toBeVisible();
   });
 
-  test("telemetry adapter unavailable does not break the demo", async ({ page }) => {
+  test("the real OpenObserve adapter initializes and does not break the demo", async ({ page }) => {
+    // Stage 8: a real adapter is wired by default now, so this fixture
+    // (schema-valid, enabled, but pointing at a non-resolving fake site)
+    // reaches "active" instead of the pre-Stage-8 ADAPTER_UNAVAILABLE stub
+    // gap — real ingestion requests to that fake site simply fail silently
+    // (never surfacing as a page error), which is exactly the resilience
+    // this test now demonstrates.
+    const pageErrors = [];
+    page.on("pageerror", (error) => pageErrors.push(error));
+
     await page.goto("/");
     await page.getByTestId("scenario-initialize").click();
-    await expect(page.getByTestId("status-panel")).toContainText("ADAPTER_UNAVAILABLE");
+    await expect(page.getByTestId("status-panel")).toContainText("active");
+    await expect(page.getByTestId("status-panel")).toContainText("openobserve");
     await expect(page.locator("body")).toBeVisible();
+    expect(pageErrors).toEqual([]);
   });
 
   test("mock API health endpoint responds", async ({ request }) => {

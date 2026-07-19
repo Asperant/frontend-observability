@@ -54,8 +54,30 @@ export async function checkTlsAndProxy() {
   } catch {
     findings.push("GET /observability/config.json: response body is not valid JSON.");
   }
-  if (parsedConfig && parsedConfig.enabled !== false) {
-    findings.push("GET /observability/config.json: expected enabled=false in Stage 6.");
+  if (parsedConfig && parsedConfig.enabled !== true) {
+    findings.push("GET /observability/config.json: expected enabled=true in the Stage 8 lab.");
+  }
+  if (parsedConfig) {
+    if (parsedConfig.sessionReplay?.enabled !== false) {
+      findings.push("GET /observability/config.json: sessionReplay must stay disabled.");
+    }
+    if (parsedConfig.rum?.site !== "localhost:8443") {
+      findings.push("GET /observability/config.json: unexpected rum.site.");
+    }
+    if (
+      parsedConfig.rum?.apiVersion !== "v1" ||
+      parsedConfig.rum?.organizationIdentifier !== "default"
+    ) {
+      findings.push(
+        "GET /observability/config.json: rum.apiVersion/organizationIdentifier do not match the ingestion allowlist.",
+      );
+    }
+    if (
+      typeof parsedConfig.rum?.clientToken !== "string" ||
+      parsedConfig.rum.clientToken.length < 16
+    ) {
+      findings.push("GET /observability/config.json: rum.clientToken missing or too short.");
+    }
   }
 
   const mockStatus200 = await requestHttps("/mock/status/200");
@@ -81,6 +103,51 @@ export async function checkTlsAndProxy() {
 
   const postDenied = await requestHttps("/mock/status/200", { method: "POST" });
   expectStatus(findings, "POST /mock/status/200 (method not allowed)", postDenied.statusCode, 405);
+
+  // Stage 8 exact RUM/browser-logs ingestion allowlist. Uses the real,
+  // fetched RUM token (see fetch-rum-token.mjs) so these probes exercise
+  // genuine end-to-end ingestion, not just "nginx proxied it somewhere".
+  const rumToken = parsedConfig?.rum?.clientToken;
+  const rumOk = await requestHttps(
+    `/rum/v1/default/rum?o2source=browser&o2-api-key=${encodeURIComponent(rumToken ?? "")}&o2-request-id=lab-verify`,
+    { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: "{}" },
+  );
+  expectStatus(findings, "POST /rum/v1/default/rum (real content-type)", rumOk.statusCode, 200);
+  const logsOk = await requestHttps(
+    `/rum/v1/default/logs?o2source=browser&o2-api-key=${encodeURIComponent(rumToken ?? "")}&o2-request-id=lab-verify`,
+    { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: "{}" },
+  );
+  expectStatus(findings, "POST /rum/v1/default/logs (real content-type)", logsOk.statusCode, 200);
+  const rumWrongContentType = await requestHttps("/rum/v1/default/rum?o2-api-key=x", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
+  });
+  expectStatus(
+    findings,
+    "POST /rum/v1/default/rum (wrong content-type)",
+    rumWrongContentType.statusCode,
+    415,
+  );
+  const rumWrongMethod = await requestHttps("/rum/v1/default/rum");
+  expectStatus(
+    findings,
+    "GET /rum/v1/default/rum (method not allowed)",
+    rumWrongMethod.statusCode,
+    405,
+  );
+  const replayDenied = await requestHttps("/rum/v1/default/replay", {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=UTF-8" },
+    body: "{}",
+  });
+  expectStatus(findings, "POST /rum/v1/default/replay (deny)", replayDenied.statusCode, 404);
+  const otherOrgDenied = await requestHttps("/rum/v1/otherorg/rum", {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=UTF-8" },
+    body: "{}",
+  });
+  expectStatus(findings, "POST /rum/v1/otherorg/rum (deny)", otherOrgDenied.statusCode, 404);
 
   const openobserveHealthz = await requestHttp("/healthz");
   expectStatus(

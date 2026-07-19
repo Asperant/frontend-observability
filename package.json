@@ -18,6 +18,8 @@
     "test:e2e": "playwright test",
     "test:lab": "vitest run --project lab",
     "test:e2e:lab": "playwright test --config playwright-lab.config.js",
+    "test:e2e:stage8": "playwright test --config playwright-stage8.config.js",
+    "test:stage8:openobserve": "node scripts/lab/verify-stage8-openobserve.mjs",
     "test:coverage": "vitest run --project unit --coverage",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",

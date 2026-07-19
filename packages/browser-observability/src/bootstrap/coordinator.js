@@ -98,6 +98,10 @@ async function runInitialization(registry, options) {
   }).catch(() => ({ ok: false, adapter: null, thrown: true }));
 
   if (!adapterResult.ok) {
+    if (adapterResult.reasonCode) {
+      disableRuntime(runtime, adapterResult.reasonCode);
+      return result(false, runtime);
+    }
     if (adapterResult.thrown) {
       degradeRuntime(runtime, ReasonCodes.ADAPTER_ERROR);
       return result(false, runtime);
@@ -107,7 +111,24 @@ async function runInitialization(registry, options) {
   }
 
   activateRuntime(runtime, adapterResult.adapter);
+  const capabilities = safeGetCapabilities(adapterResult.adapter);
+  if (capabilities.telemetry && capabilities.logs === false) {
+    // Primary telemetry (RUM actions/errors) came up, but the adapter's
+    // secondary channel (browser logs) failed to initialize: report the
+    // package as degraded rather than fully active, without ever calling
+    // adapter-specific (e.g. OpenObserve) logic from this generic coordinator.
+    transition(runtime, LifecycleStates.DEGRADED, ReasonCodes.ADAPTER_ERROR);
+  }
   return result(true, runtime);
+}
+
+function safeGetCapabilities(adapter) {
+  try {
+    const capabilities = adapter.getCapabilities();
+    return capabilities && typeof capabilities === "object" ? capabilities : {};
+  } catch {
+    return {};
+  }
 }
 
 function prepareInitializationRuntime(runtime) {

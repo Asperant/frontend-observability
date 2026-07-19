@@ -7,9 +7,11 @@
   "privacyProfile": "strict",
   "sampling": { "sessionSampleRate": 0.1, "errorSampleRate": 1 },
   "rum": {
-    "endpoint": "http://telemetry.example-test.invalid/api/rum",
+    "site": "http://telemetry.example-test.invalid",
+    "organizationIdentifier": "chicek-fixture-org",
     "applicationId": "demo-frontend-fixture",
-    "organizationId": "chicek-fixture-org"
+    "clientToken": "fixture client token test value",
+    "apiVersion": "v1"
   },
   "browserLogs": { "enabled": true },
   "sessionReplay": { "enabled": false },

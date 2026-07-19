@@ -11,7 +11,7 @@ import {
   assertExactLabToolchain,
 } from "./common.mjs";
 import { getComposeStatus } from "./status.mjs";
-import { passwordSecretPath, emailSecretPath } from "./common.mjs";
+import { passwordSecretPath, emailSecretPath, rumClientTokenSecretPath } from "./common.mjs";
 import { readFileSync, existsSync } from "node:fs";
 
 const DEFAULT_TIMEOUT_MS = 180_000;
@@ -19,7 +19,7 @@ const POLL_INTERVAL_MS = 3_000;
 
 function readSecretValuesForRedaction() {
   const values = [];
-  for (const path of [emailSecretPath, passwordSecretPath]) {
+  for (const path of [emailSecretPath, passwordSecretPath, rumClientTokenSecretPath]) {
     if (existsSync(path)) values.push(readFileSync(path, "utf8"));
   }
   return values;

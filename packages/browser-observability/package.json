@@ -17,6 +17,10 @@
   "scripts": {
     "build": "vite build"
   },
+  "dependencies": {
+    "@openobserve/browser-logs": "0.3.4",
+    "@openobserve/browser-rum": "0.3.4"
+  },
   "devDependencies": {
     "vite": "catalog:"
   }

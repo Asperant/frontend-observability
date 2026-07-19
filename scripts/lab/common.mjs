@@ -27,6 +27,7 @@ export const generatedDir = join(runtimeDir, "generated");
 
 export const emailSecretPath = join(secretsDir, "openobserve-root-email");
 export const passwordSecretPath = join(secretsDir, "openobserve-root-password");
+export const rumClientTokenSecretPath = join(secretsDir, "openobserve-rum-client-token");
 export const caCertPath = join(certsDir, "lab-ca.crt");
 export const caKeyPath = join(certsDir, "lab-ca.key");
 export const leafCertPath = join(certsDir, "localhost.crt");

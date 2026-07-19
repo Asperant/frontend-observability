@@ -8,9 +8,11 @@
   "privacyProfile": "strict",
   "sampling": { "sessionSampleRate": 0.5, "errorSampleRate": 0.5 },
   "rum": {
-    "endpoint": "https://observability.example.invalid/rum",
+    "site": "127.0.0.1:59999",
+    "organizationIdentifier": "demo-org",
     "applicationId": "demo-app",
-    "organizationId": "demo-org"
+    "clientToken": "fixture client token test value",
+    "apiVersion": "v1"
   },
   "browserLogs": { "enabled": false },
   "sessionReplay": { "enabled": false },

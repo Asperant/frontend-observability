@@ -105,9 +105,11 @@ function validEnabledConfig() {
     privacyProfile: "strict",
     sampling: { sessionSampleRate: 0.5, errorSampleRate: 0.5 },
     rum: {
-      endpoint: "https://observability.example.invalid/rum",
+      site: "observability.example.invalid",
+      organizationIdentifier: "org",
       applicationId: "app",
-      organizationId: "org",
+      clientToken: "test client token fixture value",
+      apiVersion: "v1",
     },
     browserLogs: { enabled: false },
     sessionReplay: { enabled: false },
