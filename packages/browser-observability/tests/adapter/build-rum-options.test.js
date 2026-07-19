@@ -31,6 +31,13 @@ describe("buildRumOptions", () => {
     expect(options.apiVersion).toBe("v1");
   });
 
+  it("routes browser-facing ingestion through exact queryless proxy paths", () => {
+    const options = buildRumOptions(identity, policy);
+    expect(options.proxy({ path: "/rum/v1/default/rum", parameters: "o2-api-key=secret" })).toBe(
+      "/rum/v1/default/rum",
+    );
+  });
+
   it("scales the 0-1 sessionSampleRate to the SDK's 0-100 percentage", () => {
     expect(buildRumOptions(identity, policy).sessionSampleRate).toBe(50);
   });

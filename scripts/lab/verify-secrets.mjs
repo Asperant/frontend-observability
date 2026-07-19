@@ -94,11 +94,9 @@ export function checkSecretSecurity() {
     );
   }
 
-  // The RUM client token is deliberately not checked against container logs
-  // here: it is a browser-exposed ingestion credential, and openobserve's
-  // own access log legitimately records every RUM/log ingestion request's
-  // full query string (including o2-api-key=<this token>) — that is
-  // expected, safe RUM traffic, not a leaked admin/root secret.
+  // The RUM client token is checked by the dedicated proxy-security gate:
+  // browser-facing ingestion is queryless, and reverse-proxy metadata logs
+  // must not contain token values.
   const logs = spawnSync("docker", ["logs", "chicek-lab-openobserve-1"], { encoding: "utf8" });
   const logText = `${logs.stdout ?? ""}${logs.stderr ?? ""}`;
   if (logText.includes(password) || logText.includes(email)) {

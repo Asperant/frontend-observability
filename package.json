@@ -23,6 +23,7 @@
     "test:stage8:openobserve": "node scripts/lab/verify-stage8-openobserve.mjs",
     "test:stage9:leakage": "node scripts/lab/verify-sanitization-leakage.mjs",
     "test:stage10:correlation": "node scripts/lab/verify-stage10-correlation.mjs",
+    "test:stage12:proxy-security": "node scripts/lab/verify-proxy-security.mjs",
     "test:coverage": "vitest run --project unit --coverage",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",

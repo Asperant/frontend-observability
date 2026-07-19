@@ -23,6 +23,7 @@ export function buildRumOptions(identity, policy, beforeSend) {
     apiVersion,
     organizationIdentifier,
     insecureHTTP: false,
+    proxy: ({ path }) => path,
     beforeSend,
 
     trackingConsent: "not-granted",

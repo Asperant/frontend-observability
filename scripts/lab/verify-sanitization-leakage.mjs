@@ -8,7 +8,6 @@ import {
   log,
   logError,
   passwordSecretPath,
-  runtimeConfigPath,
 } from "./common.mjs";
 import { DEMO_IDENTITY } from "../../apps/demo-frontend/src/identity.js";
 
@@ -47,28 +46,13 @@ function basicAuthHeader(email, password) {
   return `Basic ${Buffer.from(`${email}:${password}`).toString("base64")}`;
 }
 
-function intakeUrl(runtimeConfig, stream, requestId) {
-  const token = runtimeConfig.rum.clientToken;
-  const params = new URLSearchParams({
-    o2source: "browser",
-    "o2-api-key": token,
-    "o2-evp-origin-version": "0.3.4",
-    "o2-evp-origin": "browser",
-    "o2-request-id": requestId,
-  });
-  if (stream === "rum") {
-    params.set("batch_time", String(Date.now()));
-    params.set("_o2.api", "manual");
-  }
-  return `${PROXY_URL}/rum/v1/default/${stream}?${params.toString()}`;
+function intakeUrl(stream) {
+  return `${PROXY_URL}/rum/v1/default/${stream}`;
 }
 
-async function sendIntake(runtimeConfig, stream, event) {
+async function sendIntake(stream, event) {
   const requestId = crypto.randomUUID();
-  const response = await postHttpsText(
-    intakeUrl(runtimeConfig, stream, requestId),
-    JSON.stringify(event),
-  );
+  const response = await postHttpsText(intakeUrl(stream), JSON.stringify(event));
   return { requestId, ...response, counts: ingestionCounts(response.body) };
 }
 
@@ -162,6 +146,8 @@ function postHttpsText(url, body) {
         method: "POST",
         ca,
         headers: {
+          Host: "localhost:8443",
+          Origin: "https://localhost:8443",
           "Content-Type": "text/plain;charset=UTF-8",
           "Content-Length": Buffer.byteLength(body),
         },
@@ -462,7 +448,6 @@ function responseSummary(results) {
 
 export async function verifySanitizationLeakage() {
   const findings = [];
-  const runtimeConfig = JSON.parse(readFileSync(runtimeConfigPath, "utf8"));
   const { email, password } = readAdminCredentials();
   const auth = basicAuthHeader(email, password);
   const startedUs = NOW_US() - 5_000_000;
@@ -479,12 +464,12 @@ export async function verifySanitizationLeakage() {
   };
 
   const intakeResults = {
-    rumSafe: await sendIntake(runtimeConfig, "rum", rumPayload("safe", rumRuns.safe)),
-    rumRedacted: await sendIntake(runtimeConfig, "rum", rumPayload("redacted", rumRuns.redacted)),
-    rumSecret: await sendIntake(runtimeConfig, "rum", rumPayload("secret", rumRuns.secret)),
-    logSafe: await sendIntake(runtimeConfig, "logs", logPayload("safe", logRuns.safe)),
-    logRedacted: await sendIntake(runtimeConfig, "logs", logPayload("redacted", logRuns.redacted)),
-    logSecret: await sendIntake(runtimeConfig, "logs", logPayload("secret", logRuns.secret)),
+    rumSafe: await sendIntake("rum", rumPayload("safe", rumRuns.safe)),
+    rumRedacted: await sendIntake("rum", rumPayload("redacted", rumRuns.redacted)),
+    rumSecret: await sendIntake("rum", rumPayload("secret", rumRuns.secret)),
+    logSafe: await sendIntake("logs", logPayload("safe", logRuns.safe)),
+    logRedacted: await sendIntake("logs", logPayload("redacted", logRuns.redacted)),
+    logSecret: await sendIntake("logs", logPayload("secret", logRuns.secret)),
   };
 
   for (const [label, result] of Object.entries(intakeResults)) {

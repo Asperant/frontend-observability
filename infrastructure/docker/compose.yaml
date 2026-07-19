@@ -28,6 +28,8 @@ services:
       - ../../.runtime/certs/localhost.crt:/etc/chicek/tls/localhost.crt:ro
       - ../../.runtime/certs/localhost.key:/etc/chicek/tls/localhost.key:ro
       - ../../.runtime/generated/runtime-config.json:/etc/chicek/runtime-config.json:ro
+    secrets:
+      - openobserve_rum_client_token
     networks:
       - app-internal
       - observability-internal

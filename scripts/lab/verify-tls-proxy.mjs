@@ -104,23 +104,30 @@ export async function checkTlsAndProxy() {
   const postDenied = await requestHttps("/mock/status/200", { method: "POST" });
   expectStatus(findings, "POST /mock/status/200 (method not allowed)", postDenied.statusCode, 405);
 
-  // Stage 8 exact RUM/browser-logs ingestion allowlist. Uses the real,
-  // fetched RUM token (see fetch-rum-token.mjs) so these probes exercise
-  // genuine end-to-end ingestion, not just "nginx proxied it somewhere".
-  const rumToken = parsedConfig?.rum?.clientToken;
-  const rumOk = await requestHttps(
-    `/rum/v1/default/rum?o2source=browser&o2-api-key=${encodeURIComponent(rumToken ?? "")}&o2-request-id=lab-verify`,
-    { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: "{}" },
-  );
-  expectStatus(findings, "POST /rum/v1/default/rum (real content-type)", rumOk.statusCode, 200);
-  const logsOk = await requestHttps(
-    `/rum/v1/default/logs?o2source=browser&o2-api-key=${encodeURIComponent(rumToken ?? "")}&o2-request-id=lab-verify`,
-    { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: "{}" },
-  );
-  expectStatus(findings, "POST /rum/v1/default/logs (real content-type)", logsOk.statusCode, 200);
-  const rumWrongContentType = await requestHttps("/rum/v1/default/rum?o2-api-key=x", {
+  // Exact RUM/browser-logs ingestion allowlist. These probes exercise
+  // genuine end-to-end ingestion through the queryless browser-facing
+  // proxy; the reverse-proxy injects the upstream-only OpenObserve token
+  // query from its Docker secret.
+  const ingestionHeaders = {
+    Host: "localhost:8443",
+    Origin: "https://localhost:8443",
+    "Content-Type": "text/plain;charset=UTF-8",
+  };
+  const rumOk = await requestHttps("/rum/v1/default/rum", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: ingestionHeaders,
+    body: "{}",
+  });
+  expectStatus(findings, "POST /rum/v1/default/rum (real content-type)", rumOk.statusCode, 200);
+  const logsOk = await requestHttps("/rum/v1/default/logs", {
+    method: "POST",
+    headers: ingestionHeaders,
+    body: "{}",
+  });
+  expectStatus(findings, "POST /rum/v1/default/logs (real content-type)", logsOk.statusCode, 200);
+  const rumWrongContentType = await requestHttps("/rum/v1/default/rum", {
+    method: "POST",
+    headers: { ...ingestionHeaders, "Content-Type": "application/json" },
     body: "{}",
   });
   expectStatus(
@@ -129,7 +136,9 @@ export async function checkTlsAndProxy() {
     rumWrongContentType.statusCode,
     415,
   );
-  const rumWrongMethod = await requestHttps("/rum/v1/default/rum");
+  const rumWrongMethod = await requestHttps("/rum/v1/default/rum", {
+    headers: { Host: "localhost:8443", Origin: "https://localhost:8443" },
+  });
   expectStatus(
     findings,
     "GET /rum/v1/default/rum (method not allowed)",
@@ -138,13 +147,13 @@ export async function checkTlsAndProxy() {
   );
   const replayDenied = await requestHttps("/rum/v1/default/replay", {
     method: "POST",
-    headers: { "Content-Type": "text/plain;charset=UTF-8" },
+    headers: ingestionHeaders,
     body: "{}",
   });
   expectStatus(findings, "POST /rum/v1/default/replay (deny)", replayDenied.statusCode, 404);
   const otherOrgDenied = await requestHttps("/rum/v1/otherorg/rum", {
     method: "POST",
-    headers: { "Content-Type": "text/plain;charset=UTF-8" },
+    headers: ingestionHeaders,
     body: "{}",
   });
   expectStatus(findings, "POST /rum/v1/otherorg/rum (deny)", otherOrgDenied.statusCode, 404);

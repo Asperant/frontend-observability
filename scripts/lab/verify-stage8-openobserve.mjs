@@ -63,19 +63,8 @@ function escapeSqlLiteral(value) {
   return String(value).replaceAll("'", "''");
 }
 
-function intakeUrl(runtimeConfig, stream, requestId) {
-  const params = new URLSearchParams({
-    o2source: "browser",
-    "o2-api-key": runtimeConfig.rum.clientToken,
-    "o2-evp-origin-version": "0.3.4",
-    "o2-evp-origin": "browser",
-    "o2-request-id": requestId,
-  });
-  if (stream === "rum") {
-    params.set("batch_time", String(Date.now()));
-    params.set("_o2.api", "manual");
-  }
-  return `${PROXY_URL}/rum/v1/default/${stream}?${params.toString()}`;
+function intakeUrl(stream) {
+  return `${PROXY_URL}/rum/v1/default/${stream}`;
 }
 
 function postHttpsText(url, body) {
@@ -87,6 +76,8 @@ function postHttpsText(url, body) {
         method: "POST",
         ca,
         headers: {
+          Host: "localhost:8443",
+          Origin: "https://localhost:8443",
           "Content-Type": "text/plain;charset=UTF-8",
           "Content-Length": Buffer.byteLength(body),
         },
@@ -111,10 +102,10 @@ function postHttpsText(url, body) {
   });
 }
 
-async function sendIntake(runtimeConfig, stream, events) {
+async function sendIntake(stream, events) {
   const requestId = crypto.randomUUID();
   const body = events.map((event) => JSON.stringify(event)).join("\n");
-  const response = await postHttpsText(intakeUrl(runtimeConfig, stream, requestId), body);
+  const response = await postHttpsText(intakeUrl(stream), body);
   return { requestId, ...response };
 }
 
@@ -278,8 +269,8 @@ export async function verifyStage8OpenObserve() {
     );
   }
 
-  const rumCanaries = await sendIntake(runtimeConfig, "rum", createRumCanaries(testRunId));
-  const logCanary = await sendIntake(runtimeConfig, "logs", [createLogCanary(testRunId)]);
+  const rumCanaries = await sendIntake("rum", createRumCanaries(testRunId));
+  const logCanary = await sendIntake("logs", [createLogCanary(testRunId)]);
   if (rumCanaries.status >= 400) {
     findings.push(`Deterministic RUM canary ingestion returned status ${rumCanaries.status}.`);
   }

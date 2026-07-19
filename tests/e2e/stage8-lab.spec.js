@@ -60,10 +60,13 @@ test.describe("Stage 8 OpenObserve RUM/browser-logs integration", () => {
     expect(ingestRequests.length).toBeGreaterThan(0);
     expect(ingestRequests.some((url) => url.includes("/rum/v1/default/rum"))).toBe(true);
     // Every real ingest request goes through the allowlisted org/api-version
-    // only — never a wildcard org, and never straight to openobserve's own
-    // management surface.
+    // only, with no browser-facing query string — never a wildcard org,
+    // and never straight to openobserve's own management surface.
     for (const url of ingestRequests) {
-      expect(url).toMatch(/^https:\/\/localhost:8443\/rum\/v1\/default\/(rum|logs)\?/);
+      const parsed = new URL(url);
+      expect(parsed.origin).toBe("https://localhost:8443");
+      expect(parsed.pathname).toMatch(/^\/rum\/v1\/default\/(rum|logs)$/);
+      expect(parsed.search).toBe("");
     }
   });
 

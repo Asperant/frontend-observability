@@ -127,7 +127,12 @@ describe("session replay stays disabled by design (OpenObserve OSS v0.91.0 secur
 
     it("has no location matching a /replay path", () => {
       expect(source).not.toMatch(/location\s*[=~]?\s*\/rum\/v1\/default\/replay/);
-      expect(source.toLowerCase()).not.toMatch(/location[^{]*replay[^{]*{/);
+      for (const match of source
+        .toLowerCase()
+        .matchAll(/location[^{]*replay[^{]*{([\s\S]*?)\n}/g)) {
+        expect(match[1]).not.toContain("proxy_pass");
+        expect(match[1]).toContain("return 404");
+      }
     });
 
     it("has exactly the two allowlisted rum/logs locations, and no others matching /rum/*", () => {
@@ -147,7 +152,8 @@ describe("session replay stays disabled by design (OpenObserve OSS v0.91.0 secur
     });
 
     it("contains no proxy_pass to openobserve outside the two allowlisted exact locations", () => {
-      const proxyPassCount = (source.match(/proxy_pass \$openobserve_upstream;/g) ?? []).length;
+      const proxyPassCount = (source.match(/proxy_pass \$openobserve_upstream\$uri\?/g) ?? [])
+        .length;
       expect(proxyPassCount).toBe(2);
     });
   });

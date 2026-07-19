@@ -6,6 +6,8 @@ COPY --chown=nginx:nginx nginx.conf /etc/nginx/nginx.conf
 COPY --chown=nginx:nginx conf.d/app.conf /etc/nginx/conf.d/app.conf
 COPY --chown=nginx:nginx conf.d/security.conf /etc/nginx/conf.d/security.conf
 COPY --chown=nginx:nginx conf.d/ingestion.conf /etc/nginx/conf.d/ingestion.conf
+COPY --chown=nginx:nginx conf.d/ingestion-upstream-secret.conf.template /etc/chicek/templates/ingestion-upstream-secret.conf.template
+COPY --chown=nginx:nginx docker-entrypoint.d/40-render-ingestion-secret.sh /docker-entrypoint.d/40-render-ingestion-secret.sh
 RUN rm -f /etc/nginx/conf.d/default.conf
 
 EXPOSE 8443

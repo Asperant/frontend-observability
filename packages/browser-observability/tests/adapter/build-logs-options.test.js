@@ -31,6 +31,13 @@ describe("buildLogsOptions", () => {
     expect(options).not.toHaveProperty("applicationId");
   });
 
+  it("routes browser-facing ingestion through exact queryless proxy paths", () => {
+    const options = buildLogsOptions(identity, policy);
+    expect(options.proxy({ path: "/rum/v1/default/logs", parameters: "o2-api-key=secret" })).toBe(
+      "/rum/v1/default/logs",
+    );
+  });
+
   it("scales the 0-1 sessionSampleRate to the SDK's 0-100 percentage", () => {
     expect(buildLogsOptions(identity, policy).sessionSampleRate).toBe(25);
   });
