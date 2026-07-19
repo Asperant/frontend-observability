@@ -3,17 +3,15 @@ import { sanitizeError } from "../../sanitization/sanitize-error.js";
 
 /**
  * Maps a validated recordError(error, context) call to the shape the
- * OpenObserve RUM/Logs SDKs expect. A real Error instance is always
- * forwarded as-is (never flattened first) so the SDK's own native
- * stack-trace handling can do its job; anything else is wrapped in a real
- * Error built from the bounded, sanitized message so the SDK still receives
- * a native error object instead of an arbitrary host-supplied value.
+ * OpenObserve RUM/Logs SDKs expect. record-error.js already converts the
+ * input to a bounded plain error payload, so this mapper never forwards a
+ * host-owned Error object with unsanitized stack/message fields.
  */
 export function mapError(error, context) {
   const safeContext = sanitizeAttributes(context);
-  if (error instanceof Error) {
-    return Object.freeze({ error, context: safeContext });
-  }
   const sanitized = sanitizeError(error);
-  return Object.freeze({ error: new Error(sanitized.message), context: safeContext });
+  const safeError = new Error(sanitized.message);
+  safeError.name = sanitized.name;
+  if (sanitized.stack) safeError.stack = sanitized.stack;
+  return Object.freeze({ error: safeError, context: safeContext });
 }

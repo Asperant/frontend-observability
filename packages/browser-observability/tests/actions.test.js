@@ -24,14 +24,14 @@ beforeEach(() => {
 });
 
 describe("custom action naming rules", () => {
-  it.each(["checkout.submit", "click", "form_field_focus", "a.b.c"])(
+  it.each(["checkout.submit", "click", "form-field-focus", "a.b.c"])(
     "accepts a well-formed name: %s",
     (name) => {
       expect(isValidActionName(name)).toBe(true);
     },
   );
 
-  it.each(["", "Checkout.Submit", "checkout submit", "1checkout", ".checkout", null, 42])(
+  it.each(["", "Checkout.Submit", "checkout submit", "form_field_focus", ".checkout", null, 42])(
     "rejects a malformed name: %p",
     (name) => {
       expect(isValidActionName(name)).toBe(false);
@@ -66,8 +66,8 @@ describe("recordAction lifecycle", () => {
     const result = recordAction("checkout.submit", { itemCount: 3 });
     expect(result.ok).toBe(true);
     expect(adapter.recordAction).toHaveBeenCalledWith("checkout.submit", { itemCount: 3 });
-    recordAction("checkout.null_attributes", null);
-    expect(adapter.recordAction).toHaveBeenCalledWith("checkout.null_attributes", {});
+    recordAction("checkout.null-attributes", null);
+    expect(adapter.recordAction).toHaveBeenCalledWith("checkout.null-attributes", {});
     expect(getObservabilityStatus().counters.acceptedActions).toBe(2);
   });
 
@@ -77,7 +77,7 @@ describe("recordAction lifecycle", () => {
     await initializeObservability(options);
     setTrackingConsent("granted");
 
-    expect(recordAction("Not Valid!", {}).reasonCode).toBe("INVALID_ACTION");
+    expect(recordAction("Not Valid!", {}).reasonCode).toBe("ACTION_NAME_INVALID");
     expect(recordAction("checkout.submit", []).reasonCode).toBe("INVALID_ACTION");
     expect(getObservabilityStatus().counters.droppedActions).toBe(2);
   });

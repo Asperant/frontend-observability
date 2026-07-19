@@ -120,7 +120,7 @@ export function statusScenario() {
 }
 
 export function recordActionScenario() {
-  return recordAction("demo.record_action", { source: "button" });
+  return recordAction("demo.record-action", { source: "button" });
 }
 
 export function recordErrorScenario() {
@@ -159,13 +159,13 @@ export function longTaskScenario() {
   while (performance.now() - start < 60) {
     // busy wait
   }
-  return recordAction("demo.long_task", { durationMs: Math.round(performance.now() - start) });
+  return recordAction("demo.long-task", { durationMs: Math.round(performance.now() - start) });
 }
 
 async function fetchScenario(path, options) {
   try {
     const response = await fetch(`${MOCK_API_BASE_URL}${path}`, options);
-    return recordAction("demo.request_completed", { path, status: response.status });
+    return recordAction("demo.request-completed", { path, status: response.status });
   } catch (error) {
     return recordError(error, { scenario: "request-failed", path });
   }
@@ -201,5 +201,58 @@ export function abortScenario() {
 export function telemetryFailureScenario() {
   // Demonstrates that recordAction() fails safely (no throw) when the
   // package has not been initialized or consent has not been granted.
-  return recordAction("demo.telemetry_failure", { scenario: "telemetry-failure" });
+  return recordAction("demo.telemetry-failure", { scenario: "telemetry-failure" });
+}
+
+export function safeActionScenario() {
+  return recordAction("demo.safe-action", { source: "panel", result: "ok" });
+}
+
+export function piiRedactedActionScenario() {
+  return recordAction("demo.pii-action", {
+    source: "panel",
+    synthetic: "alice.test@example.invalid 12345678901234567890",
+  });
+}
+
+export function secretDroppedActionScenario() {
+  return recordAction("demo.secret-action", {
+    source: "panel",
+    secret: "Bearer abcdefghijklmnopqrstuvwxyz",
+  });
+}
+
+export function piiRedactedErrorScenario() {
+  return recordError(
+    new Error("Synthetic contact alice.test@example.invalid id 12345678901234567890"),
+    { source: "panel" },
+  );
+}
+
+export function secretDroppedErrorScenario() {
+  return recordError(new Error("Authorization: Bearer abcdefghijklmnopqrstuvwxyz"), {
+    source: "panel",
+  });
+}
+
+export function urlNormalizationScenario() {
+  return recordError(new Error("Synthetic URL /users/12345678901234567890?email=a#token"), {
+    source: "panel",
+  });
+}
+
+export function unsafeAttributesScenario() {
+  return recordAction("demo.unsafe-attributes", {
+    source: "panel",
+    nested: { unsafe: true },
+    email: "alice.test@example.invalid",
+  });
+}
+
+export function networkUrlSanitizationScenario() {
+  return fetchScenario("/status/200?email=alice.test@example.invalid#token");
+}
+
+export function sanitizationCountersScenario() {
+  return getObservabilityStatus().sanitization;
 }

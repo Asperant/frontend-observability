@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "policyVersion": "telemetry-sanitization-v1",
+  "canaries": {
+    "email": "alice.test@example.invalid",
+    "phone": "+1 415 555 0134",
+    "iban": "GB82WEST12345698765432",
+    "card": "4111 1111 1111 1111",
+    "bearer": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzYWZlLXRlc3QifQ.signature",
+    "apiKey": "api_key=sk_test_abcdefghijklmnopqrstuvwxyz123456",
+    "uuid": "123e4567-e89b-12d3-a456-426614174000",
+    "longNumericIdentifier": "12345678901234567890",
+    "queryFragmentUrl": "https://example.invalid/account/12345678901234567890?email=alice.test@example.invalid#token",
+    "privateKeyMarker": "SYNTHETIC_PRIVATE_KEY_MARKER"
+  }
+}

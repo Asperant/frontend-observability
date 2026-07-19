@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "policyVersion": "telemetry-sanitization-v1",
+  "functions": {
+    "rum": "chicek_rum_sanitize_v1",
+    "rumlog": "chicek_rumlog_sanitize_v1"
+  },
+  "streams": {
+    "rum": "_rumdata",
+    "rumlog": "_rumlog"
+  }
+}

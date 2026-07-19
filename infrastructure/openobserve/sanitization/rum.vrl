@@ -1,0 +1,108 @@
+._chicek_drop = false
+
+raw = encode_json(.)
+if match(raw, r'(?i)(authorization|cookie|set-cookie|bearer\s+[a-z0-9._~+/=-]{16,}|api[_-]?key\s*[=:\"]|secret\s*[=:\"]|password\s*[=:\"]|private key)') {
+  ._chicek_drop = true
+}
+
+del(.usr)
+del(.user)
+del(.account)
+del(.headers)
+del(.Headers)
+del(.request)
+del(.response)
+del(.body)
+del(.payload)
+del(.request_body)
+del(.response_body)
+del(.requestBody)
+del(.responseBody)
+del(.graphql)
+del(.graphql_variables)
+del(.graphqlVariables)
+
+del(.context)
+del(.context_password)
+del(.context_secret)
+del(.context_token)
+del(.context_authorization)
+del(.context_cookie)
+del(.context_session)
+del(.context_csrf)
+del(.context_body)
+del(.context_payload)
+del(.context_request)
+del(.context_response)
+del(.context_header)
+del(.context_card)
+del(.context_cvv)
+del(.context_pin)
+del(.context_iban)
+del(.context_email)
+del(.context_phone)
+del(.context_address)
+
+if exists(.view.url) && is_string(.view.url) {
+  .view.url = replace!(.view.url, r'[#?].*$', "")
+  .view.url = replace!(.view.url, r'/[0-9]{9,}([/?#]|$)', "/:id")
+  .view.url = replace!(.view.url, r'/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}([/?#]|$)', "/:uuid")
+  .view.url = replace!(.view.url, r'/[0-9a-fA-F]{16,}([/?#.]|$)', "/:hash")
+}
+
+if exists(.view_url) && is_string(.view_url) {
+  .view_url = replace!(.view_url, r'[#?].*$', "")
+  .view_url = replace!(.view_url, r'/[0-9]{9,}([/?#]|$)', "/:id")
+  .view_url = replace!(.view_url, r'/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}([/?#]|$)', "/:uuid")
+  .view_url = replace!(.view_url, r'/[0-9a-fA-F]{16,}([/?#.]|$)', "/:hash")
+}
+
+if exists(.resource.url) && is_string(.resource.url) {
+  .resource.url = replace!(.resource.url, r'[#?].*$', "")
+  .resource.url = replace!(.resource.url, r'/[0-9]{9,}([/?#]|$)', "/:id")
+  .resource.url = replace!(.resource.url, r'/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}([/?#]|$)', "/:uuid")
+  .resource.url = replace!(.resource.url, r'/[0-9a-fA-F]{16,}([/?#.]|$)', "/:hash")
+  del(.resource.graphql.variables)
+}
+
+if exists(.resource_url) && is_string(.resource_url) {
+  .resource_url = replace!(.resource_url, r'[#?].*$', "")
+  .resource_url = replace!(.resource_url, r'/[0-9]{9,}([/?#]|$)', "/:id")
+  .resource_url = replace!(.resource_url, r'/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}([/?#]|$)', "/:uuid")
+  .resource_url = replace!(.resource_url, r'/[0-9a-fA-F]{16,}([/?#.]|$)', "/:hash")
+}
+del(.resource_graphql_variables)
+
+if exists(.error.message) && is_string(.error.message) {
+  .error.message = replace!(.error.message, r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', "[REDACTED_EMAIL]")
+  .error.message = replace!(.error.message, r'\+?\b(?:\d[\s().-]?){10,15}\d\b', "[REDACTED_PHONE]")
+  .error.message = replace!(.error.message, r'\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b', "[REDACTED_IBAN]")
+  .error.message = replace!(.error.message, r'\b(?:\d[ -]?){13,19}\b', "[REDACTED_CARD]")
+  .error.message = replace!(.error.message, r'\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b', "[REDACTED_UUID]")
+  .error.message = replace!(.error.message, r'\b\d{9,}\b', "[REDACTED_ID]")
+  .error.message = replace!(.error.message, r'[#?][^\s]*', "")
+}
+
+if exists(.error_message) && is_string(.error_message) {
+  .error_message = replace!(.error_message, r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', "[REDACTED_EMAIL]")
+  .error_message = replace!(.error_message, r'\+?\b(?:\d[\s().-]?){10,15}\d\b', "[REDACTED_PHONE]")
+  .error_message = replace!(.error_message, r'\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b', "[REDACTED_IBAN]")
+  .error_message = replace!(.error_message, r'\b(?:\d[ -]?){13,19}\b', "[REDACTED_CARD]")
+  .error_message = replace!(.error_message, r'\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b', "[REDACTED_UUID]")
+  .error_message = replace!(.error_message, r'\b\d{9,}\b', "[REDACTED_ID]")
+  .error_message = replace!(.error_message, r'[#?][^\s]*', "")
+}
+
+if exists(.error.stack) && is_string(.error.stack) {
+  .error.stack = replace!(.error.stack, r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', "[REDACTED_EMAIL]")
+  .error.stack = replace!(.error.stack, r'\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b', "[REDACTED_UUID]")
+  .error.stack = replace!(.error.stack, r'\b\d{9,}\b', "[REDACTED_ID]")
+  .error.stack = replace!(.error.stack, r'[#?][^\s]*', "")
+}
+
+if exists(.error_stack) && is_string(.error_stack) {
+  .error_stack = replace!(.error_stack, r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', "[REDACTED_EMAIL]")
+  .error_stack = replace!(.error_stack, r'\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b', "[REDACTED_UUID]")
+  .error_stack = replace!(.error_stack, r'\b\d{9,}\b', "[REDACTED_ID]")
+  .error_stack = replace!(.error_stack, r'[#?][^\s]*', "")
+}

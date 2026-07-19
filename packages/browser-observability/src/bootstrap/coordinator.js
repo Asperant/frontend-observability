@@ -95,6 +95,7 @@ async function runInitialization(registry, options) {
     version: options.version,
     consent: runtime.consent,
     policy,
+    counters: runtime.counters,
   }).catch(() => ({ ok: false, adapter: null, thrown: true }));
 
   if (!adapterResult.ok) {

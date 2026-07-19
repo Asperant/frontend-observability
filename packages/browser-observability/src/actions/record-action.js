@@ -5,7 +5,8 @@ import { ReasonCodes } from "../diagnostics/reason-codes.js";
 import { degradeRuntime } from "../lifecycle/state-machine.js";
 import { LifecycleStates } from "../lifecycle/transitions.js";
 import { createStatusSnapshot } from "../status/snapshot.js";
-import { isValidActionName } from "./validate-action-name.js";
+import { recordSanitization } from "../diagnostics/counters.js";
+import { sanitizeAction } from "../sanitization/sanitizers/action.js";
 
 export function recordAction(name, attributes) {
   const runtime = getRuntimeState();
@@ -18,13 +19,20 @@ export function recordAction(name, attributes) {
     incrementCounter(runtime.counters, "droppedActions");
     return result(false, runtime, ReasonCodes.CONSENT_NOT_GRANTED);
   }
-  if (!isValidActionName(name) || !isPlainAttributes(attributes)) {
+  if (!isPlainAttributes(attributes)) {
     incrementCounter(runtime.counters, "droppedActions");
     return result(false, runtime, ReasonCodes.INVALID_ACTION);
   }
 
+  const sanitized = sanitizeAction(name, attributes);
+  recordSanitization(runtime.counters, sanitized.decision, sanitized.reasons);
+  if (sanitized.decision === "drop") {
+    incrementCounter(runtime.counters, "droppedActions");
+    return result(false, runtime, sanitized.reasons[0] ?? ReasonCodes.INVALID_ACTION);
+  }
+
   try {
-    runtime.adapterInstance.recordAction(name, attributes ?? {});
+    runtime.adapterInstance.recordAction(sanitized.value.name, sanitized.value.attributes);
     incrementCounter(runtime.counters, "acceptedActions");
     return result(true, runtime, ReasonCodes.NONE);
   } catch {

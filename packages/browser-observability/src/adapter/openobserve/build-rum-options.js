@@ -9,7 +9,7 @@ const SAMPLE_RATE_SCALE = 100;
  * never calls startSessionReplayRecording()), transport is always HTTPS,
  * and no user/account identity is ever attached.
  */
-export function buildRumOptions(identity, policy) {
+export function buildRumOptions(identity, policy, beforeSend) {
   const { service, environment, version } = identity;
   const { site, organizationIdentifier, applicationId, clientToken, apiVersion } = policy.rum;
 
@@ -23,11 +23,18 @@ export function buildRumOptions(identity, policy) {
     apiVersion,
     organizationIdentifier,
     insecureHTTP: false,
+    beforeSend,
 
     trackingConsent: "not-granted",
     defaultPrivacyLevel: "mask-user-input",
+    enablePrivacyForActionName: true,
+    trackUserInteractions: true,
+    actionNameAttribute: "data-chicek-action",
     sessionReplaySampleRate: 0,
     startSessionReplayRecordingManually: true,
+    telemetrySampleRate: 0,
+    telemetryConfigurationSampleRate: 0,
+    telemetryUsageSampleRate: 0,
 
     sessionSampleRate: clampRate(policy.sampling.sessionSampleRate) * SAMPLE_RATE_SCALE,
 

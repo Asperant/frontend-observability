@@ -6,7 +6,7 @@ Mevcut web uygulamalarına minimum müdahaleyle bağlanacak şekilde tasarlanır
 
 ## Mevcut Durum
 
-`Stage 7 Implemented — Review Pending`
+`Aşama 9 Implemented — Verification Pending`
 
 ## Frontend Bootstrap (Aşama 7)
 
@@ -22,6 +22,16 @@ recordError(error, context);
 getObservabilityStatus();
 shutdownObservability();
 ```
+
+## Telemetry Sanitization (Aşama 9)
+
+Browser telemetry, host uygulamadan OpenObserve'a gitmeden önce fail-closed sanitizer katmanından geçer. Query string, URL fragment, user-info, request/response body, headers, cookies, raw console, form/input value, DOM text, local/session storage içeriği, GraphQL variables, nested arbitrary objects ve user identity alanları gönderilmez.
+
+Sanitizer genel PII ve identifier sızıntılarını sabit placeholder'larla redakte eder; credential, private key, authorization veya cookie sinyali taşıyan event'ler düşürülür. URL'ler query/fragment olmadan normalize edilir; default hassas route'lar `/__sensitive__` değerine çevrilir. Action, error, resource, view, vital, long task ve log event'leri SDK `beforeSend` hook'larıyla sanitize edilir. Automatic interaction için SDK'nın DOM text ve attribute tabanlı action name ürettiği contract test ile doğrulanır; bu yüzden non-custom interaction adları `interaction.click`, `interaction.input` veya `interaction.submit` gibi generic adlara yeniden yazılır.
+
+OpenObserve OSS tarafında Enterprise Sensitive Data Redaction'a bağımlı olunmaz. `infrastructure/openobserve/sanitization/` altında version-controlled VRL function/pipeline tanımları bulunur ve `pnpm lab:up` bunları idempotent olarak provision etmeye çalışır. Desteklenen API veya fail-closed pipeline davranışı doğrulanamazsa lab akışı başarısız olur.
+
+Bu katman yalnız genel identifier, secret ve PII koruması sağlar. TCKN/VKN, faktoring alanları, ülke/şirket özel doğrulama algoritmaları, gerçek kullanıcı kimliği, session replay, source maps, dashboard/alert, retention, production sampling, queue/retry, backend tracing ve Collector/gateway kapsam dışıdır.
 
 Runtime config varsayılan olarak `/observability/config.json` adresinden same-origin, timeout'lu, cache/cookie kullanmadan ve body sınırıyla çekilir. Consent varsayılanı `not-granted` değeridir; bootstrap bunu `localStorage`, `sessionStorage` veya IndexedDB'ye yazmaz.
 
@@ -49,7 +59,7 @@ Servisler: `reverse-proxy`, `demo-frontend`, `mock-api`, `openobserve` — bkz. 
 
 ```bash
 pnpm lab:init     # runtime secret + TLS sertifikası + runtime config üretir (.runtime/, git'e girmez)
-pnpm lab:up       # image'ları build eder, stack'i başlatır, healthy olmasını bekler
+pnpm lab:up       # image'ları build eder, stack'i başlatır, healthy olmasını bekler, sanitization backstop provision eder
 pnpm lab:verify   # Aşama 6 kabul kapısı: güvenlik, TLS, kalıcılık, failure-isolation
 pnpm lab:status   # container/health/port/izin durumu
 pnpm lab:logs     # secret redaction uygulanmış loglar

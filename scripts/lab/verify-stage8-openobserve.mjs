@@ -164,10 +164,10 @@ export async function verifyStage8OpenObserve() {
 
   const canary = await adminSearch(
     auth,
-    "select * from _rumlog where message='stage8.browser_logs.canary' limit 5",
+    "select * from _rumlog where message='browser_logs.canary' limit 5",
   );
   if (canary.status !== 200 || canary.hits.length === 0) {
-    findings.push("Browser-log canary (stage8.browser_logs.canary) not found in _rumlog.");
+    findings.push("Browser-log canary (browser_logs.canary) not found in _rumlog.");
   } else {
     const hit = canary.hits[0];
     if (hit.component !== "demo-fixture" || hit.outcome !== "success") {

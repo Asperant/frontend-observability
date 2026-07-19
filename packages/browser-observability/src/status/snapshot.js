@@ -1,4 +1,4 @@
-import { snapshotCounters } from "../diagnostics/counters.js";
+import { snapshotCounters, snapshotSanitization } from "../diagnostics/counters.js";
 
 export function createStatusSnapshot(runtime) {
   return deepFreeze({
@@ -14,6 +14,7 @@ export function createStatusSnapshot(runtime) {
     initializedAt: runtime.initializedAt,
     lastTransitionAt: runtime.lastTransitionAt,
     counters: snapshotCounters(runtime.counters),
+    sanitization: snapshotSanitization(runtime.counters),
   });
 }
 

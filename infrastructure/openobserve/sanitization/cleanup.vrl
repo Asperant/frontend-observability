@@ -1,0 +1,2 @@
+del(._chicek_drop)
+.chicek_policy_version = "telemetry-sanitization-v1"

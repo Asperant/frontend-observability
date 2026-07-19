@@ -6,9 +6,10 @@ import { loadOpenObserveSdk } from "./load-sdk.js";
 import { mapAction } from "./map-action.js";
 import { mapConsent } from "./map-consent.js";
 import { mapError } from "./map-error.js";
+import { sanitizeLogEvent, sanitizeRumEvent } from "../../sanitization/sanitizers/events.js";
 import { computeSdkFingerprint } from "./sdk-fingerprint.js";
 
-const CANARY_MESSAGE = "stage8.browser_logs.canary";
+const CANARY_MESSAGE = "browser_logs.canary";
 const CANARY_CONTEXT = Object.freeze({ component: "demo-fixture", outcome: "success" });
 
 // The vendor SDK (@openobserve/browser-rum / @openobserve/browser-logs) is a
@@ -95,7 +96,11 @@ export function createAdapter() {
       }
 
       try {
-        sdk.rum.init(buildRumOptions(identity, policy));
+        sdk.rum.init(
+          buildRumOptions(identity, policy, (event) =>
+            sanitizeRumEvent(event, { counters: context.counters, policy }),
+          ),
+        );
       } catch {
         throw initializationFailure();
       }
@@ -109,7 +114,11 @@ export function createAdapter() {
       let logsModule = null;
       if (policy.browserLogs?.enabled) {
         try {
-          sdk.logs.init(buildLogsOptions(identity, policy));
+          sdk.logs.init(
+            buildLogsOptions(identity, policy, (event) =>
+              sanitizeLogEvent(event, { counters: context.counters, policy }),
+            ),
+          );
           logsModule = sdk.logs;
         } catch {
           logsOk = false;

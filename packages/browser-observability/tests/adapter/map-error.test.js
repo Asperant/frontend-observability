@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import { mapError } from "../../src/adapter/openobserve/map-error.js";
 
 describe("mapError", () => {
-  it("forwards a real Error instance as-is (not flattened) so the SDK keeps its stack", () => {
+  it("forwards a sanitized Error copy so the SDK keeps a safe stack", () => {
     const error = new Error("boom");
     const result = mapError(error, { screen: "checkout" });
-    expect(result.error).toBe(error);
+    expect(result.error).toBeInstanceOf(Error);
+    expect(result.error).not.toBe(error);
+    expect(result.error.message).toBe("boom");
     expect(result.context).toEqual({ screen: "checkout" });
   });
 

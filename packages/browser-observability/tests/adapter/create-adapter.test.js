@@ -186,7 +186,7 @@ describe("createAdapter", () => {
     // First grant fires the browser-log canary exactly once.
     expect(logs.logger.log).toHaveBeenCalledTimes(1);
     expect(logs.logger.log).toHaveBeenCalledWith(
-      "stage8.browser_logs.canary",
+      "browser_logs.canary",
       { component: "demo-fixture", outcome: "success" },
       "info",
     );
@@ -241,7 +241,10 @@ describe("createAdapter", () => {
     it("recordError prefers rum.addError over the logs fallback", () => {
       const error = new Error("boom");
       adapter.recordError(error, { screen: "checkout" });
-      expect(rum.addError).toHaveBeenCalledWith(error, { screen: "checkout" });
+      expect(rum.addError).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "Error", message: "boom" }),
+        { screen: "checkout" },
+      );
       expect(logs.logger.error).not.toHaveBeenCalled();
     });
 

@@ -81,6 +81,47 @@ const SCENARIO_GROUPS = [
         label: "Telemetry failure (no-op)",
         run: scenarios.telemetryFailureScenario,
       },
+      { id: "safe-action", label: "Safe action", run: scenarios.safeActionScenario },
+      {
+        id: "pii-redacted-action",
+        label: "PII redacted action",
+        run: scenarios.piiRedactedActionScenario,
+      },
+      {
+        id: "secret-dropped-action",
+        label: "Secret dropped action",
+        run: scenarios.secretDroppedActionScenario,
+      },
+      {
+        id: "pii-redacted-error",
+        label: "PII redacted error",
+        run: scenarios.piiRedactedErrorScenario,
+      },
+      {
+        id: "secret-dropped-error",
+        label: "Secret dropped error",
+        run: scenarios.secretDroppedErrorScenario,
+      },
+      {
+        id: "url-normalization",
+        label: "URL normalization",
+        run: scenarios.urlNormalizationScenario,
+      },
+      {
+        id: "unsafe-attributes",
+        label: "Unsafe attributes",
+        run: scenarios.unsafeAttributesScenario,
+      },
+      {
+        id: "network-url-sanitization",
+        label: "Network URL sanitization",
+        run: scenarios.networkUrlSanitizationScenario,
+      },
+      {
+        id: "sanitization-counters",
+        label: "Sanitization counters",
+        run: scenarios.sanitizationCountersScenario,
+      },
     ],
   },
 ];
@@ -106,6 +147,12 @@ function StatusPanel({ status }) {
       <dd>{status.counters.acceptedErrors}</dd>
       <dt>droppedErrors</dt>
       <dd>{status.counters.droppedErrors}</dd>
+      <dt>sanitizationAccepted</dt>
+      <dd>{status.sanitization?.accepted ?? 0}</dd>
+      <dt>sanitizationRedacted</dt>
+      <dd>{status.sanitization?.redacted ?? 0}</dd>
+      <dt>sanitizationDropped</dt>
+      <dd>{status.sanitization?.dropped ?? 0}</dd>
     </dl>
   );
 }

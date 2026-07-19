@@ -5,6 +5,8 @@ import { ReasonCodes } from "../diagnostics/reason-codes.js";
 import { degradeRuntime } from "../lifecycle/state-machine.js";
 import { LifecycleStates } from "../lifecycle/transitions.js";
 import { createStatusSnapshot } from "../status/snapshot.js";
+import { recordSanitization } from "../diagnostics/counters.js";
+import { sanitizeError as sanitizeErrorEvent } from "../sanitization/sanitizers/error.js";
 
 export function recordError(error, context) {
   const runtime = getRuntimeState();
@@ -21,8 +23,14 @@ export function recordError(error, context) {
     incrementCounter(runtime.counters, "droppedErrors");
     return result(false, runtime, ReasonCodes.INVALID_ERROR);
   }
+  const sanitized = sanitizeErrorEvent(error, context);
+  recordSanitization(runtime.counters, sanitized.decision, sanitized.reasons);
+  if (sanitized.decision === "drop") {
+    incrementCounter(runtime.counters, "droppedErrors");
+    return result(false, runtime, sanitized.reasons[0] ?? ReasonCodes.INVALID_ERROR);
+  }
   try {
-    runtime.adapterInstance.recordError(error, context ?? {});
+    runtime.adapterInstance.recordError(sanitized.value.error, sanitized.value.context);
     incrementCounter(runtime.counters, "acceptedErrors");
     return result(true, runtime, ReasonCodes.NONE);
   } catch {

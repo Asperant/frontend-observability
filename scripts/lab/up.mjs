@@ -2,6 +2,7 @@ import { assertExactLabToolchain, run, log, runDockerCompose } from "./common.mj
 import { fetchRealRumToken, persistRumToken } from "./fetch-rum-token.mjs";
 import { generateRuntimeConfig } from "./generate-runtime-config.mjs";
 import { labInit } from "./init.mjs";
+import { provisionSanitization } from "./provision-sanitization.mjs";
 import { runAllStaticChecks } from "./static-checks.mjs";
 import { waitForHealthy } from "./wait.mjs";
 
@@ -77,6 +78,13 @@ export async function labUp() {
         "openobserve/reverse-proxy did not become healthy again after the RUM token refresh.",
       );
     }
+  }
+
+  log("lab:up — provisioning OpenObserve telemetry sanitization backstop...");
+  const sanitizationResult = await provisionSanitization();
+  if (!sanitizationResult.pass) {
+    for (const finding of sanitizationResult.findings) log(`  FAIL: ${finding}`);
+    throw new Error("OpenObserve sanitization backstop could not be provisioned.");
   }
 
   log("lab:up complete. Demo: https://localhost:8443  OpenObserve UI: http://localhost:5080");

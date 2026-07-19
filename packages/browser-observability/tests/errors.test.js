@@ -40,7 +40,10 @@ describe("recordError lifecycle", () => {
     const error = new Error("boom");
     const result = recordError(error, { screen: "checkout" });
     expect(result.ok).toBe(true);
-    expect(adapter.recordError).toHaveBeenCalledWith(error, { screen: "checkout" });
+    expect(adapter.recordError).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Error", message: "boom" }),
+      { screen: "checkout" },
+    );
     expect(getObservabilityStatus().counters.acceptedErrors).toBe(1);
   });
 

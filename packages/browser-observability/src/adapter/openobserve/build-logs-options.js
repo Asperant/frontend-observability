@@ -10,7 +10,7 @@ const SAMPLE_RATE_SCALE = 100;
  * (true) would make the Logs SDK independently re-capture and re-send the
  * same uncaught error/rejection, sending it twice.
  */
-export function buildLogsOptions(identity, policy) {
+export function buildLogsOptions(identity, policy, beforeSend) {
   const { service, environment, version } = identity;
   const { site, organizationIdentifier, clientToken, apiVersion } = policy.rum;
 
@@ -23,8 +23,12 @@ export function buildLogsOptions(identity, policy) {
     apiVersion,
     organizationIdentifier,
     insecureHTTP: false,
+    beforeSend,
 
     trackingConsent: "not-granted",
+    telemetrySampleRate: 0,
+    telemetryConfigurationSampleRate: 0,
+    telemetryUsageSampleRate: 0,
 
     forwardErrorsToLogs: false,
     forwardConsoleLogs: undefined,

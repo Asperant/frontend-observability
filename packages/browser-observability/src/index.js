@@ -24,6 +24,12 @@ const ERROR_STATUS_FALLBACK = Object.freeze({
     acceptedErrors: 0,
     droppedErrors: 0,
   }),
+  sanitization: Object.freeze({
+    accepted: 0,
+    redacted: 0,
+    dropped: 0,
+    reasons: Object.freeze({}),
+  }),
 });
 
 /**

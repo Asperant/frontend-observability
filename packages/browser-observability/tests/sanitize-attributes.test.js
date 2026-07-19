@@ -16,9 +16,9 @@ describe("sanitizeAttributes", () => {
     expect(result).toEqual({ a: "s", b: 1, c: true });
   });
 
-  it("truncates oversized string values", () => {
+  it("redacts oversized token-like string values", () => {
     const result = sanitizeAttributes({ a: "x".repeat(1000) });
-    expect(result.a.length).toBe(256);
+    expect(result.a).toBe("[REDACTED_TOKEN]");
   });
 
   it("drops NaN/Infinity numeric values", () => {
@@ -33,7 +33,7 @@ describe("sanitizeAttributes", () => {
 
   it("drops keys that do not match the allowed key pattern", () => {
     const result = sanitizeAttributes({ "bad key": 1, "1bad": 2, ok_key: 3 });
-    expect(result).toEqual({ ok_key: 3 });
+    expect(result).toEqual({ "1bad": 2, ok_key: 3 });
   });
 
   it("drops keys longer than the max key length", () => {
@@ -42,9 +42,9 @@ describe("sanitizeAttributes", () => {
     expect(result).toEqual({});
   });
 
-  it("caps the number of attributes at 20", () => {
+  it("caps the number of attributes at 12", () => {
     const input = Object.fromEntries(Array.from({ length: 30 }, (_, i) => [`k${i}`, i]));
     const result = sanitizeAttributes(input);
-    expect(Object.keys(result)).toHaveLength(20);
+    expect(Object.keys(result)).toHaveLength(12);
   });
 });
