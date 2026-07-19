@@ -1,91 +1,99 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { getObservabilityStatus, initializeObservability } from "../src/index.js";
-import { validateOptions } from "../src/config/validate-options.js";
-import { normalizeOptions } from "../src/config/normalize-options.js";
-import { resetState } from "../src/internal/state.js";
-
-beforeEach(() => {
-  resetState();
-});
+import {
+  DEFAULT_CONFIG_URL,
+  normalizeOptions,
+  validateConfigUrl,
+  validateOptions,
+} from "../src/config/validate-options.js";
 
 describe("validateOptions", () => {
+  const valid = {
+    service: "company-web",
+    environment: "production",
+    version: "2026.07.1",
+  };
+
   it.each([null, undefined, "string", 42, ["array"]])(
     "rejects non-object options: %p",
     (options) => {
-      const result = validateOptions(options);
-      expect(result.valid).toBe(false);
+      expect(validateOptions(options).valid).toBe(false);
     },
   );
 
-  it("rejects a missing applicationId", () => {
-    expect(validateOptions({}).valid).toBe(false);
+  it("defaults configUrl and normalizes identity", () => {
+    expect(validateOptions(valid).valid).toBe(true);
+    expect(normalizeOptions(valid)).toEqual({
+      configUrl: DEFAULT_CONFIG_URL,
+      service: "company-web",
+      environment: "production",
+      version: "2026.07.1",
+    });
   });
 
-  it("rejects an empty applicationId", () => {
-    expect(validateOptions({ applicationId: "   " }).valid).toBe(false);
+  it.each([
+    [{ ...valid, service: "a" }],
+    [{ ...valid, service: "Company-Web" }],
+    [{ ...valid, service: "company_web" }],
+    [{ ...valid, service: "company web" }],
+    [{ ...valid, service: "team@example.com" }],
+    [{ ...valid, service: "550e8400-e29b-41d4-a716-446655440000" }],
+    [{ ...valid, service: "-company-web" }],
+    [{ ...valid, service: "company-web-" }],
+    [{ ...valid, environment: "prod" }],
+    [{ ...valid, version: "" }],
+    [{ ...valid, version: "x".repeat(65) }],
+    [{ ...valid, extra: true }],
+  ])("rejects invalid options: %p", (options) => {
+    expect(validateOptions(options).valid).toBe(false);
   });
 
-  it("rejects an oversized applicationId", () => {
-    expect(validateOptions({ applicationId: "a".repeat(200) }).valid).toBe(false);
-  });
+  it.each(["user-portal", "account-management", "tenant-admin", "session-replay"])(
+    "accepts legitimate service name: %s",
+    (service) => {
+      expect(validateOptions({ ...valid, service }).valid).toBe(true);
+    },
+  );
 
-  it("rejects an unknown privacyProfile", () => {
-    const result = validateOptions({ applicationId: "demo", privacyProfile: "permissive" });
+  it("includes configUrl validation errors in option validation", () => {
+    const result = validateOptions({ ...valid, configUrl: "/observability/config.json?x=1" });
     expect(result.valid).toBe(false);
-    expect(result.errors.some((message) => message.includes("privacyProfile"))).toBe(true);
+    expect(result.errors.some((message) => message.includes("configUrl"))).toBe(true);
   });
 
-  it("accepts an undefined privacyProfile", () => {
-    expect(validateOptions({ applicationId: "demo" }).valid).toBe(true);
-  });
-
-  it("rejects an attempt to weaken the privacy baseline", () => {
-    const result = validateOptions({ applicationId: "demo", sessionReplayEnabled: true });
-    expect(result.valid).toBe(false);
-    expect(result.errors.some((message) => message.includes("privacy baseline"))).toBe(true);
-  });
-
-  it("accepts fully valid options", () => {
-    const result = validateOptions({ applicationId: "demo", privacyProfile: "balanced" });
-    expect(result.valid).toBe(true);
-    expect(result.errors).toEqual([]);
+  it("keeps absolute URLs in defensive normalization when origin differs", () => {
+    expect(
+      normalizeOptions({ ...valid, configUrl: "https://evil.example/config.json" }).configUrl,
+    ).toBe("https://evil.example/config.json");
   });
 });
 
-describe("normalizeOptions", () => {
-  it("fills in defaults and trims applicationId", () => {
-    const normalized = normalizeOptions({ applicationId: "  demo  " });
-    expect(normalized.applicationId).toBe("demo");
-    expect(normalized.environment).toBe("production");
-    expect(normalized.privacyProfile).toBe("strict");
-    expect(normalized.sessionReplayEnabled).toBe(false);
+describe("validateConfigUrl", () => {
+  it.each(["/observability/config.json", "observability/config.json"])(
+    "accepts relative URL: %s",
+    (configUrl) => {
+      expect(validateConfigUrl(configUrl).valid).toBe(true);
+    },
+  );
+
+  it("accepts same-origin absolute URLs", () => {
+    expect(
+      validateConfigUrl(`${globalThis.window.location.origin}/observability/config.json`).valid,
+    ).toBe(true);
   });
 
-  it("preserves an explicit privacyProfile", () => {
-    const normalized = normalizeOptions({ applicationId: "demo", privacyProfile: "balanced" });
-    expect(normalized.privacyProfile).toBe("balanced");
-  });
-});
-
-describe("validation failure isolation", () => {
-  it("does not throw and leaves the package initializable after invalid options", () => {
-    const badResult = initializeObservability({ applicationId: "" });
-    expect(badResult.ok).toBe(false);
-    expect(badResult.reason).toBe("invalid_options");
-    expect(getObservabilityStatus().status).toBe("error");
-    expect(getObservabilityStatus().lastError).toEqual(expect.any(String));
-
-    const goodResult = initializeObservability({ applicationId: "demo" });
-    expect(goodResult.ok).toBe(true);
-    expect(getObservabilityStatus().status).toBe("ready");
-  });
-
-  it("rejects a privacy-baseline-weakening init without throwing", () => {
-    expect(() =>
-      initializeObservability({ applicationId: "demo", collectCookies: true }),
-    ).not.toThrow();
-    const result = initializeObservability({ applicationId: "demo", collectCookies: true });
-    expect(result.ok).toBe(false);
+  it.each([
+    "",
+    undefined,
+    "http://[",
+    "https://evil.example/config.json",
+    "/observability/config.json?x=1",
+    "/observability/config.json#x",
+    "javascript:alert(1)",
+    "data:application/json,{}",
+    "file:///tmp/config.json",
+    `/observability/${"x".repeat(260)}.json`,
+  ])("rejects unsafe configUrl: %s", (configUrl) => {
+    expect(validateConfigUrl(configUrl).valid).toBe(false);
   });
 });

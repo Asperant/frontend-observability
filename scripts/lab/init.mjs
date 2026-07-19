@@ -1,7 +1,7 @@
 import { certPermissionsOk, ensureCertificates } from "./generate-certs.mjs";
 import { ensureSecrets } from "./generate-secrets.mjs";
 import { generateRuntimeConfig } from "./generate-runtime-config.mjs";
-import { log } from "./common.mjs";
+import { assertExactLabToolchain, log } from "./common.mjs";
 
 export function labInit() {
   log("lab:init — ensuring runtime secrets, TLS certificates, and runtime config...");
@@ -30,6 +30,7 @@ export function labInit() {
 const isMainModule = process.argv[1] === new URL(import.meta.url).pathname;
 if (isMainModule) {
   try {
+    assertExactLabToolchain("lab:init");
     labInit();
   } catch (error) {
     process.stderr.write(`lab:init FAILED: ${error.message}\n`);

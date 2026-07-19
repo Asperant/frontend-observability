@@ -7,6 +7,7 @@ import {
   dockerEnv,
   dockerDir,
   generatedDir,
+  assertExactLabToolchain,
   log,
   secretsDir,
   SERVICES,
@@ -77,6 +78,7 @@ function printStatus() {
 const isMainModule = process.argv[1] === new URL(import.meta.url).pathname;
 if (isMainModule) {
   try {
+    assertExactLabToolchain("lab:status");
     printStatus();
   } catch (error) {
     process.stderr.write(`lab:status FAILED: ${error.message}\n`);

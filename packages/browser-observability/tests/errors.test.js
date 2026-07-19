@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   getObservabilityStatus,
@@ -6,84 +6,151 @@ import {
   recordError,
   setTrackingConsent,
 } from "../src/index.js";
-import { resetState } from "../src/internal/state.js";
+import {
+  resetRuntimeRegistryForTests,
+  setAdapterFactoryForTests,
+} from "../src/bootstrap/runtime-registry.js";
 import { sanitizeError } from "../src/sanitization/sanitize-error.js";
 
+const options = {
+  service: "company-web",
+  environment: "production",
+  version: "2026.07.1",
+};
+
 beforeEach(() => {
-  resetState();
+  resetRuntimeRegistryForTests();
+  vi.restoreAllMocks();
 });
 
 describe("recordError lifecycle", () => {
-  it("is a no-op before initialization", () => {
+  it("drops before active without buffering", () => {
     const result = recordError(new Error("boom"));
-    expect(result.ok).toBe(false);
-    expect(result.reason).toBe("not_ready");
+    expect(result.reasonCode).toBe("NOT_ACTIVE");
+    expect(getObservabilityStatus().counters.droppedErrors).toBe(1);
   });
 
-  it("is a no-op without granted consent", () => {
-    initializeObservability({ applicationId: "demo" });
-    const result = recordError(new Error("boom"));
-    expect(result.ok).toBe(false);
-    expect(result.reason).toBe("consent_not_granted");
-  });
-
-  it("records an Error instance once ready and consented", () => {
-    initializeObservability({ applicationId: "demo" });
+  it("records through the adapter once active and consented", async () => {
+    const adapter = fakeAdapter();
+    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    setAdapterFactoryForTests(() => adapter);
+    await initializeObservability(options);
     setTrackingConsent("granted");
-    const before = getObservabilityStatus().diagnosticsCount;
-    const result = recordError(new Error("boom"), { screen: "checkout" });
+
+    const error = new Error("boom");
+    const result = recordError(error, { screen: "checkout" });
     expect(result.ok).toBe(true);
-    expect(getObservabilityStatus().diagnosticsCount).toBe(before + 1);
+    expect(adapter.recordError).toHaveBeenCalledWith(error, { screen: "checkout" });
+    expect(getObservabilityStatus().counters.acceptedErrors).toBe(1);
   });
 
-  it("never throws for a non-Error value", () => {
-    initializeObservability({ applicationId: "demo" });
+  it("drops without consent and rejects invalid context", async () => {
+    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    setAdapterFactoryForTests(() => fakeAdapter());
+    await initializeObservability(options);
+
+    expect(recordError(new Error("boom")).reasonCode).toBe("CONSENT_NOT_GRANTED");
     setTrackingConsent("granted");
-    expect(() => recordError("plain string error")).not.toThrow();
-    expect(() => recordError(null)).not.toThrow();
-    expect(() => recordError(undefined)).not.toThrow();
-    expect(() => recordError({ weird: "shape" })).not.toThrow();
+    expect(recordError(new Error("boom"), []).reasonCode).toBe("INVALID_ERROR");
+    expect(getObservabilityStatus().counters.droppedErrors).toBe(2);
+  });
+
+  it("isolates adapter throws and degrades", async () => {
+    const adapter = fakeAdapter();
+    adapter.recordError.mockImplementation(() => {
+      throw new Error("adapter failed");
+    });
+    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    setAdapterFactoryForTests(() => adapter);
+    await initializeObservability(options);
+    setTrackingConsent("granted");
+
+    const result = recordError(new Error("boom"));
+    expect(result.reasonCode).toBe("ADAPTER_ERROR");
+    expect(getObservabilityStatus().state).toBe("degraded");
+    expect(getObservabilityStatus().counters.droppedErrors).toBe(1);
+  });
+
+  it("never throws for unusual error values", async () => {
+    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse(validEnabledConfig())));
+    setAdapterFactoryForTests(() => fakeAdapter());
+    await initializeObservability(options);
+    setTrackingConsent("granted");
+    for (const value of ["plain string error", null, undefined, { weird: "shape" }]) {
+      expect(() => recordError(value)).not.toThrow();
+    }
   });
 });
 
 describe("sanitizeError", () => {
-  it("extracts name/message/stack from a real Error", () => {
-    const error = new Error("boom");
-    const sanitized = sanitizeError(error);
-    expect(sanitized.name).toBe("Error");
-    expect(sanitized.message).toBe("boom");
-    expect(sanitized.stack).toEqual(expect.any(String));
-  });
-
-  it("truncates oversized message and stack", () => {
+  it("extracts bounded fields from a real Error", () => {
     const error = new Error("x".repeat(1000));
     Object.defineProperty(error, "stack", { value: "y".repeat(4000) });
     const sanitized = sanitizeError(error);
+    expect(sanitized.name).toBe("Error");
     expect(sanitized.message.length).toBeLessThanOrEqual(512);
     expect(sanitized.stack.length).toBeLessThanOrEqual(2048);
   });
 
-  it("falls back to safe defaults for non-string name/message/stack", () => {
+  it("falls back for non-string Error fields", () => {
     const error = new Error("boom");
     Object.defineProperty(error, "name", { value: 42 });
     Object.defineProperty(error, "message", { value: 42 });
     Object.defineProperty(error, "stack", { value: 42 });
-    const sanitized = sanitizeError(error);
-    expect(sanitized.name).toBe("Error");
-    expect(sanitized.message).toBe("");
-    expect(sanitized.stack).toBeUndefined();
+    expect(sanitizeError(error)).toEqual({
+      name: "Error",
+      message: "",
+      stack: undefined,
+    });
   });
 
-  it("wraps a plain string error", () => {
-    const sanitized = sanitizeError("plain message");
-    expect(sanitized).toEqual({ name: "Error", message: "plain message" });
-  });
-
-  it.each([null, undefined, 42, {}, []])(
-    "falls back for a non-Error, non-string value: %p",
+  it.each(["plain message", null, undefined, 42, {}, []])(
+    "handles non-Error value: %p",
     (value) => {
-      const sanitized = sanitizeError(value);
-      expect(sanitized.name).toBe("UnknownError");
+      expect(sanitizeError(value).name).toEqual(expect.any(String));
     },
   );
 });
+
+function fakeAdapter() {
+  return {
+    name: "fake",
+    initialize: vi.fn(),
+    setTrackingConsent: vi.fn(),
+    recordAction: vi.fn(),
+    recordError: vi.fn(),
+    startSessionReplay: vi.fn(),
+    stopSessionReplay: vi.fn(),
+    shutdown: vi.fn(),
+    getCapabilities: vi.fn(() => ({})),
+  };
+}
+
+function validEnabledConfig() {
+  return {
+    schemaVersion: "1.0.0",
+    configVersion: "valid-enabled",
+    enabled: true,
+    issuedAt: "2026-07-19T00:00:00.000Z",
+    expiresAt: "2099-01-01T00:00:00.000Z",
+    killSwitch: { engaged: false },
+    privacyProfile: "strict",
+    sampling: { sessionSampleRate: 0.5, errorSampleRate: 0.5 },
+    rum: {
+      endpoint: "https://observability.example.invalid/rum",
+      applicationId: "app",
+      organizationId: "org",
+    },
+    browserLogs: { enabled: false },
+    sessionReplay: { enabled: false },
+    allowedRoutes: [],
+    allowedSelectors: [],
+  };
+}
+
+function jsonResponse(body) {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+}

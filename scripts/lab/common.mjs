@@ -8,10 +8,13 @@ import {
   renameSync,
   rmSync,
   statSync,
+  readFileSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { checkExactNodeVersion, checkExactPnpmVersion } from "../verify/toolchain.js";
 
 export const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 export const dockerDir = join(repoRoot, "infrastructure/docker");
@@ -80,6 +83,66 @@ export function run(command, args, { capture = false, allowFailure = true, cwd =
     const detail = capture ? `\n${result.stdout ?? ""}\n${result.stderr ?? ""}` : "";
     throw new Error(`${command} ${args.join(" ")} failed (exit ${result.status}).${detail}`);
   }
+  return result;
+}
+
+export function checkExactLabToolchain(commandName, dependencies) {
+  const nodeResult = checkExactNodeVersion(
+    dependencies.expectedNodeVersion,
+    dependencies.actualNodeVersion,
+  );
+  if (!nodeResult.ok) {
+    return {
+      ok: false,
+      message: `${commandName} refused to run: ${nodeResult.message}`,
+    };
+  }
+
+  const pnpmResult = checkExactPnpmVersion(
+    dependencies.packageManager,
+    dependencies.actualPnpmVersion,
+  );
+  if (!pnpmResult.ok) {
+    return {
+      ok: false,
+      message: `${commandName} refused to run: ${pnpmResult.message}`,
+    };
+  }
+
+  return {
+    ok: true,
+    node: nodeResult.actual,
+    pnpm: pnpmResult.actual,
+  };
+}
+
+export function readCurrentLabToolchain() {
+  const pkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8"));
+  const pnpm = run("pnpm", ["--version"], { capture: true, allowFailure: true });
+  if (pnpm.status !== 0) {
+    return {
+      expectedNodeVersion: readFileSync(join(repoRoot, ".node-version"), "utf8").trim(),
+      packageManager: pkg.packageManager,
+      actualNodeVersion: process.version,
+      actualPnpmVersion: "",
+      pnpmError: pnpm.stderr || pnpm.stdout || "Unable to run pnpm --version.",
+    };
+  }
+  return {
+    expectedNodeVersion: readFileSync(join(repoRoot, ".node-version"), "utf8").trim(),
+    packageManager: pkg.packageManager,
+    actualNodeVersion: process.version,
+    actualPnpmVersion: pnpm.stdout.trim(),
+  };
+}
+
+export function assertExactLabToolchain(commandName) {
+  const dependencies = readCurrentLabToolchain();
+  if (dependencies.pnpmError) {
+    throw new Error(`${commandName} refused to run: ${dependencies.pnpmError}`);
+  }
+  const result = checkExactLabToolchain(commandName, dependencies);
+  if (!result.ok) throw new Error(result.message);
   return result;
 }
 

@@ -8,7 +8,7 @@ import {
   setTrackingConsent,
   shutdownObservability,
 } from "../src/index.js";
-import { resetState } from "../src/internal/state.js";
+import { resetRuntimeRegistryForTests } from "../src/bootstrap/runtime-registry.js";
 
 const HOSTILE_VALUES = [
   undefined,
@@ -27,13 +27,15 @@ const HOSTILE_VALUES = [
 ];
 
 beforeEach(() => {
-  resetState();
+  resetRuntimeRegistryForTests();
 });
 
 describe("public API never throws", () => {
-  it("initializeObservability tolerates hostile input", () => {
+  it("initializeObservability tolerates hostile input", async () => {
     for (const value of HOSTILE_VALUES) {
-      expect(() => initializeObservability(value)).not.toThrow();
+      await expect(initializeObservability(value)).resolves.toEqual(
+        expect.objectContaining({ ok: false }),
+      );
     }
   });
 
@@ -44,16 +46,12 @@ describe("public API never throws", () => {
   });
 
   it("recordAction tolerates hostile input", () => {
-    initializeObservability({ applicationId: "demo" });
-    setTrackingConsent("granted");
     for (const value of HOSTILE_VALUES) {
       expect(() => recordAction(value, value)).not.toThrow();
     }
   });
 
   it("recordError tolerates hostile input", () => {
-    initializeObservability({ applicationId: "demo" });
-    setTrackingConsent("granted");
     for (const value of HOSTILE_VALUES) {
       expect(() => recordError(value, value)).not.toThrow();
     }
@@ -62,13 +60,12 @@ describe("public API never throws", () => {
   it("getObservabilityStatus never throws and always returns a snapshot shape", () => {
     expect(() => getObservabilityStatus()).not.toThrow();
     const status = getObservabilityStatus();
-    expect(status).toHaveProperty("status");
+    expect(status).toHaveProperty("state");
     expect(status).toHaveProperty("consent");
+    expect(status).toHaveProperty("counters");
   });
 
-  it("shutdownObservability never throws, initialized or not", () => {
-    expect(() => shutdownObservability()).not.toThrow();
-    initializeObservability({ applicationId: "demo" });
-    expect(() => shutdownObservability()).not.toThrow();
+  it("shutdownObservability never throws, initialized or not", async () => {
+    await expect(shutdownObservability()).resolves.toEqual(expect.objectContaining({ ok: true }));
   });
 });

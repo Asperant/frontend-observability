@@ -1,27 +1,13 @@
-import { CONSENT, STATUS } from "./constants.js";
-
-function createInitialState() {
-  return {
-    status: STATUS.UNINITIALIZED,
-    config: null,
-    consent: CONSENT.UNKNOWN,
-    initializedAt: null,
-    lastError: null,
-    diagnostics: [],
-  };
-}
-
-let state = createInitialState();
+import { getRuntimeState, resetRuntimeRegistryForTests } from "../bootstrap/runtime-registry.js";
 
 /**
- * Returns the live module-level state object. This is internal-only:
- * it is never exported from src/index.js and must not be imported by
- * consumers or other packages.
+ * Compatibility helper for existing internal tests and diagnostics.
+ * The public package never exports this state object.
  */
 export function getState() {
-  return state;
+  return getRuntimeState();
 }
 
 export function resetState() {
-  state = createInitialState();
+  resetRuntimeRegistryForTests();
 }

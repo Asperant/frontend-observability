@@ -1,4 +1,4 @@
-import { run, log, runDockerCompose } from "./common.mjs";
+import { assertExactLabToolchain, run, log, runDockerCompose } from "./common.mjs";
 import { labInit } from "./init.mjs";
 import { runAllStaticChecks } from "./static-checks.mjs";
 import { waitForHealthy } from "./wait.mjs";
@@ -47,6 +47,7 @@ export async function labUp() {
 const isMainModule = process.argv[1] === new URL(import.meta.url).pathname;
 if (isMainModule) {
   try {
+    assertExactLabToolchain("lab:up");
     await labUp();
   } catch (error) {
     process.stderr.write(`lab:up FAILED: ${error.message}\n`);

@@ -1,27 +1,47 @@
-import { CONSENT, STATUS } from "../internal/constants.js";
-import { getState } from "../internal/state.js";
-import { recordDiagnostic } from "../diagnostics/record-diagnostic.js";
-import { sanitizeAttributes } from "../sanitization/sanitize-attributes.js";
+import { getRuntimeState } from "../bootstrap/runtime-registry.js";
+import { CONSENT } from "../internal/constants.js";
+import { incrementCounter } from "../diagnostics/counters.js";
+import { ReasonCodes } from "../diagnostics/reason-codes.js";
+import { degradeRuntime } from "../lifecycle/state-machine.js";
+import { LifecycleStates } from "../lifecycle/transitions.js";
+import { createStatusSnapshot } from "../status/snapshot.js";
 import { isValidActionName } from "./validate-action-name.js";
 
 export function recordAction(name, attributes) {
-  const state = getState();
+  const runtime = getRuntimeState();
 
-  if (state.status !== STATUS.READY) {
-    return { ok: false, reason: "not_ready" };
+  if (runtime.state !== LifecycleStates.ACTIVE || !runtime.acceptingEvents) {
+    incrementCounter(runtime.counters, "droppedActions");
+    return result(false, runtime, ReasonCodes.NOT_ACTIVE);
   }
-  if (state.consent !== CONSENT.GRANTED) {
-    return { ok: false, reason: "consent_not_granted" };
+  if (runtime.consent !== CONSENT.GRANTED) {
+    incrementCounter(runtime.counters, "droppedActions");
+    return result(false, runtime, ReasonCodes.CONSENT_NOT_GRANTED);
   }
-  if (!isValidActionName(name)) {
-    recordDiagnostic("warn", "action.invalid_name", "Ignored action with an invalid name.", {
-      received: typeof name === "string" ? name.slice(0, 64) : typeof name,
-    });
-    return { ok: false, reason: "invalid_action_name" };
+  if (!isValidActionName(name) || !isPlainAttributes(attributes)) {
+    incrementCounter(runtime.counters, "droppedActions");
+    return result(false, runtime, ReasonCodes.INVALID_ACTION);
   }
 
-  const sanitizedAttributes = sanitizeAttributes(attributes);
-  recordDiagnostic("info", "action.recorded", name, sanitizedAttributes);
+  try {
+    runtime.adapterInstance.recordAction(name, attributes ?? {});
+    incrementCounter(runtime.counters, "acceptedActions");
+    return result(true, runtime, ReasonCodes.NONE);
+  } catch {
+    incrementCounter(runtime.counters, "droppedActions");
+    degradeRuntime(runtime, ReasonCodes.ADAPTER_ERROR);
+    return result(false, runtime, ReasonCodes.ADAPTER_ERROR);
+  }
+}
 
-  return { ok: true };
+function isPlainAttributes(attributes) {
+  return (
+    attributes === undefined ||
+    attributes === null ||
+    (typeof attributes === "object" && !Array.isArray(attributes))
+  );
+}
+
+function result(ok, runtime, reasonCode) {
+  return { ok, state: runtime.state, reasonCode, status: createStatusSnapshot(runtime) };
 }

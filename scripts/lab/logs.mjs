@@ -7,6 +7,7 @@ import {
   dockerEnv,
   emailSecretPath,
   passwordSecretPath,
+  assertExactLabToolchain,
   log,
   redactSecrets,
 } from "./common.mjs";
@@ -30,5 +31,11 @@ export function labLogs(extraArgs = []) {
 
 const isMainModule = process.argv[1] === new URL(import.meta.url).pathname;
 if (isMainModule) {
-  log(labLogs(process.argv.slice(2)));
+  try {
+    assertExactLabToolchain("lab:logs");
+    log(labLogs(process.argv.slice(2)));
+  } catch (error) {
+    process.stderr.write(`lab:logs FAILED: ${error.message}\n`);
+    process.exit(1);
+  }
 }

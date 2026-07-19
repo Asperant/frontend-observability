@@ -9,12 +9,27 @@ const SCENARIO_GROUPS = [
     items: [
       { id: "initialize", label: "Initialize", run: scenarios.initializeScenario },
       {
+        id: "concurrent-init",
+        label: "Concurrent initialize",
+        run: scenarios.concurrentInitializeScenario,
+      },
+      {
         id: "duplicate-init",
         label: "Duplicate initialization",
         run: scenarios.duplicateInitializeScenario,
       },
+      {
+        id: "conflict-init",
+        label: "Conflicting initialize",
+        run: scenarios.conflictingInitializeScenario,
+      },
       { id: "config-failure", label: "Config failure", run: scenarios.configFailureScenario },
+      { id: "invalid-config", label: "Invalid config", run: scenarios.invalidConfigScenario },
+      { id: "expired-config", label: "Expired config", run: scenarios.expiredConfigScenario },
+      { id: "config-timeout", label: "Config timeout", run: scenarios.configTimeoutScenario },
+      { id: "disabled-config", label: "Disabled config", run: scenarios.disabledConfigScenario },
       { id: "shutdown", label: "Shutdown", run: scenarios.shutdownScenario },
+      { id: "reinitialize", label: "Reinitialize", run: scenarios.reinitializeScenario },
     ],
   },
   {
@@ -27,6 +42,8 @@ const SCENARIO_GROUPS = [
   {
     title: "Errors",
     items: [
+      { id: "record-action", label: "Record action", run: scenarios.recordActionScenario },
+      { id: "record-error", label: "Record error", run: scenarios.recordErrorScenario },
       { id: "runtime-error", label: "Runtime error", run: scenarios.runtimeErrorScenario },
       {
         id: "unhandled-rejection",
@@ -66,16 +83,24 @@ const SCENARIO_GROUPS = [
 function StatusPanel({ status }) {
   return (
     <dl data-testid="status-panel">
-      <dt>status</dt>
-      <dd>{status.status}</dd>
+      <dt>state</dt>
+      <dd>{status.state}</dd>
       <dt>consent</dt>
       <dd>{status.consent}</dd>
-      <dt>applicationId</dt>
-      <dd>{status.applicationId ?? "—"}</dd>
-      <dt>privacyProfile</dt>
-      <dd>{status.privacyProfile ?? "—"}</dd>
-      <dt>diagnosticsCount</dt>
-      <dd>{status.diagnosticsCount}</dd>
+      <dt>configVersion</dt>
+      <dd>{status.configVersion ?? "—"}</dd>
+      <dt>reasonCode</dt>
+      <dd>{status.reasonCode}</dd>
+      <dt>adapter</dt>
+      <dd>{status.adapter ?? "—"}</dd>
+      <dt>acceptedActions</dt>
+      <dd>{status.counters.acceptedActions}</dd>
+      <dt>droppedActions</dt>
+      <dd>{status.counters.droppedActions}</dd>
+      <dt>acceptedErrors</dt>
+      <dd>{status.counters.acceptedErrors}</dd>
+      <dt>droppedErrors</dt>
+      <dd>{status.counters.droppedErrors}</dd>
     </dl>
   );
 }

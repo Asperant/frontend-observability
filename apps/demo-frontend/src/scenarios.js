@@ -9,20 +9,93 @@ import {
 
 const MOCK_API_BASE_URL = import.meta.env.VITE_MOCK_API_BASE_URL ?? "http://127.0.0.1:4311";
 
+const BASE_OPTIONS = Object.freeze({
+  service: "demo-frontend",
+  environment: "development",
+  version: "2026.07.1",
+});
+
 export function initializeScenario() {
-  return initializeObservability({ applicationId: "demo-frontend-fixture" });
+  return initializeObservability({
+    ...BASE_OPTIONS,
+    configUrl: "/observability/valid-enabled.json",
+  });
 }
 
 export function duplicateInitializeScenario() {
-  return initializeObservability({ applicationId: "demo-frontend-fixture-duplicate" });
+  return initializeObservability({
+    ...BASE_OPTIONS,
+    configUrl: "/observability/valid-enabled.json",
+  });
+}
+
+export async function concurrentInitializeScenario() {
+  const options = {
+    ...BASE_OPTIONS,
+    configUrl: "/observability/valid-enabled.json",
+  };
+  const [first, second] = await Promise.all([
+    initializeObservability(options),
+    initializeObservability(options),
+  ]);
+  return { first, second };
+}
+
+export async function conflictingInitializeScenario() {
+  const first = initializeObservability({
+    ...BASE_OPTIONS,
+    configUrl: "/observability/valid-enabled.json",
+  });
+  const second = initializeObservability({
+    ...BASE_OPTIONS,
+    service: "demo-other",
+    configUrl: "/observability/valid-enabled.json",
+  });
+  const results = await Promise.all([first, second]);
+  return { first: results[0], second: results[1] };
+}
+
+export function invalidConfigScenario() {
+  return initializeObservability({
+    ...BASE_OPTIONS,
+    configUrl: "/observability/invalid-schema.json",
+  });
+}
+
+export function expiredConfigScenario() {
+  return initializeObservability({
+    ...BASE_OPTIONS,
+    configUrl: "/observability/expired.json",
+  });
+}
+
+export function configTimeoutScenario() {
+  return initializeObservability({
+    ...BASE_OPTIONS,
+    configUrl: "/observability/timeout.json",
+  });
+}
+
+export function disabledConfigScenario() {
+  return initializeObservability({
+    ...BASE_OPTIONS,
+    configUrl: "/observability/valid-disabled.json",
+  });
 }
 
 export function configFailureScenario() {
-  return initializeObservability({ applicationId: "" });
+  return initializeObservability({ ...BASE_OPTIONS, service: "" });
 }
 
 export function shutdownScenario() {
   return shutdownObservability();
+}
+
+export function reinitializeScenario() {
+  return initializeObservability({
+    ...BASE_OPTIONS,
+    configUrl: "/observability/valid-disabled.json",
+  });
 }
 
 export function grantConsentScenario() {
@@ -30,11 +103,19 @@ export function grantConsentScenario() {
 }
 
 export function revokeConsentScenario() {
-  return setTrackingConsent("denied");
+  return setTrackingConsent("not-granted");
 }
 
 export function statusScenario() {
   return getObservabilityStatus();
+}
+
+export function recordActionScenario() {
+  return recordAction("demo.record_action", { source: "button" });
+}
+
+export function recordErrorScenario() {
+  return recordError(new Error("Demo recorded error"), { source: "button" });
 }
 
 export function runtimeErrorScenario() {

@@ -1,15 +1,20 @@
 export const STATUS = Object.freeze({
-  UNINITIALIZED: "uninitialized",
+  IDLE: "idle",
+  UNINITIALIZED: "idle",
   INITIALIZING: "initializing",
-  READY: "ready",
-  ERROR: "error",
+  ACTIVE: "active",
+  READY: "active",
+  DISABLED: "disabled",
+  DEGRADED: "degraded",
+  SHUTTING_DOWN: "shutting-down",
   SHUTDOWN: "shutdown",
 });
 
 export const CONSENT = Object.freeze({
   GRANTED: "granted",
-  DENIED: "denied",
-  UNKNOWN: "unknown",
+  NOT_GRANTED: "not-granted",
+  DENIED: "not-granted",
+  UNKNOWN: "not-granted",
 });
 
 export const PRIVACY_PROFILES = Object.freeze(["strict", "balanced"]);

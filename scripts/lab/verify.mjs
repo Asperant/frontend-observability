@@ -1,4 +1,4 @@
-import { log, logError } from "./common.mjs";
+import { assertExactLabToolchain, log, logError } from "./common.mjs";
 import { runAllStaticChecks } from "./static-checks.mjs";
 import { checkSecretSecurity } from "./verify-secrets.mjs";
 import { checkTlsAndProxy } from "./verify-tls-proxy.mjs";
@@ -51,6 +51,12 @@ export async function labVerify() {
 
 const isMainModule = process.argv[1] === new URL(import.meta.url).pathname;
 if (isMainModule) {
-  const passed = await labVerify();
-  process.exit(passed ? 0 : 1);
+  try {
+    assertExactLabToolchain("lab:verify");
+    const passed = await labVerify();
+    process.exit(passed ? 0 : 1);
+  } catch (error) {
+    logError(`lab:verify FAILED: ${error.message}`);
+    process.exit(1);
+  }
 }

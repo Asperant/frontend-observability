@@ -1,26 +1,45 @@
-import { CONSENT, STATUS } from "../internal/constants.js";
-import { getState } from "../internal/state.js";
-import { recordDiagnostic } from "../diagnostics/record-diagnostic.js";
-import { sanitizeAttributes } from "../sanitization/sanitize-attributes.js";
-import { sanitizeError } from "../sanitization/sanitize-error.js";
+import { getRuntimeState } from "../bootstrap/runtime-registry.js";
+import { CONSENT } from "../internal/constants.js";
+import { incrementCounter } from "../diagnostics/counters.js";
+import { ReasonCodes } from "../diagnostics/reason-codes.js";
+import { degradeRuntime } from "../lifecycle/state-machine.js";
+import { LifecycleStates } from "../lifecycle/transitions.js";
+import { createStatusSnapshot } from "../status/snapshot.js";
 
 export function recordError(error, context) {
-  const state = getState();
+  const runtime = getRuntimeState();
 
-  if (state.status !== STATUS.READY) {
-    return { ok: false, reason: "not_ready" };
+  if (runtime.state !== LifecycleStates.ACTIVE || !runtime.acceptingEvents) {
+    incrementCounter(runtime.counters, "droppedErrors");
+    return result(false, runtime, ReasonCodes.NOT_ACTIVE);
   }
-  if (state.consent !== CONSENT.GRANTED) {
-    return { ok: false, reason: "consent_not_granted" };
+  if (runtime.consent !== CONSENT.GRANTED) {
+    incrementCounter(runtime.counters, "droppedErrors");
+    return result(false, runtime, ReasonCodes.CONSENT_NOT_GRANTED);
   }
+  if (!isPlainContext(context)) {
+    incrementCounter(runtime.counters, "droppedErrors");
+    return result(false, runtime, ReasonCodes.INVALID_ERROR);
+  }
+  try {
+    runtime.adapterInstance.recordError(error, context ?? {});
+    incrementCounter(runtime.counters, "acceptedErrors");
+    return result(true, runtime, ReasonCodes.NONE);
+  } catch {
+    incrementCounter(runtime.counters, "droppedErrors");
+    degradeRuntime(runtime, ReasonCodes.ADAPTER_ERROR);
+    return result(false, runtime, ReasonCodes.ADAPTER_ERROR);
+  }
+}
 
-  const sanitized = sanitizeError(error);
-  const sanitizedContext = sanitizeAttributes(context);
+function isPlainContext(context) {
+  return (
+    context === undefined ||
+    context === null ||
+    (typeof context === "object" && !Array.isArray(context))
+  );
+}
 
-  recordDiagnostic("error", "error.recorded", sanitized.message, {
-    name: sanitized.name,
-    ...sanitizedContext,
-  });
-
-  return { ok: true };
+function result(ok, runtime, reasonCode) {
+  return { ok, state: runtime.state, reasonCode, status: createStatusSnapshot(runtime) };
 }

@@ -8,6 +8,7 @@ import {
   logError,
   redactSecrets,
   SERVICES,
+  assertExactLabToolchain,
 } from "./common.mjs";
 import { getComposeStatus } from "./status.mjs";
 import { passwordSecretPath, emailSecretPath } from "./common.mjs";
@@ -78,6 +79,12 @@ export async function waitForHealthy({
 
 const isMainModule = process.argv[1] === new URL(import.meta.url).pathname;
 if (isMainModule) {
-  const result = await waitForHealthy();
-  if (!result.healthy) process.exit(1);
+  try {
+    assertExactLabToolchain("lab:wait");
+    const result = await waitForHealthy();
+    if (!result.healthy) process.exit(1);
+  } catch (error) {
+    process.stderr.write(`lab:wait FAILED: ${error.message}\n`);
+    process.exit(1);
+  }
 }

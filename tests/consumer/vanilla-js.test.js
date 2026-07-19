@@ -67,14 +67,34 @@ export default defineConfig({
   shutdownObservability,
 } from "@chicek/browser-observability";
 
-const initResult = initializeObservability({ applicationId: "consumer-smoke-vanilla" });
+globalThis.fetch = () => Promise.resolve(new Response(JSON.stringify({
+  schemaVersion: "1.0.0",
+  configVersion: "consumer-disabled",
+  enabled: false,
+  issuedAt: "2026-07-19T00:00:00.000Z",
+  expiresAt: "2099-01-01T00:00:00.000Z",
+  killSwitch: { engaged: true },
+  privacyProfile: "strict",
+  sampling: { sessionSampleRate: 0, errorSampleRate: 0 },
+  rum: {},
+  browserLogs: { enabled: false },
+  sessionReplay: { enabled: false },
+  allowedRoutes: [],
+  allowedSelectors: [],
+}), { status: 200, headers: { "content-type": "application/json" } }));
+
+const initResult = await initializeObservability({
+  service: "consumer-smoke",
+  environment: "production",
+  version: "2026.07.1",
+});
 setTrackingConsent("granted");
 const actionResult = recordAction("smoke.check", { source: "vanilla" });
 const status = getObservabilityStatus();
-const shutdownResult = shutdownObservability();
+const shutdownResult = await shutdownObservability();
 
 globalThis.__SMOKE_RESULT__ = {
-  ok: initResult.ok && actionResult.ok && status.status === "ready" && shutdownResult.ok,
+  ok: !initResult.ok && actionResult.reasonCode === "NOT_ACTIVE" && status.state === "disabled" && shutdownResult.ok,
   initResult,
   actionResult,
   status,

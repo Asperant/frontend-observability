@@ -6,7 +6,26 @@ Mevcut web uygulamalarına minimum müdahaleyle bağlanacak şekilde tasarlanır
 
 ## Mevcut Durum
 
-`Stage 6 Implemented — Review Pending`
+`Stage 7 Implemented — Review Pending`
+
+## Frontend Bootstrap (Aşama 7)
+
+Bootstrap çekirdeği host uygulamayı bozmadan runtime config yükler, lifecycle durumunu yönetir, consent kararını yalnız memory'de tutar ve gerçek OpenObserve adapter olmadığı durumda fail-closed çalışır. Bu aşamada OpenObserve browser SDK dependency'si yoktur ve telemetry gönderilmez.
+
+Public API yalnız şunlardır:
+
+```js
+initializeObservability(options);
+setTrackingConsent(consent);
+recordAction(name, attributes);
+recordError(error, context);
+getObservabilityStatus();
+shutdownObservability();
+```
+
+Runtime config varsayılan olarak `/observability/config.json` adresinden same-origin, timeout'lu, cache/cookie kullanmadan ve body sınırıyla çekilir. Consent varsayılanı `not-granted` değeridir; bootstrap bunu `localStorage`, `sessionStorage` veya IndexedDB'ye yazmaz.
+
+Lifecycle durumları `idle`, `initializing`, `active`, `disabled`, `degraded`, `shutting-down` ve `shutdown` değerlerinden oluşur. Status snapshot her çağrıda yeni, immutable ve secretsiz bir object döndürür.
 
 ## Docker Referans Laboratuvarı (Aşama 6)
 

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "configVersion": "expired",
+  "enabled": true,
+  "issuedAt": "2020-01-01T00:00:00.000Z",
+  "expiresAt": "2020-01-02T00:00:00.000Z",
+  "killSwitch": { "engaged": false },
+  "privacyProfile": "strict",
+  "sampling": { "sessionSampleRate": 0.5, "errorSampleRate": 0.5 },
+  "rum": {
+    "endpoint": "https://observability.example.invalid/rum",
+    "applicationId": "demo-app",
+    "organizationId": "demo-org"
+  },
+  "browserLogs": { "enabled": false },
+  "sessionReplay": { "enabled": false },
+  "allowedRoutes": [],
+  "allowedSelectors": []
+}

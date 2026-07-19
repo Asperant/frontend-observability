@@ -7,22 +7,26 @@ test.describe("demo frontend smoke", () => {
     await expect(page.getByRole("note")).toContainText("test fixture");
   });
 
-  test("scenario controls are visible", async ({ page }) => {
+  test("Stage 7 lifecycle controls are visible", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByTestId("scenario-initialize")).toBeVisible();
-    await expect(page.getByTestId("scenario-runtime-error")).toBeVisible();
-    await expect(page.getByTestId("scenario-unhandled-rejection")).toBeVisible();
-    await expect(page.getByTestId("scenario-resource-error")).toBeVisible();
-    await expect(page.getByTestId("scenario-success-request")).toBeVisible();
-    await expect(page.getByTestId("scenario-client-error")).toBeVisible();
-    await expect(page.getByTestId("scenario-server-error")).toBeVisible();
-    await expect(page.getByTestId("scenario-timeout")).toBeVisible();
-    await expect(page.getByTestId("scenario-abort")).toBeVisible();
-    await expect(page.getByTestId("scenario-consent-grant")).toBeVisible();
-    await expect(page.getByTestId("scenario-consent-revoke")).toBeVisible();
-    await expect(page.getByTestId("scenario-duplicate-init")).toBeVisible();
-    await expect(page.getByTestId("scenario-config-failure")).toBeVisible();
-    await expect(page.getByTestId("scenario-telemetry-failure")).toBeVisible();
+    for (const id of [
+      "initialize",
+      "concurrent-init",
+      "duplicate-init",
+      "conflict-init",
+      "consent-grant",
+      "consent-revoke",
+      "record-action",
+      "record-error",
+      "shutdown",
+      "reinitialize",
+      "invalid-config",
+      "expired-config",
+      "config-timeout",
+      "disabled-config",
+    ]) {
+      await expect(page.getByTestId(`scenario-${id}`)).toBeVisible();
+    }
   });
 
   test("package import does not break the app: status panel renders", async ({ page }) => {
@@ -31,36 +35,69 @@ test.describe("demo frontend smoke", () => {
 
     await page.goto("/");
     await expect(page.getByTestId("status-panel")).toBeVisible();
-    await expect(page.getByTestId("status-panel")).toContainText("uninitialized");
+    await expect(page.getByTestId("status-panel")).toContainText("idle");
+    await expect(page.getByTestId("status-panel")).toContainText("not-granted");
 
     expect(pageErrors).toEqual([]);
+  });
+
+  test("disabled config state is shown", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("scenario-disabled-config").click();
+    await expect(page.getByTestId("status-panel")).toContainText("disabled");
+    await expect(page.getByTestId("status-panel")).toContainText("CONFIG_DISABLED");
+  });
+
+  test("config timeout state is shown", async ({ page }) => {
+    await page.route("**/observability/timeout.json", async () => {});
+    await page.goto("/");
+    await page.getByTestId("scenario-config-timeout").click();
+    await expect(page.getByTestId("status-panel")).toContainText("CONFIG_TIMEOUT", {
+      timeout: 5000,
+    });
+  });
+
+  test("duplicate, conflict, consent, shutdown and reinitialize controls keep the host alive", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    await page.getByTestId("scenario-concurrent-init").click();
+    await expect(page.getByTestId("activity-log")).toContainText("Concurrent initialize");
+
+    await page.getByTestId("scenario-conflict-init").click();
+    await expect(page.getByTestId("activity-log")).toContainText("INITIALIZATION_CONFLICT");
+
+    await page.getByTestId("scenario-consent-grant").click();
+    await expect(page.getByTestId("status-panel")).toContainText("granted");
+
+    await page.getByTestId("scenario-consent-revoke").click();
+    await expect(page.getByTestId("status-panel")).toContainText("not-granted");
+
+    await page.getByTestId("scenario-record-action").click();
+    await expect(page.getByTestId("status-panel")).toContainText("droppedActions");
+
+    await page.getByTestId("scenario-record-error").click();
+    await expect(page.getByTestId("status-panel")).toContainText("droppedErrors");
+
+    await page.getByTestId("scenario-shutdown").click();
+    await expect(page.getByTestId("status-panel")).toContainText("shutdown");
+
+    await page.getByTestId("scenario-reinitialize").click();
+    await expect(page.getByTestId("status-panel")).toContainText("CONFIG_DISABLED");
+    await expect(page.locator("body")).toBeVisible();
+  });
+
+  test("telemetry adapter unavailable does not break the demo", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("scenario-initialize").click();
+    await expect(page.getByTestId("status-panel")).toContainText("ADAPTER_UNAVAILABLE");
+    await expect(page.locator("body")).toBeVisible();
   });
 
   test("mock API health endpoint responds", async ({ request }) => {
     const response = await request.get("http://127.0.0.1:4311/health");
     expect(response.ok()).toBe(true);
     expect(await response.json()).toEqual({ status: "ok" });
-  });
-
-  test("demo works end-to-end through the lifecycle even with no real telemetry endpoint configured", async ({
-    page,
-  }) => {
-    await page.goto("/");
-
-    await page.getByTestId("scenario-initialize").click();
-    await expect(page.getByTestId("status-panel")).toContainText("ready");
-
-    await page.getByTestId("scenario-consent-grant").click();
-    await expect(page.getByTestId("status-panel")).toContainText("granted");
-
-    await page.getByTestId("scenario-success-request").click();
-    await expect(page.getByTestId("activity-log")).toContainText("Successful request");
-
-    await page.getByTestId("scenario-shutdown").click();
-    await expect(page.getByTestId("status-panel")).toContainText("shutdown");
-
-    // This stage has no real OpenObserve/RUM endpoint anywhere; the page
-    // must still be alive and interactive after exercising every scenario.
-    await expect(page.locator("body")).toBeVisible();
   });
 });

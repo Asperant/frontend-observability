@@ -36,6 +36,12 @@
       "enum": ["1.0.0"],
       "description": "Version of this schema the payload was authored against."
     },
+    "configVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Operational runtime config version shown in status snapshots."
+    },
     "enabled": {
       "type": "boolean",
       "description": "Global on/off switch for the entire observability package."

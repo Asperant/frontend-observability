@@ -1,4 +1,4 @@
-import { log, runDockerCompose } from "./common.mjs";
+import { assertExactLabToolchain, log, runDockerCompose } from "./common.mjs";
 
 /**
  * Removes containers and networks but deliberately never passes `-v`, so
@@ -14,6 +14,7 @@ export function labDown() {
 const isMainModule = process.argv[1] === new URL(import.meta.url).pathname;
 if (isMainModule) {
   try {
+    assertExactLabToolchain("lab:down");
     labDown();
   } catch (error) {
     process.stderr.write(`lab:down FAILED: ${error.message}\n`);

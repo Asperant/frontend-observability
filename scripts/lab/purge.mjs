@@ -1,7 +1,7 @@
 import { createInterface } from "node:readline/promises";
 import { rmSync } from "node:fs";
 
-import { log, logError, runDockerCompose, runtimeDir } from "./common.mjs";
+import { assertExactLabToolchain, log, logError, runDockerCompose, runtimeDir } from "./common.mjs";
 
 async function confirmInteractively() {
   if (!process.stdin.isTTY) return false;
@@ -47,6 +47,7 @@ if (isMainModule) {
     process.exit(1);
   }
   try {
+    assertExactLabToolchain("lab:purge");
     const result = await labPurge({ yes });
     if (!result.purged) process.exit(1);
   } catch (error) {

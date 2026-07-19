@@ -20,6 +20,7 @@ COPY packages/browser-observability/vite.config.js packages/browser-observabilit
 COPY packages/contracts/src packages/contracts/src
 COPY packages/contracts/schemas packages/contracts/schemas
 COPY apps/demo-frontend/src apps/demo-frontend/src
+COPY apps/demo-frontend/public apps/demo-frontend/public
 COPY apps/demo-frontend/index.html apps/demo-frontend/index.html
 COPY apps/demo-frontend/vite.config.js apps/demo-frontend/vite.config.js
 COPY scripts/build scripts/build
