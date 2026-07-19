@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { scanForSecrets } from "./scan-secrets.js";
+import { scanForSecrets, scanTrackedFiles } from "./scan-secrets.js";
 
 // This script is entirely offline: it only reads files already on disk.
 // Anything that talks to a registry (e.g. `pnpm audit`) lives in
@@ -24,7 +24,7 @@ function step(label, fn) {
 }
 
 step("secret scan (repo source and fixtures)", () => {
-  const findings = scanForSecrets([repoRoot]);
+  const findings = scanTrackedFiles(repoRoot);
   if (findings.length > 0) {
     for (const finding of findings) console.error(`  - [${finding.rule}] ${finding.file}`);
     throw new Error(`${findings.length} finding(s)`);

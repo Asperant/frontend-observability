@@ -6,7 +6,20 @@ Mevcut web uygulamalarına minimum müdahaleyle bağlanacak şekilde tasarlanır
 
 ## Mevcut Durum
 
-`Aşama 10 Implemented — Verification Pending`
+| Aşama                              | Durum                               |
+| ---------------------------------- | ----------------------------------- |
+| 0–10                               | ACCEPTED                            |
+| 11 (Session Replay)                | SECURITY BLOCKED / CLOSED BY DESIGN |
+| 12 (Reverse Proxy Hardening)       | ACCEPTED                            |
+| 13 (Sampling/Queue/Retry)          | SECURITY BLOCKED / CLOSED BY DESIGN |
+| 14 (Runtime Control & Kill Switch) | ACCEPTED                            |
+
+- RUM Sessions ve Browser Logs destekleniyor.
+- Session Replay desteklenmiyor (bkz. [`docs/session-replay-security-decision.md`](docs/session-replay-security-decision.md)).
+- Guaranteed delivery veya native SDK queue purge desteklenmiyor (bkz. [`docs/telemetry-delivery-security-decision.md`](docs/telemetry-delivery-security-decision.md)).
+- Reverse proxy hardening tamamlandı (bkz. Aşama 12 bölümü aşağıda).
+- Fail-closed runtime kill switch tamamlandı (bkz. [`docs/runtime-control-and-kill-switch.md`](docs/runtime-control-and-kill-switch.md)).
+- Aşama 15 henüz başlamadı.
 
 ## Frontend Bootstrap (Aşama 7)
 
@@ -22,6 +35,8 @@ recordError(error, context);
 getObservabilityStatus();
 shutdownObservability();
 ```
+
+Runtime config şeması `privacyProfile` alanı için kapalı bir enum tanımlar: `"strict"` ve `"balanced"`. Şemanın kendi açıklaması da dahil olmak üzere, hiçbir profil body, credential, cookie veya session-token capture'a izin vermez — bu iki değer arasında güncel implementasyonda gözlemlenebilir bir davranış farkı yoktur. `mergePrivacyPolicy()` (`packages/browser-observability/src/config/merge-policy.js`) hangi profil verilirse verilsin dahili `privacyMode`'u her zaman `"strict"`e sabitler; yani `"balanced"`, şu an için `"strict"`e yükseltilen bir compatibility alias'tır, gizliliği düşüren ayrı bir davranış değildir. Bu, kabul edilmiş privacy contract'ının (hiçbir profilin hassas veri toplamasına izin verilmemesi) bir ihlali değil, dokümante edilmemiş bir no-op'tur.
 
 ## Telemetry Sanitization (Aşama 9)
 
@@ -58,6 +73,18 @@ OpenObserve OSS v0.91.0 replay masking client-side'dır ve sunucu tarafında her
 Stage 13 bir application-level delivery guarantee katmanı (manual queue, sampling gate, retry/backoff wrapper) eklemeden kapatıldı. `recordAction` / `recordError` ve SDK'nın otomatik topladığı event'ler, Stage 13 öncesindeki gibi doğrudan yüklü `@openobserve/browser-rum` / `@openobserve/browser-logs` 0.3.4 native transport'una teslim edilir.
 
 Kaynak koddan doğrulanan native retry queue byte (20 MiB), in-flight request (32) ve byte (80 KiB) sayısı ile backoff tavanı (60 saniye) açısından bounded'dır, ancak maksimum retry count veya maksimum retry age doğrulanamadı. SDK public bir purge API, response hook veya transport hook sunmuyor. Bu nedenle consent revoke ve `shutdownObservability()`, SDK'nın yeni telemetry kabul etmesini durdurabilir ama revoke/shutdown öncesinde SDK'nın kendi retry queue'suna zaten kabul edilmiş telemetry'nin purge edildiğini garanti edemez. Global transport patch, private SDK API kullanımı, ikinci bir native-tarzı queue ve custom gateway; kapsam dışı bırakıldı (bkz. [`docs/telemetry-delivery-security-decision.md`](docs/telemetry-delivery-security-decision.md)). Status/diagnostics hiçbir yerde delivery/storage acknowledgement iddia etmez; `tests/contract/native-delivery-limitation.test.js` bunu kalıcı bir regression guard olarak doğrular.
+
+## Reverse Proxy Hardening (Aşama 12)
+
+`reverse-proxy` yalnız iki exact path'i upstream'e proxy eder: `POST /rum/v1/default/rum` ve `POST /rum/v1/default/logs`. Wildcard org, wildcard version veya genel `/rum/*` route yoktur; query string reddedilir, yalnız POST kabul edilir, Content-Type allowlist ve Content-Encoding reddi uygulanır. Body boyut limitleri RUM için 64 KiB, Logs için 32 KiB'dir; endpoint/IP başına 30 r/s (burst 20) ve global 200 r/s (burst 100) rate limit, IP başına 20 ve global 200 connection limit uygulanır.
+
+Auth, cookie, referer, forwarded ve client-IP header'ları upstream'e iletilmez (`proxy_pass_request_headers off`); internal upstream response header'ları (Set-Cookie, Server, X-Request-Id vb.) browser'a sızmaz. Proxy access logu body, token, query string, tam client IP veya tam User-Agent içermez. OpenObserve management/API plane (arama, kullanıcı, pipeline yönetimi) bu public port üzerinden erişilemez; yönetim arayüzü yalnız loopback'te ayrı bir portta (`127.0.0.1:5080`) sunulur. Firefox'un `Origin: null` davranışı yalnız exact same-origin `Sec-Fetch-*` header kombinasyonunda kabul edilir; bu genel bir CORS izni değildir.
+
+## Sampling, Queue, Retry ve Runtime Control (Aşama 14)
+
+Aşama 13'ün blocked bıraktığı delivery garantisi eksikliğine karşı, telemetriyi canlı olarak durdurabilen fail-closed bir runtime kill switch eklendi. Kontrol dokümanı same-origin `GET/HEAD /observability/control.json` adresinden en fazla 8 KiB ve 3 saniye timeout ile çekilir; query string, yanlış method, yanlış Content-Type ve oversized body reddedilir. Kontrol dokümanı yalnız kill-switch alanlarını etkiler — SDK'nın tam config'i hot-reload edilmez ve control state yalnız memory'de tutulur.
+
+Doğrulama fail-closed'dır: duplicate key, bilinmeyen key, gelecekteki `issuedAt`, TTL/expiry aşımı ve geri giden revision reddedilir. Kill switch page-latched'dır: bir sayfa `active:false` gördükten sonra, aynı sayfa reload olmadan yeniden aktifleşmez. İki katmanlı gate vardır: browser tarafı yeni RUM/log/manual event'leri durdurur; proxy tarafı exact RUM/logs endpoint'lerinde upstream'e hiç gitmeden `410` döner (retry fırtınası oluşturmaz). Kill switch, Aşama 13'te zaten kabul edilmiş olan native SDK retry queue purge garantisi eksikliğini değiştirmez — yalnız yeni telemetriyi durdurur, SDK'nın önceden kabul ettiği event'leri purge ettiğini iddia etmez. Detaylar için bkz. [`docs/runtime-control-and-kill-switch.md`](docs/runtime-control-and-kill-switch.md).
 
 ## OpenObserve Entegrasyonu (Aşama 8)
 

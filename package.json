@@ -15,6 +15,7 @@
     "test:unit": "vitest run --project unit",
     "test:contract": "vitest run --project contract",
     "test:consumer": "vitest run --project consumer",
+    "test:security": "vitest run --project security",
     "test:e2e": "playwright test",
     "test:lab": "vitest run --project lab",
     "test:e2e:lab": "playwright test --config playwright-lab.config.js",

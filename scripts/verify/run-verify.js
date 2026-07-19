@@ -32,6 +32,11 @@ const steps = [
     args: ["run", "sbom"],
   },
   {
+    label: "security scanner regression tests",
+    command: "pnpm",
+    args: ["run", "test:security"],
+  },
+  {
     label: "security:local (offline secret + bundle scan)",
     command: "pnpm",
     args: ["run", "security:local"],

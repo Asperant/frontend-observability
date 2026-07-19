@@ -44,6 +44,18 @@ export default defineConfig({
           exclude: ["**/node_modules/**", "**/dist/**"],
         },
       },
+      {
+        test: {
+          // Regression tests for scripts/security/scan-secrets.js. Part of
+          // `pnpm verify` (via `test:security`) so the scanner's own
+          // detection/exclusion contracts are enforced on every run, not
+          // just exercised ad hoc.
+          name: "security",
+          environment: "node",
+          include: ["tests/security/**/*.test.js"],
+          exclude: ["**/node_modules/**", "**/dist/**"],
+        },
+      },
     ],
     coverage: {
       provider: "v8",

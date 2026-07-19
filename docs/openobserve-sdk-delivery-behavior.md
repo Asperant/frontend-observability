@@ -34,14 +34,39 @@ Source files inspected from the installed package tree:
 
 ## Implementation Decision
 
-The package does not add a global transport wrapper and does not patch `fetch`, XHR, or `sendBeacon`.
+**Status: Stage 13 is SECURITY BLOCKED / CLOSED BY DESIGN.** No application-level delivery,
+sampling, queue, or retry feature was built on top of the native SDK transport. See
+[`docs/telemetry-delivery-security-decision.md`](telemetry-delivery-security-decision.md) for the
+full decision and rationale; this section only restates it precisely enough that it cannot drift
+out of sync with that decision again.
 
-Because no public response/transport hook is available, no native SDK circuit breaker is implemented. The bounded controls we own are:
+The package does not add a global transport wrapper and does not patch `fetch`, XHR, or
+`sendBeacon`.
 
-- admission sampling before sanitized events are dispatched,
-- memory-only manual dispatch queue limits,
-- offline drop for new manual events,
-- consent revoke/shutdown purge and listener cleanup,
-- Stage 12 proxy quick-fail, request size limits, timeout, and rate limits.
+Because no public response/transport hook is available, no native SDK circuit breaker is implemented.
 
-The SDK native retry path has bounded queue bytes, in-flight request count, in-flight bytes, and backoff ceiling, but no verified maximum retry count or retry age. Tests and reports must not claim delivery acknowledgement or a fully bounded native retry lifetime.
+It does not implement, and does not claim to implement, any of the following:
+
+- admission sampling layered in front of the SDK (the only "sampling" this package configures is
+  the native SDK's own `sessionSampleRate`/`errorSampleRate` options, passed straight through),
+- a manual dispatch queue or any other project-owned telemetry queue, in memory or persisted,
+- an offline-drop policy for new manual events beyond the SDK's own behavior,
+- a purge of the native SDK's retry queue on consent revoke or `shutdownObservability()`,
+- guaranteed delivery, or a "delivered"/"stored"/"purged" acknowledgement of any kind.
+
+What `shutdownObservability()` and consent revoke actually do: stop the package from accepting
+_new_ telemetry, clear frontend correlation state, and call the adapter's own
+`stopSessionReplay()`/`shutdown()` lifecycle methods. Neither stops, drains, nor purges telemetry
+the native SDK had already accepted into its own retry queue before that point — there is no
+public purge, response, or transport hook to do that with (see the Findings table above).
+
+The only bounded controls this project owns and operates are the Stage 12 reverse-proxy hardening
+(exact-path allowlisting, request size limits, timeouts, and rate limits — see `README.md`) and the
+[Stage 14 runtime kill switch](runtime-control-and-kill-switch.md) (browser-side and proxy-side
+ingestion gates). Neither of those purges telemetry already inside the native SDK's retry queue
+either — both are documented as stopping _new_ ingestion only.
+
+The SDK's native retry path itself has a bounded queue byte cap, in-flight request count, in-flight
+byte cap, and backoff ceiling (see Findings above), but no verified maximum retry count or retry
+age, and no public purge/response/transport hook. Tests and reports must not claim delivery
+acknowledgement, a native-queue purge, or a fully bounded native retry lifetime.
