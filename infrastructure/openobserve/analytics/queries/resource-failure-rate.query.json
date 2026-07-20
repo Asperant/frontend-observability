@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "resource-failure-rate",
+  "version": 1,
+  "metricId": "resource_failure_rate",
+  "title": "Resource failure rate",
+  "queryClass": "OVERVIEW",
+  "stream": "_rumdata",
+  "sqlTemplate": "select count(*) filter (where type = 'resource' and (resource_status_code >= 400 or resource_status_code = 0)) as failed_resources, count(*) filter (where type = 'resource') as resources, case when count(*) filter (where type = 'resource') = 0 then null else count(*) filter (where type = 'resource' and (resource_status_code >= 400 or resource_status_code = 0)) * 1.0 / count(*) filter (where type = 'resource') end as resource_failure_rate from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}}",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": null,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "failed_resources",
+      "type": "Int64"
+    },
+    {
+      "name": "resources",
+      "type": "Int64"
+    },
+    {
+      "name": "resource_failure_rate",
+      "type": "Float64"
+    }
+  ],
+  "emptyDataSemantics": "denominator (resources) = 0 -> resource_failure_rate is SQL NULL -> NO_DATA, never 0.",
+  "cardinalityClass": "LOW_CARDINALITY_OVERVIEW",
+  "hasDivisionGuard": true
+}

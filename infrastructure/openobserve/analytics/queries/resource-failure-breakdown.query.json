@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "resource-failure-breakdown",
+  "version": 1,
+  "metricId": null,
+  "title": "Resource failures by type",
+  "queryClass": "TABLE",
+  "stream": "_rumdata",
+  "sqlTemplate": "select resource_type, count(*) as resources, count(*) filter (where resource_status_code >= 400 or resource_status_code = 0) as failed_resources from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'resource' group by resource_type order by failed_resources desc limit 20",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": 20,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "resource_type",
+      "type": "Utf8"
+    },
+    {
+      "name": "resources",
+      "type": "Int64"
+    },
+    {
+      "name": "failed_resources",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "No matching resource records -> an empty result set (zero rows).",
+  "cardinalityClass": "BOUNDED_TABLE",
+  "hasDivisionGuard": false
+}

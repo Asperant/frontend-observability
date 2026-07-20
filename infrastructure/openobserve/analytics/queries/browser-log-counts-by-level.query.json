@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "browser-log-counts-by-level",
+  "version": 1,
+  "metricId": "browser_log_counts_by_level",
+  "title": "Browser log counts by level",
+  "queryClass": "TABLE",
+  "stream": "_rumlog",
+  "sqlTemplate": "select status as level, count(*) as log_count from _rumlog where service = {{service}} and env = {{environment}}{{version_clause}} group by status order by log_count desc limit 20",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": 20,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "level",
+      "type": "Utf8"
+    },
+    {
+      "name": "log_count",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "No matching log records -> an empty result set (zero rows), not a zero-valued row.",
+  "cardinalityClass": "BOUNDED_TABLE",
+  "hasDivisionGuard": false
+}

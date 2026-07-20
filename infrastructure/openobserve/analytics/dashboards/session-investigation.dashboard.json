@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "starterId": "session-investigation",
+  "starterVersion": 1,
+  "folderName": "CHICEK Starters",
+  "title": "Session Investigation",
+  "description": "Bounded, exact-session drill-down: summary, views/actions, errors, resources, and browser logs for exactly one session_id, entered in the session_id variable below. No session/view listing or overview group-by uses these high-cardinality IDs — they are exact-match drill-down input only. Panels use OpenObserve's own $session_id dashboard-variable substitution, which this stage's backend-only capability audit could not independently verify (docs/openobserve-v0.91-dashboard-capabilities.md capability #13/#13a, since that substitution happens inside OpenObserve's own web UI) — verify visually after install, or edit a panel's query to a literal session_id if it does not behave as expected on your OpenObserve build. No Session Replay panel or replay link is included (Session Replay is Security Blocked — see docs/session-replay-security-decision.md). Installed by pnpm lab:dashboards:install-starters as an initial template — edit or delete freely from the OpenObserve UI; this stage never overwrites your changes.",
+  "tabs": [
+    {
+      "tabId": "default",
+      "name": "Session",
+      "panels": [
+        {
+          "id": "session-summary",
+          "type": "table",
+          "title": "Session summary",
+          "description": "views/actions/errors/resources counts and session start/end timestamps for this exact session_id.",
+          "config": { "show_legends": true },
+          "queryRef": "session-summary-drilldown",
+          "layout": { "x": 0, "y": 0, "w": 12, "h": 6, "i": 1 }
+        },
+        {
+          "id": "session-views-actions",
+          "type": "table",
+          "title": "Views and actions",
+          "description": "",
+          "config": { "show_legends": true },
+          "queryRef": "session-views-actions-drilldown",
+          "layout": { "x": 0, "y": 6, "w": 12, "h": 8, "i": 2 }
+        },
+        {
+          "id": "session-errors",
+          "type": "table",
+          "title": "Errors",
+          "description": "",
+          "config": { "show_legends": true },
+          "queryRef": "session-errors-drilldown",
+          "layout": { "x": 0, "y": 14, "w": 12, "h": 8, "i": 3 }
+        },
+        {
+          "id": "session-resources",
+          "type": "table",
+          "title": "Resources",
+          "description": "",
+          "config": { "show_legends": true },
+          "queryRef": "session-resources-drilldown",
+          "layout": { "x": 0, "y": 22, "w": 12, "h": 8, "i": 4 }
+        },
+        {
+          "id": "session-logs",
+          "type": "table",
+          "title": "Browser logs",
+          "description": "",
+          "config": { "show_legends": true },
+          "queryRef": "session-logs-drilldown",
+          "layout": { "x": 0, "y": 30, "w": 12, "h": 8, "i": 5 }
+        }
+      ]
+    }
+  ],
+  "variables": [{ "name": "session_id", "label": "Session ID", "type": "constant" }]
+}

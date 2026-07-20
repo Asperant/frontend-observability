@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "error-trend",
+  "version": 1,
+  "metricId": null,
+  "title": "Error trend (hourly)",
+  "queryClass": "TABLE",
+  "stream": "_rumdata",
+  "sqlTemplate": "select histogram(_timestamp, '1 hour') as bucket, count(*) as error_count from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'error' group by bucket order by bucket asc limit 200",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": 200,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "bucket",
+      "type": "Utf8"
+    },
+    {
+      "name": "error_count",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "No matching error records in the window -> an empty result set (zero rows/buckets), not a zero-valued row.",
+  "cardinalityClass": "BOUNDED_TABLE",
+  "hasDivisionGuard": false
+}

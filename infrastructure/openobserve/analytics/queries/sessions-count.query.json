@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "sessions-count",
+  "version": 1,
+  "metricId": "sessions_count",
+  "title": "Sessions count",
+  "queryClass": "OVERVIEW",
+  "stream": "_rumdata",
+  "sqlTemplate": "select count(distinct session_id) as sessions from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}}",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": null,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "sessions",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "Zero matching sessions renders as a real 0, not NO_DATA (COUNT DISTINCT with no GROUP BY always returns exactly one row).",
+  "cardinalityClass": "LOW_CARDINALITY_OVERVIEW",
+  "hasDivisionGuard": false
+}

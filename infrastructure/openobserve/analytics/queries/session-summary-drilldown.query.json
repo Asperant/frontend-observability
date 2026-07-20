@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "session-summary-drilldown",
+  "version": 1,
+  "metricId": null,
+  "title": "Session summary",
+  "queryClass": "DRILLDOWN",
+  "stream": "_rumdata",
+  "sqlTemplate": "select count(*) filter (where type = 'view') as views, count(*) filter (where type = 'action') as actions, count(*) filter (where type = 'error') as errors, count(*) filter (where type = 'resource') as resources, min(_timestamp) as session_start_us, max(_timestamp) as session_end_us from _rumdata where session_id = {{session_id}}",
+  "requiredVariables": [],
+  "optionalVariables": [],
+  "drilldownVariables": ["session_id"],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": null,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "views",
+      "type": "Int64"
+    },
+    {
+      "name": "actions",
+      "type": "Int64"
+    },
+    {
+      "name": "errors",
+      "type": "Int64"
+    },
+    {
+      "name": "resources",
+      "type": "Int64"
+    },
+    {
+      "name": "session_start_us",
+      "type": "Int64"
+    },
+    {
+      "name": "session_end_us",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "No records for this exact session_id -> all counts 0 and session_start_us/session_end_us are SQL NULL -> the session itself is NO_DATA/not found, never rendered as a valid empty session.",
+  "cardinalityClass": "BOUNDED_DRILLDOWN",
+  "hasDivisionGuard": false
+}

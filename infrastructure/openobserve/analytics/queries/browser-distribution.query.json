@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "browser-distribution",
+  "version": 1,
+  "metricId": null,
+  "title": "Sessions by browser family",
+  "queryClass": "TABLE",
+  "stream": "_rumdata",
+  "sqlTemplate": "select user_agent_user_agent_family as browser, count(distinct session_id) as sessions from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} group by user_agent_user_agent_family order by sessions desc limit 20",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": 20,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "browser",
+      "type": "Utf8"
+    },
+    {
+      "name": "sessions",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "No matching records -> an empty result set (zero rows).",
+  "cardinalityClass": "BOUNDED_TABLE",
+  "hasDivisionGuard": false
+}

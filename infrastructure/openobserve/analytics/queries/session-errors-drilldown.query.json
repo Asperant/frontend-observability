@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "session-errors-drilldown",
+  "version": 1,
+  "metricId": null,
+  "title": "Session errors",
+  "queryClass": "DRILLDOWN",
+  "stream": "_rumdata",
+  "sqlTemplate": "select * from _rumdata where session_id = {{session_id}} and type = 'error' order by _timestamp asc limit 200",
+  "requiredVariables": [],
+  "optionalVariables": [],
+  "drilldownVariables": ["session_id"],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": 200,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [],
+  "emptyDataSemantics": "No matching records -> an empty result set (zero rows), not an error.",
+  "cardinalityClass": "BOUNDED_DRILLDOWN",
+  "hasDivisionGuard": false
+}

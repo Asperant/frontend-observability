@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "recent-errors-detail",
+  "version": 1,
+  "metricId": null,
+  "title": "Recent errors (detail)",
+  "queryClass": "LIST",
+  "stream": "_rumdata",
+  "sqlTemplate": "select _timestamp, session_id, error_type, error_source_type, error_message from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'error' order by _timestamp desc limit 20",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    { "name": "version", "column": "version", "clausePlaceholder": "{{version_clause}}" }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": 20,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    { "name": "_timestamp", "type": "Int64" },
+    { "name": "session_id", "type": "Utf8" },
+    { "name": "error_type", "type": "Utf8" },
+    { "name": "error_source_type", "type": "Utf8" },
+    { "name": "error_message", "type": "Utf8" }
+  ],
+  "emptyDataSemantics": "No matching error records -> an empty result set (zero rows). error_message/session_id are high-cardinality fields shown only as bounded (LIMIT 20, most-recent-first) list columns, never grouped/aggregated on.",
+  "cardinalityClass": "BOUNDED_LIST",
+  "hasDivisionGuard": false
+}

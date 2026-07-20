@@ -14,6 +14,7 @@ Mevcut web uygulamalarına minimum müdahaleyle bağlanacak şekilde tasarlanır
 | 13 (Sampling/Queue/Retry)          | SECURITY BLOCKED / CLOSED BY DESIGN |
 | 14 (Runtime Control & Kill Switch) | ACCEPTED                            |
 | 15 (Stream & Data Lifecycle)       | ACCEPTED                            |
+| 16 (Dashboard & Sorgular)          | ACCEPTED                            |
 
 - RUM Sessions ve Browser Logs destekleniyor.
 - Session Replay desteklenmiyor (bkz. [`docs/session-replay-security-decision.md`](docs/session-replay-security-decision.md)).
@@ -21,6 +22,7 @@ Mevcut web uygulamalarına minimum müdahaleyle bağlanacak şekilde tasarlanır
 - Reverse proxy hardening tamamlandı (bkz. Aşama 12 bölümü aşağıda).
 - Fail-closed runtime kill switch tamamlandı (bkz. [`docs/runtime-control-and-kill-switch.md`](docs/runtime-control-and-kill-switch.md)).
 - OpenObserve stream/schema/veri yaşam döngüsü governance'ı tamamlandı (bkz. [`docs/openobserve-stream-schema-lifecycle.md`](docs/openobserve-stream-schema-lifecycle.md)).
+- OpenObserve query/dashboard governance'ı (metric/query catalog, starter dashboardlar, audit/export/import/backup) tamamlandı (bkz. [`docs/openobserve-query-dashboard-governance.md`](docs/openobserve-query-dashboard-governance.md)).
 
 ## Frontend Bootstrap (Aşama 7)
 
@@ -102,6 +104,23 @@ pnpm test:stage15:streams   # tam kabul kapısı (disposable lifecycle + Chromiu
 ```
 
 Canonical streamler destructive işlemlere karşı hard-block'ludur; generic destructive test/lifecycle harness'i yalnız `_chicek_lifecycle_test_<run-id>` prefix'li, tek kullanımlık stream'ler üzerinde çalışır. Bu pinned OSS sürümünde time-range deletion ve deletion job/status API'si yok (yalnız whole-stream delete ve retention/compactor var); user-specific deletion desteklenmiyor; backup Aşama 20'ye bırakıldı. Index/partition için ölçülmüş bir query-profile faydası olmadığından yeni bir index/partition uygulanmadı — karar gerekçesi ve Aşama 16'ya devri için bkz. lifecycle dokümanı.
+
+## OpenObserve Query ve Dashboard Governance (Aşama 16)
+
+12 metrik (`infrastructure/openobserve/analytics/metric-catalog.json`) ve 26 query manifesti (`infrastructure/openobserve/analytics/queries/`) her biri gerçek pinned `v0.91.0` API'sine karşı doğrulandı — bkz. [`docs/openobserve-v0.91-dashboard-capabilities.md`](docs/openobserve-v0.91-dashboard-capabilities.md). Dört starter dashboard (`Frontend Operations`, `Error Analysis`, `Performance and Resources`, `Session Investigation`) ilk kurulum şablonudur; şirket bunları OpenObserve UI'den özgürce değiştirebilir/silebilir — sistem bunları geri yazmaz. Detaylı model, empty-data semantiği, marker tabanlı stable-identity yaklaşımı ve audit kuralları için bkz. [`docs/openobserve-query-dashboard-governance.md`](docs/openobserve-query-dashboard-governance.md).
+
+```bash
+pnpm lab:dashboards:install-starters     # eksik starter dashboardları oluşturur, overwrite/delete yapmaz
+pnpm lab:dashboards:status               # read-only özet
+pnpm lab:dashboards:audit                # read-only risk taraması (tüm folder/dashboardlar)
+pnpm lab:dashboards:export               # normalize edilmiş, secretsiz export (repo manifestine yazmaz)
+pnpm lab:dashboards:import               # dry-run varsayılan; --apply olmadan yazmaz
+pnpm lab:dashboards:backup               # tam, secretsiz snapshot
+pnpm lab:dashboards:restore-starters --confirm  # yalnız explicit reset; normal akışta çalışmaz
+pnpm test:stage16:dashboards             # tam kabul kapısı
+```
+
+Session Replay paneli veya guaranteed-delivery iddiası hiçbir dashboardda yoktur; route bazlı overview breakdown pinned şemada normalize edilmiş bir route alanı olmadığı için desteklenmiyor (detay için governance dokümanına bakın). Alert oluşturma Aşama 17'ye bırakıldı; metric catalog yalnız placeholder `alertReady` metadata taşır.
 
 ## OpenObserve Entegrasyonu (Aşama 8)
 

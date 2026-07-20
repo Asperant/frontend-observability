@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "last-observed-ingestion-age-rumlog",
+  "version": 1,
+  "metricId": "last_observed_ingestion_age_rumlog",
+  "title": "Telemetry freshness — _rumlog",
+  "queryClass": "OVERVIEW",
+  "stream": "_rumlog",
+  "sqlTemplate": "select max(_timestamp) as last_event_us from _rumlog where service = {{service}} and env = {{environment}}{{version_clause}}",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": null,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "last_event_us",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "No matching records in the query window -> max(_timestamp) is SQL NULL -> NO_DATA (freshness undefined), never age 0.",
+  "cardinalityClass": "LOW_CARDINALITY_OVERVIEW",
+  "hasDivisionGuard": false
+}

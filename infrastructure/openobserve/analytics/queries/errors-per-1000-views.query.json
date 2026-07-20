@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "errors-per-1000-views",
+  "version": 1,
+  "metricId": "errors_per_1000_views",
+  "title": "Errors per 1000 views",
+  "queryClass": "OVERVIEW",
+  "stream": "_rumdata",
+  "sqlTemplate": "select count(*) filter (where type = 'error') as errors, count(*) filter (where type = 'view') as views, case when count(*) filter (where type = 'view') = 0 then null else count(*) filter (where type = 'error') * 1000.0 / count(*) filter (where type = 'view') end as errors_per_1000_views from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}}",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": null,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "errors",
+      "type": "Int64"
+    },
+    {
+      "name": "views",
+      "type": "Int64"
+    },
+    {
+      "name": "errors_per_1000_views",
+      "type": "Float64"
+    }
+  ],
+  "emptyDataSemantics": "denominator (views) = 0 -> errors_per_1000_views is SQL NULL -> NO_DATA, never 0, even if errors > 0.",
+  "cardinalityClass": "LOW_CARDINALITY_OVERVIEW",
+  "hasDivisionGuard": true
+}

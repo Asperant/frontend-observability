@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "session-error-rate",
+  "version": 1,
+  "metricId": "session_error_rate",
+  "title": "Sessions with error (rate)",
+  "queryClass": "OVERVIEW",
+  "stream": "_rumdata",
+  "sqlTemplate": "select count(distinct session_id) as sessions, count(distinct case when type = 'error' then session_id end) as sessions_with_error, case when count(distinct session_id) = 0 then null else count(distinct case when type = 'error' then session_id end) * 1.0 / count(distinct session_id) end as session_error_rate from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}}",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": null,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "sessions",
+      "type": "Int64"
+    },
+    {
+      "name": "sessions_with_error",
+      "type": "Int64"
+    },
+    {
+      "name": "session_error_rate",
+      "type": "Float64"
+    }
+  ],
+  "emptyDataSemantics": "denominator (sessions) = 0 -> session_error_rate is SQL NULL -> NO_DATA, never 0. sessions > 0 and sessions_with_error = 0 -> a real 0.0 rate.",
+  "cardinalityClass": "LOW_CARDINALITY_OVERVIEW",
+  "hasDivisionGuard": true
+}

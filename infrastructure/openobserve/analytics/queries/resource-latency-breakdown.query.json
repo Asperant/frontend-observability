@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "resource-latency-breakdown",
+  "version": 1,
+  "metricId": null,
+  "title": "Resource latency by type",
+  "queryClass": "TABLE",
+  "stream": "_rumdata",
+  "sqlTemplate": "select resource_type, approx_percentile_cont(resource_duration, 0.5) as p50, approx_percentile_cont(resource_duration, 0.95) as p95, count(*) as sample_count from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'resource' group by resource_type order by p95 desc limit 20",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": 20,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "resource_type",
+      "type": "Utf8"
+    },
+    {
+      "name": "p50",
+      "type": "Int64"
+    },
+    {
+      "name": "p95",
+      "type": "Int64"
+    },
+    {
+      "name": "sample_count",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "No matching resource records -> an empty result set (zero rows); p50/p95 are only ever NULL as part of an absent row, never a present row with NULL percentiles.",
+  "cardinalityClass": "BOUNDED_TABLE",
+  "hasDivisionGuard": false
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "top-error-classifications",
+  "version": 1,
+  "metricId": null,
+  "title": "Top error classifications",
+  "queryClass": "TABLE",
+  "stream": "_rumdata",
+  "sqlTemplate": "select error_type, error_source_type, count(*) as error_count from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'error' group by error_type, error_source_type order by error_count desc limit 20",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": 20,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "error_type",
+      "type": "Utf8"
+    },
+    {
+      "name": "error_source_type",
+      "type": "Utf8"
+    },
+    {
+      "name": "error_count",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "No matching error records -> an empty result set (zero rows).",
+  "cardinalityClass": "BOUNDED_TABLE",
+  "hasDivisionGuard": false
+}

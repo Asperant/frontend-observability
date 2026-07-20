@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "views-count",
+  "version": 1,
+  "metricId": "views_count",
+  "title": "Views count",
+  "queryClass": "OVERVIEW",
+  "stream": "_rumdata",
+  "sqlTemplate": "select count(*) as views from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'view'",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": null,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "views",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "Zero matching views renders as a real 0, not NO_DATA.",
+  "cardinalityClass": "LOW_CARDINALITY_OVERVIEW",
+  "hasDivisionGuard": false
+}

@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "starterId": "performance-resources",
+  "starterVersion": 1,
+  "folderName": "CHICEK Starters",
+  "title": "Performance and Resources",
+  "description": "Web Vital percentiles (LCP/CLS/INP) with sample counts, LCP by browser family, long task trend, and resource failure/latency/type breakdowns. Version-scoped performance breakdown is not included in this starter template (out of scope for this stage's bounded panel set) — use the version_clause-capable query catalog entries directly if needed. Installed by pnpm lab:dashboards:install-starters as an initial template — edit or delete freely from the OpenObserve UI; this stage never overwrites your changes.",
+  "tabs": [
+    {
+      "tabId": "default",
+      "name": "Overview",
+      "panels": [
+        {
+          "id": "web-vital-lcp",
+          "type": "metric",
+          "title": "LCP (p50/p75/p95)",
+          "description": "NO_DATA when sample_count is 0.",
+          "config": { "show_legends": false },
+          "queryRef": "web-vital-lcp-percentiles",
+          "layout": { "x": 0, "y": 0, "w": 4, "h": 6, "i": 1 }
+        },
+        {
+          "id": "web-vital-cls",
+          "type": "metric",
+          "title": "CLS (p50/p75/p95)",
+          "description": "NO_DATA when sample_count is 0.",
+          "config": { "show_legends": false },
+          "queryRef": "web-vital-cls-percentiles",
+          "layout": { "x": 4, "y": 0, "w": 4, "h": 6, "i": 2 }
+        },
+        {
+          "id": "web-vital-inp",
+          "type": "metric",
+          "title": "INP (p50/p75/p95)",
+          "description": "NO_DATA when sample_count is 0.",
+          "config": { "show_legends": false },
+          "queryRef": "web-vital-inp-percentiles",
+          "layout": { "x": 8, "y": 0, "w": 4, "h": 6, "i": 3 }
+        },
+        {
+          "id": "lcp-by-browser",
+          "type": "table",
+          "title": "LCP p75 by browser family",
+          "description": "",
+          "config": { "show_legends": true },
+          "queryRef": "web-vital-lcp-by-browser",
+          "layout": { "x": 0, "y": 6, "w": 12, "h": 8, "i": 4 }
+        },
+        {
+          "id": "long-task-trend",
+          "type": "line",
+          "title": "Long task trend (hourly)",
+          "description": "Native long_task capture is best-effort — an empty trend is expected, not an error.",
+          "config": { "show_legends": true },
+          "queryRef": "long-task-trend",
+          "layout": { "x": 0, "y": 14, "w": 12, "h": 8, "i": 5 }
+        },
+        {
+          "id": "resource-failure-breakdown",
+          "type": "table",
+          "title": "Resource failures by type",
+          "description": "",
+          "config": { "show_legends": true },
+          "queryRef": "resource-failure-breakdown",
+          "layout": { "x": 0, "y": 22, "w": 6, "h": 8, "i": 6 }
+        },
+        {
+          "id": "resource-latency-breakdown",
+          "type": "table",
+          "title": "Resource latency by type (p50/p95)",
+          "description": "",
+          "config": { "show_legends": true },
+          "queryRef": "resource-latency-breakdown",
+          "layout": { "x": 6, "y": 22, "w": 6, "h": 8, "i": 7 }
+        }
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "service",
+      "label": "Service",
+      "type": "query_values",
+      "field": "service",
+      "stream": "_rumdata"
+    },
+    {
+      "name": "environment",
+      "label": "Environment",
+      "type": "query_values",
+      "field": "env",
+      "stream": "_rumdata"
+    }
+  ]
+}

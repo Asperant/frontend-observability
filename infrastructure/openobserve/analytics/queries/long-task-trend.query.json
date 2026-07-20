@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "long-task-trend",
+  "version": 1,
+  "metricId": null,
+  "title": "Long task trend (hourly)",
+  "queryClass": "TABLE",
+  "stream": "_rumdata",
+  "sqlTemplate": "select histogram(_timestamp, '1 hour') as bucket, count(*) as long_task_count, approx_percentile_cont(long_task_duration, 0.5) as p50_duration from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'long_task' group by bucket order by bucket asc limit 200",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": 200,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "bucket",
+      "type": "Utf8"
+    },
+    {
+      "name": "long_task_count",
+      "type": "Int64"
+    },
+    {
+      "name": "p50_duration",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "No matching long_task records in the window -> an empty result set (zero rows/buckets). Native long_task capture is best-effort (see docs/openobserve-v0.91-stream-capabilities.md, Stage 15) so an empty result here is expected and not itself an error.",
+  "cardinalityClass": "BOUNDED_TABLE",
+  "hasDivisionGuard": false
+}

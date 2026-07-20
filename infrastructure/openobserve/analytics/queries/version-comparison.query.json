@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "version-comparison",
+  "version": 1,
+  "metricId": "version_comparison",
+  "title": "Version comparison (sessions vs. errors)",
+  "queryClass": "TABLE",
+  "stream": "_rumdata",
+  "sqlTemplate": "select version, count(distinct session_id) as sessions, count(distinct case when type = 'error' then session_id end) as sessions_with_error from _rumdata where service = {{service}} and env = {{environment}} group by version order by sessions desc limit 20",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": 20,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "version",
+      "type": "Utf8"
+    },
+    {
+      "name": "sessions",
+      "type": "Int64"
+    },
+    {
+      "name": "sessions_with_error",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "No matching records -> an empty result set (zero rows), not a zero-valued row.",
+  "cardinalityClass": "BOUNDED_TABLE",
+  "hasDivisionGuard": false
+}

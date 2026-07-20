@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "web-vital-lcp-percentiles",
+  "version": 1,
+  "metricId": "web_vital_percentiles_lcp",
+  "title": "Largest Contentful Paint percentiles",
+  "queryClass": "OVERVIEW",
+  "stream": "_rumdata",
+  "sqlTemplate": "select approx_percentile_cont(view_largest_contentful_paint, 0.5) as p50, approx_percentile_cont(view_largest_contentful_paint, 0.75) as p75, approx_percentile_cont(view_largest_contentful_paint, 0.95) as p95, count(*) filter (where view_largest_contentful_paint is not null) as sample_count from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'view'",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    {
+      "name": "version",
+      "column": "version",
+      "clausePlaceholder": "{{version_clause}}"
+    }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": null,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    {
+      "name": "p50",
+      "type": "Int64"
+    },
+    {
+      "name": "p75",
+      "type": "Int64"
+    },
+    {
+      "name": "p95",
+      "type": "Int64"
+    },
+    {
+      "name": "sample_count",
+      "type": "Int64"
+    }
+  ],
+  "emptyDataSemantics": "sample_count = 0 -> p50/p75/p95 are SQL NULL -> NO_DATA, never rendered as 0ns.",
+  "cardinalityClass": "LOW_CARDINALITY_OVERVIEW",
+  "hasDivisionGuard": false
+}
