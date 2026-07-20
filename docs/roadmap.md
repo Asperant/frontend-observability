@@ -19,7 +19,7 @@ Bu roadmap, test sonuçları ve yeni bulgularla ortak karar sonucu değiştirile
 14. Runtime config ve kill switch
 15. OpenObserve stream ve veri yaşam döngüsü — bkz. `docs/openobserve-stream-schema-lifecycle.md`
 16. Dashboard ve sorgular — bkz. `docs/openobserve-query-dashboard-governance.md`
-17. Alarm ve olay müdahale modeli
+17. Alarm ve olay müdahale modeli — bkz. `docs/openobserve-alert-incident-governance.md`; native silence/incident lifecycle sınırları için `docs/openobserve-v0.91-alert-capabilities.md`
 18. Güvenlik doğrulaması
 19. Performans ve dayanıklılık doğrulaması
 20. Upgrade, rollback ve veri koruma

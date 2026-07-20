@@ -49,7 +49,7 @@ export const proxyGatePath = join(proxyDynamicDir, "proxy-gate.conf");
 
 export const COMPOSE_PROJECT_NAME = "chicek-lab";
 
-export const SERVICES = ["reverse-proxy", "demo-frontend", "mock-api", "openobserve"];
+export const SERVICES = ["reverse-proxy", "demo-frontend", "mock-api", "openobserve", "alert-sink"];
 
 /**
  * Every docker compose invocation must go through here so LAB_UID/LAB_GID

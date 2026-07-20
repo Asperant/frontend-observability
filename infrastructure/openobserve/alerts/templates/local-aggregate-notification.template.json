@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "local-aggregate-notification",
+  "openObserveTemplateName": "chicek-stage17-local-aggregate",
+  "type": "http",
+  "body": "{\"alert\":\"{alert_name}\",\"severity\":\"{alert_context_attributes.severity}\",\"status\":\"{alert_status}\",\"service\":\"{alert_context_attributes.service}\",\"environment\":\"{alert_context_attributes.environment}\",\"version\":\"{alert_context_attributes.version}\",\"measuredValue\":\"{alert_context_attributes.measured_value}\",\"threshold\":\"{alert_context_attributes.threshold}\",\"sampleSize\":\"{alert_context_attributes.sample_size}\",\"evaluationWindow\":\"{alert_context_attributes.evaluation_window}\",\"firingTime\":\"{alert_time}\",\"dashboardRef\":\"{alert_context_attributes.dashboard_ref}\",\"runbookRef\":\"{alert_context_attributes.runbook_ref}\",\"dedupKey\":\"{alert_context_attributes.dedup_key}\"}",
+  "privacy": {
+    "containsRawRows": false,
+    "containsRawUrl": false,
+    "containsRequestResponseBody": false,
+    "containsIdentity": false,
+    "containsCredential": false,
+    "boundedAggregateOnly": true
+  }
+}

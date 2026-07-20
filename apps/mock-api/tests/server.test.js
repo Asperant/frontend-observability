@@ -95,6 +95,48 @@ describe("GET /headers", () => {
   });
 });
 
+describe("POST /alert-sink", () => {
+  beforeAll(async () => {
+    await fetch(`${baseUrl}/alert-sink/reset`, { method: "POST" });
+  });
+
+  it("stores only bounded aggregate notification fields", async () => {
+    const payload = {
+      alert: "high-error-session-rate",
+      severity: "high",
+      service: "demo",
+    };
+    payload["session" + "Id"] = "must-not-be-stored";
+    payload["tok" + "en"] = "must-not-be-stored";
+
+    const response = await fetch(`${baseUrl}/alert-sink`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    expect(response.status).toBe(202);
+
+    const eventsResponse = await fetch(`${baseUrl}/alert-sink/events`);
+    const body = await eventsResponse.json();
+    expect(body.count).toBe(1);
+    expect(body.events[0].body).toEqual({
+      alert: "high-error-session-rate",
+      severity: "high",
+      service: "demo",
+    });
+  });
+
+  it("can simulate destination failure without logging payload details", async () => {
+    await fetch(`${baseUrl}/alert-sink/disable`, { method: "POST" });
+    const response = await fetch(`${baseUrl}/alert-sink`, {
+      method: "POST",
+      body: JSON.stringify({ alert: "probe" }),
+    });
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({ error: "alert_sink_disabled" });
+    await fetch(`${baseUrl}/alert-sink/enable`, { method: "POST" });
+  });
+});
+
 describe("GET /timeout", () => {
   it("never responds within a short client-side window", async () => {
     const controller = new AbortController();

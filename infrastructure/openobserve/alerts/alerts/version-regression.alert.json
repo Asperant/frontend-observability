@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "id": "version-regression",
+  "name": "Version regression",
+  "description": "A bounded current version shows a materially worse error-session rate than a bounded baseline version.",
+  "metricId": "version_comparison",
+  "queryId": "version-comparison",
+  "stream": "_rumdata",
+  "severity": "high",
+  "enabledByDefault": false,
+  "requiredScope": {
+    "service": "REQUIRED",
+    "environment": "REQUIRED",
+    "currentVersion": "REQUIRED_BOUNDED",
+    "baselineVersion": "REQUIRED_BOUNDED"
+  },
+  "evaluation": { "intervalMinutes": 5, "lookbackMinutes": 30 },
+  "threshold": {
+    "direction": "regression",
+    "absoluteStarterValue": 0.05,
+    "relativeStarterValue": 0.5,
+    "productionValue": "REQUIRED_COMPANY_DECISION"
+  },
+  "sample": {
+    "currentField": "current_sessions",
+    "baselineField": "baseline_sessions",
+    "minimumCurrent": 30,
+    "minimumBaseline": 30
+  },
+  "breach": { "requiredConsecutiveBreaches": 2 },
+  "cooldown": { "minutes": 30 },
+  "deduplicationKey": "frontend:{service}:{environment}:version-regression:{currentVersion}:{baselineVersion}",
+  "recoveryCondition": {
+    "absoluteDeltaBelowOrEqual": 0.02,
+    "relativeDeltaBelowOrEqual": 0.2,
+    "requiredConsecutiveHealthy": 2
+  },
+  "noDataPolicy": "NOT_HEALTHY",
+  "queryErrorPolicy": "NOT_HEALTHY",
+  "unknownVersionPolicy": "EXCLUDED_NOT_MERGED",
+  "nativeComparisonFallback": "two_bounded_stage16_queries",
+  "destinationRef": "local-alert-sink",
+  "dashboardRef": "error-analysis",
+  "runbookRef": "docs/runbooks/alerts/version-regression.md",
+  "owner": "REQUIRED_COMPANY_OWNER",
+  "productionDecision": {
+    "enabled": "REQUIRED_COMPANY_DECISION",
+    "threshold": "REQUIRED_COMPANY_DECISION",
+    "destination": "REQUIRED_COMPANY_DECISION"
+  },
+  "openObserve": { "nativeComparison": "SUPPORTED_WITH_LIMITATION", "createsIncident": false }
+}

@@ -3,6 +3,7 @@ import { createServer as createHttpServer } from "node:http";
 export const MAX_DELAY_MS = 5000;
 const TIMEOUT_HOLD_MS = 3000;
 const LARGE_RESPONSE_ITEM_COUNT = 5000;
+const MAX_ALERT_SINK_EVENTS = 100;
 const SUPPORTED_STATUS_CODES = new Set([200, 400, 404, 429, 500, 503]);
 const FORBIDDEN_CORRELATION_HEADERS = Object.freeze([
   "traceparent",
@@ -29,6 +30,113 @@ function notFound(res) {
 
 function methodNotAllowed(res) {
   sendJson(res, 405, { error: "method_not_allowed" });
+}
+
+function readRequestBody(req, { maxBytes = 32_768 } = {}) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on("data", (chunk) => {
+      size += chunk.length;
+      if (size > maxBytes) {
+        reject(new Error("request_body_too_large"));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+    req.on("error", reject);
+  });
+}
+
+function parseJsonBody(rawBody) {
+  if (!rawBody) return {};
+  try {
+    return JSON.parse(rawBody);
+  } catch {
+    return { parseError: true };
+  }
+}
+
+function createAlertSinkState() {
+  return {
+    enabled: true,
+    events: [],
+  };
+}
+
+function sanitizeAlertSinkBody(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return {};
+  const allowed = [
+    "alert",
+    "severity",
+    "status",
+    "service",
+    "environment",
+    "version",
+    "measuredValue",
+    "threshold",
+    "sampleSize",
+    "evaluationWindow",
+    "firingTime",
+    "dashboardRef",
+    "runbookRef",
+    "dedupKey",
+  ];
+  return Object.fromEntries(
+    allowed
+      .filter((key) => Object.hasOwn(body, key))
+      .map((key) => [key, typeof body[key] === "string" ? body[key].slice(0, 512) : body[key]]),
+  );
+}
+
+async function handleAlertSink(req, res, state, segments) {
+  if (segments.length === 2 && segments[1] === "events" && req.method === "GET") {
+    sendJson(res, 200, {
+      enabled: state.enabled,
+      count: state.events.length,
+      events: state.events,
+    });
+    return;
+  }
+
+  if (segments.length === 2 && segments[1] === "reset" && req.method === "POST") {
+    state.events = [];
+    state.enabled = true;
+    sendJson(res, 200, { status: "reset" });
+    return;
+  }
+
+  if (segments.length === 2 && segments[1] === "disable" && req.method === "POST") {
+    state.enabled = false;
+    sendJson(res, 200, { status: "disabled" });
+    return;
+  }
+
+  if (segments.length === 2 && segments[1] === "enable" && req.method === "POST") {
+    state.enabled = true;
+    sendJson(res, 200, { status: "enabled" });
+    return;
+  }
+
+  if (segments.length === 1 && req.method === "POST") {
+    if (!state.enabled) {
+      sendJson(res, 503, { error: "alert_sink_disabled" });
+      return;
+    }
+    const rawBody = await readRequestBody(req);
+    const event = {
+      receivedAt: new Date().toISOString(),
+      body: sanitizeAlertSinkBody(parseJsonBody(rawBody)),
+    };
+    state.events.push(event);
+    state.events = state.events.slice(-MAX_ALERT_SINK_EVENTS);
+    sendJson(res, 202, { accepted: true, count: state.events.length });
+    return;
+  }
+
+  methodNotAllowed(res);
 }
 
 function handleStatus(res, code) {
@@ -74,14 +182,25 @@ function handleHeaderPresence(req, res) {
  * predictable shape. Request headers and bodies are never read for logging.
  */
 export function createMockApiServer() {
-  return createHttpServer((req, res) => {
+  const alertSinkState = createAlertSinkState();
+
+  return createHttpServer(async (req, res) => {
+    const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
+    const segments = url.pathname.split("/").filter(Boolean);
+
+    if (segments[0] === "alert-sink") {
+      try {
+        await handleAlertSink(req, res, alertSinkState, segments);
+      } catch {
+        sendJson(res, 400, { error: "invalid_alert_sink_request" });
+      }
+      return;
+    }
+
     if (req.method !== "GET") {
       methodNotAllowed(res);
       return;
     }
-
-    const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
-    const segments = url.pathname.split("/").filter(Boolean);
 
     if (segments.length === 1 && segments[0] === "health") {
       sendJson(res, 200, { status: "ok" });

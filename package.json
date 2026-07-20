@@ -28,6 +28,7 @@
     "test:stage14:runtime-control": "node scripts/lab/verify-stage14-runtime-control.mjs",
     "test:stage15:streams": "node scripts/lab/verify-stage15-streams.mjs",
     "test:stage16:dashboards": "node scripts/lab/verify-stage16-dashboards.mjs",
+    "test:stage17:alerts": "node scripts/lab/verify-stage17-alerts.mjs",
     "test:coverage": "vitest run --project unit --coverage",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
@@ -59,7 +60,15 @@
     "lab:dashboards:export": "node scripts/lab/dashboards-export.mjs",
     "lab:dashboards:import": "node scripts/lab/dashboards-import.mjs",
     "lab:dashboards:backup": "node scripts/lab/dashboards-backup.mjs",
-    "lab:dashboards:restore-starters": "node scripts/lab/dashboards-restore-starters.mjs"
+    "lab:dashboards:restore-starters": "node scripts/lab/dashboards-restore-starters.mjs",
+    "lab:alerts:install-starters": "node scripts/lab/alerts-install-starters.mjs",
+    "lab:alerts:status": "node scripts/lab/alerts-status.mjs",
+    "lab:alerts:audit": "node scripts/lab/alerts-audit.mjs",
+    "lab:alerts:export": "node scripts/lab/alerts-export.mjs",
+    "lab:alerts:import": "node scripts/lab/alerts-import.mjs",
+    "lab:alerts:backup": "node scripts/lab/alerts-backup.mjs",
+    "lab:alerts:restore-starters": "node scripts/lab/alerts-restore-starters.mjs",
+    "lab:alerts:test-notification": "node scripts/lab/alerts-test-notification.mjs"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",

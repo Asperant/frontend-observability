@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "telemetry-freshness",
+  "name": "Telemetry stale by last observed ingestion age",
+  "description": "No matching ingested telemetry was observed within the configured expected traffic window.",
+  "metricId": "last_observed_ingestion_age_rumdata",
+  "queryId": "last-observed-ingestion-age-rumdata",
+  "stream": "_rumdata",
+  "severity": "low",
+  "enabledByDefault": false,
+  "requiredScope": {
+    "service": "REQUIRED",
+    "environment": "REQUIRED",
+    "version": "OPTIONAL_BOUNDED"
+  },
+  "evaluation": { "intervalMinutes": 5, "lookbackMinutes": 60 },
+  "threshold": {
+    "direction": "above",
+    "starterValue": "REQUIRED_COMPANY_DECISION_MAXIMUM_SILENCE_MINUTES",
+    "productionValue": "REQUIRED_COMPANY_DECISION"
+  },
+  "sample": { "field": "last_event_us", "minimum": 1 },
+  "breach": { "requiredConsecutiveBreaches": 2 },
+  "cooldown": { "minutes": 30 },
+  "deduplicationKey": "frontend:{service}:{environment}:telemetry-freshness",
+  "recoveryCondition": {
+    "direction": "observed_within_company_window",
+    "value": "REQUIRED_COMPANY_DECISION",
+    "requiredConsecutiveHealthy": 2
+  },
+  "noDataPolicy": "NOT_HEALTHY",
+  "queryErrorPolicy": "NOT_HEALTHY",
+  "expectedTrafficHours": "REQUIRED_COMPANY_DECISION",
+  "doesNotClaim": ["all telemetry delivered", "delivery healthy", "no event loss"],
+  "destinationRef": "local-alert-sink",
+  "dashboardRef": "frontend-operations",
+  "runbookRef": "docs/runbooks/alerts/telemetry-stale.md",
+  "owner": "REQUIRED_COMPANY_OWNER",
+  "productionDecision": {
+    "enabled": "REQUIRED_COMPANY_DECISION",
+    "threshold": "REQUIRED_COMPANY_DECISION",
+    "destination": "REQUIRED_COMPANY_DECISION"
+  },
+  "openObserve": { "nativeComparison": "single_query_threshold", "createsIncident": false }
+}

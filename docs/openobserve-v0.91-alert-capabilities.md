@@ -1,0 +1,24 @@
+# OpenObserve v0.91.0 Alert Capabilities
+
+Pinned target: `public.ecr.aws/zinclabs/openobserve:v0.91.0`.
+
+Method: disposable calls against the local lab container on `127.0.0.1:5080`, using the same loopback-only admin plane as Stage 15/16. UI bundle routes were used only to discover endpoint candidates; each capability below is based on live read-back or a failed live call.
+
+| Capability                     | Status                          | Evidence                                                                                                                                                                                               |
+| ------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Scheduled alert CRUD/read-back | SUPPORTED_AND_VERIFIED          | `/api/v2/default/alerts` create/list/get/delete accepted a disabled disposable SQL alert after a valid destination existed.                                                                            |
+| SQL alert query shape          | SUPPORTED_WITH_LIMITATION       | SQL alerts accept `query_condition.type = "sql"` and `trigger_condition`; native threshold evaluates returned results, so starter SQL emits a bounded candidate row after min-sample/threshold guards. |
+| Real-time alert capability     | NOT_SAFELY_VERIFIED             | UI supports `is_real_time`, but Stage 17 does not rely on native real-time firing because cooldown/recovery/read-back semantics were not safely lifecycle-tested.                                      |
+| Destination CRUD               | SUPPORTED_AND_VERIFIED          | `/api/default/alerts/destinations` create/list/get/delete works. Private IPs are blocked unless lab loopback is explicitly allowed.                                                                    |
+| Notification template CRUD     | SUPPORTED_AND_VERIFIED          | `/api/default/alerts/templates` create/list/get/delete works.                                                                                                                                          |
+| Evaluation interval/lookback   | SUPPORTED_WITH_LIMITATION       | `trigger_condition.frequency` and `period` are accepted and read back as minutes.                                                                                                                      |
+| Cooldown                       | SUPPORTED_WITH_LIMITATION       | Native `trigger_condition.silence` is accepted and read back; deterministic Stage 17 tests own cooldown/dedup semantics.                                                                               |
+| Deduplication                  | NOT_SUPPORTED_ON_PINNED_VERSION | Organization deduplication endpoints returned Enterprise/unsupported responses. Starter dedup key is metadata and deterministic-tooling behavior.                                                      |
+| Recovery/resolved notification | NOT_SAFELY_VERIFIED             | Destination test can send bounded firing/resolved-shaped payloads, but native automatic recovery notification lifecycle is not proven on pinned OSS.                                                   |
+| Silence/maintenance window     | NOT_SAFELY_VERIFIED             | No bounded public silence/maintenance lifecycle endpoint was verified. Runbooks may recommend bounded manual silence only if the company validates it later.                                           |
+| Alert history                  | SUPPORTED_AND_VERIFIED          | `/api/v2/default/alerts/history` returns a stable read shape.                                                                                                                                          |
+| Incident capability            | SUPPORTED_WITH_LIMITATION       | Incident list endpoint exists; create/stats lifecycle was not supported. Stage 17 uses `incidentReady` metadata only.                                                                                  |
+| Import/export                  | SUPPORTED_WITH_LIMITATION       | Native single-alert export exists. Repo import/export tools add dry-run, redaction, collision checks, and no automatic Git writes.                                                                     |
+| Stable IDs and concurrency     | SUPPORTED_WITH_LIMITATION       | Alert IDs are server-assigned. Starter stable identity uses name plus description marker; normal install never overwrites and never recreates deleted starters.                                        |
+
+Security note: v0.91.0 blocks private-IP and localhost destinations by default. The lab sets `ZO_SSRF_ALLOW_LOOPBACK=true` only so the mock sink can be reached on OpenObserve loopback. Docker private-network destinations remain blocked.

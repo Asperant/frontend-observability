@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "error-session-rate",
+  "name": "High error session rate",
+  "description": "The share of observed sessions with at least one error exceeded the starter threshold.",
+  "metricId": "session_error_rate",
+  "queryId": "session-error-rate",
+  "stream": "_rumdata",
+  "severity": "high",
+  "enabledByDefault": false,
+  "requiredScope": {
+    "service": "REQUIRED",
+    "environment": "REQUIRED",
+    "version": "OPTIONAL_BOUNDED"
+  },
+  "evaluation": { "intervalMinutes": 1, "lookbackMinutes": 10 },
+  "threshold": {
+    "direction": "above",
+    "starterValue": 0.2,
+    "productionValue": "REQUIRED_COMPANY_DECISION"
+  },
+  "sample": { "field": "sessions", "minimum": 20 },
+  "breach": { "requiredConsecutiveBreaches": 2 },
+  "cooldown": { "minutes": 10 },
+  "deduplicationKey": "frontend:{service}:{environment}:error-session-rate",
+  "recoveryCondition": {
+    "direction": "below_or_equal",
+    "value": 0.1,
+    "requiredConsecutiveHealthy": 2
+  },
+  "noDataPolicy": "NOT_HEALTHY",
+  "queryErrorPolicy": "NOT_HEALTHY",
+  "destinationRef": "local-alert-sink",
+  "dashboardRef": "error-analysis",
+  "runbookRef": "docs/runbooks/alerts/high-error-session-rate.md",
+  "owner": "REQUIRED_COMPANY_OWNER",
+  "productionDecision": {
+    "enabled": "REQUIRED_COMPANY_DECISION",
+    "threshold": "REQUIRED_COMPANY_DECISION",
+    "destination": "REQUIRED_COMPANY_DECISION"
+  },
+  "openObserve": { "nativeComparison": "single_query_threshold", "createsIncident": false }
+}

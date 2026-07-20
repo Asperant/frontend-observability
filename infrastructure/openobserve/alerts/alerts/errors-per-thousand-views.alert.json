@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "errors-per-thousand-views",
+  "name": "High errors per thousand views",
+  "description": "Error event volume normalized by observed view volume exceeded the starter threshold.",
+  "metricId": "errors_per_1000_views",
+  "queryId": "errors-per-1000-views",
+  "stream": "_rumdata",
+  "severity": "medium",
+  "enabledByDefault": false,
+  "requiredScope": {
+    "service": "REQUIRED",
+    "environment": "REQUIRED",
+    "version": "OPTIONAL_BOUNDED"
+  },
+  "evaluation": { "intervalMinutes": 1, "lookbackMinutes": 10 },
+  "threshold": {
+    "direction": "above",
+    "starterValue": 50,
+    "productionValue": "REQUIRED_COMPANY_DECISION"
+  },
+  "sample": { "field": "views", "minimum": 50 },
+  "breach": { "requiredConsecutiveBreaches": 2 },
+  "cooldown": { "minutes": 10 },
+  "deduplicationKey": "frontend:{service}:{environment}:errors-per-thousand-views",
+  "recoveryCondition": {
+    "direction": "below_or_equal",
+    "value": 25,
+    "requiredConsecutiveHealthy": 2
+  },
+  "noDataPolicy": "NOT_HEALTHY",
+  "queryErrorPolicy": "NOT_HEALTHY",
+  "destinationRef": "local-alert-sink",
+  "dashboardRef": "frontend-operations",
+  "runbookRef": "docs/runbooks/alerts/errors-per-thousand-views.md",
+  "owner": "REQUIRED_COMPANY_OWNER",
+  "productionDecision": {
+    "enabled": "REQUIRED_COMPANY_DECISION",
+    "threshold": "REQUIRED_COMPANY_DECISION",
+    "destination": "REQUIRED_COMPANY_DECISION"
+  },
+  "openObserve": { "nativeComparison": "single_query_threshold", "createsIncident": false }
+}

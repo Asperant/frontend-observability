@@ -140,6 +140,12 @@ export default defineConfig({
           functions: 100,
           branches: 100,
         },
+        "scripts/lab/alerts/**": {
+          statements: 100,
+          lines: 100,
+          functions: 100,
+          branches: 100,
+        },
       },
     },
   },

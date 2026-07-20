@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "destinationRefs": [
+    {
+      "id": "local-alert-sink",
+      "name": "CHICEK Stage 17 Local Alert Sink",
+      "type": "http",
+      "scope": "lab",
+      "credentialPolicy": "NO_CREDENTIALS",
+      "urlPolicy": "LAB_RUNTIME_ONLY_NOT_IN_MANIFEST",
+      "productionDecision": "REQUIRED_COMPANY_DECISION"
+    },
+    {
+      "id": "production-company-routing",
+      "name": "Production company alert routing",
+      "type": "REQUIRED_COMPANY_DECISION",
+      "scope": "production",
+      "credentialPolicy": "REQUIRED_COMPANY_DECISION",
+      "urlPolicy": "REQUIRED_COMPANY_DECISION",
+      "productionDecision": "REQUIRED_COMPANY_DECISION"
+    }
+  ]
+}

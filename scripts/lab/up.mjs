@@ -56,7 +56,7 @@ export async function labUp() {
 
   if (persistResult.changed) {
     log(
-      "lab:up — RUM token changed; recreating openobserve and reverse-proxy so both reflect it...",
+      "lab:up — RUM token changed; recreating openobserve, alert-sink, and reverse-proxy so all reflect it...",
     );
     // Compose does not treat a secret/bind-mounted *file's* content change as
     // a reason to recreate a service on its own (only a change to the
@@ -72,11 +72,20 @@ export async function labUp() {
     //     recreated. Regenerating runtime-config.json is the only thing
     //     that changes here (site/org/apiVersion/applicationId are static),
     //     so this only needs to happen when the token itself changed.
-    runDockerCompose(["up", "-d", "--force-recreate", "openobserve", "reverse-proxy"]);
-    const rumWaitResult = await waitForHealthy({ services: ["openobserve", "reverse-proxy"] });
+    runDockerCompose([
+      "up",
+      "-d",
+      "--force-recreate",
+      "openobserve",
+      "alert-sink",
+      "reverse-proxy",
+    ]);
+    const rumWaitResult = await waitForHealthy({
+      services: ["openobserve", "alert-sink", "reverse-proxy"],
+    });
     if (!rumWaitResult.healthy) {
       throw new Error(
-        "openobserve/reverse-proxy did not become healthy again after the RUM token refresh.",
+        "openobserve/alert-sink/reverse-proxy did not become healthy again after the RUM token refresh.",
       );
     }
   }

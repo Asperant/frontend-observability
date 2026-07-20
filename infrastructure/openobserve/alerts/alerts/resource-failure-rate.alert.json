@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "resource-failure-rate",
+  "name": "High resource failure rate",
+  "description": "The share of observed resource events with HTTP or network failures exceeded the starter threshold.",
+  "metricId": "resource_failure_rate",
+  "queryId": "resource-failure-rate",
+  "stream": "_rumdata",
+  "severity": "medium",
+  "enabledByDefault": false,
+  "requiredScope": {
+    "service": "REQUIRED",
+    "environment": "REQUIRED",
+    "version": "OPTIONAL_BOUNDED"
+  },
+  "evaluation": { "intervalMinutes": 1, "lookbackMinutes": 10 },
+  "threshold": {
+    "direction": "above",
+    "starterValue": 0.15,
+    "productionValue": "REQUIRED_COMPANY_DECISION"
+  },
+  "sample": { "field": "resources", "minimum": 50 },
+  "breach": { "requiredConsecutiveBreaches": 2 },
+  "cooldown": { "minutes": 10 },
+  "deduplicationKey": "frontend:{service}:{environment}:resource-failure-rate",
+  "recoveryCondition": {
+    "direction": "below_or_equal",
+    "value": 0.08,
+    "requiredConsecutiveHealthy": 2
+  },
+  "noDataPolicy": "NOT_HEALTHY",
+  "queryErrorPolicy": "NOT_HEALTHY",
+  "destinationRef": "local-alert-sink",
+  "dashboardRef": "performance-resources",
+  "runbookRef": "docs/runbooks/alerts/resource-failure-rate.md",
+  "owner": "REQUIRED_COMPANY_OWNER",
+  "productionDecision": {
+    "enabled": "REQUIRED_COMPANY_DECISION",
+    "threshold": "REQUIRED_COMPANY_DECISION",
+    "destination": "REQUIRED_COMPANY_DECISION"
+  },
+  "openObserve": { "nativeComparison": "single_query_threshold", "createsIncident": false }
+}

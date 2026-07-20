@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "openObserveVersion": "v0.91.0",
+  "ownershipModel": {
+    "metricQuerySafety": "SYSTEM_MANAGED",
+    "starterAlerts": "STARTER_TEMPLATES_ONLY",
+    "companyAlerts": "OPENOBSERVE_UI_MANAGED",
+    "uiChanges": "NEVER_AUTO_OVERWRITTEN_OR_WRITTEN_TO_GIT"
+  },
+  "defaults": {
+    "productionStarterAlerts": "disabled",
+    "productionThreshold": "REQUIRED_COMPANY_DECISION",
+    "noDataPolicy": "NOT_HEALTHY",
+    "queryErrorPolicy": "NOT_HEALTHY",
+    "destinationRef": "local-alert-sink"
+  },
+  "starterPolicyIds": [
+    "error-session-rate",
+    "errors-per-thousand-views",
+    "resource-failure-rate",
+    "web-vital-degradation",
+    "telemetry-freshness",
+    "version-regression"
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "web-vital-degradation",
+  "name": "LCP p75 degradation",
+  "description": "Observed Largest Contentful Paint p75 exceeded the starter threshold for enough sampled views.",
+  "metricId": "web_vital_percentiles_lcp",
+  "queryId": "web-vital-lcp-percentiles",
+  "stream": "_rumdata",
+  "severity": "low",
+  "enabledByDefault": false,
+  "requiredScope": {
+    "service": "REQUIRED",
+    "environment": "REQUIRED",
+    "version": "OPTIONAL_BOUNDED"
+  },
+  "evaluation": { "intervalMinutes": 1, "lookbackMinutes": 15 },
+  "threshold": {
+    "direction": "above",
+    "starterValue": 2500000000,
+    "unit": "nanoseconds",
+    "productionValue": "REQUIRED_COMPANY_DECISION"
+  },
+  "sample": { "field": "sample_count", "minimum": 30 },
+  "breach": { "requiredConsecutiveBreaches": 2 },
+  "cooldown": { "minutes": 15 },
+  "deduplicationKey": "frontend:{service}:{environment}:web-vital-degradation:lcp",
+  "recoveryCondition": {
+    "direction": "below_or_equal",
+    "value": 2000000000,
+    "requiredConsecutiveHealthy": 2
+  },
+  "noDataPolicy": "NOT_HEALTHY",
+  "queryErrorPolicy": "NOT_HEALTHY",
+  "missingBrowserVitalPolicy": "NOT_A_FAILURE",
+  "destinationRef": "local-alert-sink",
+  "dashboardRef": "performance-resources",
+  "runbookRef": "docs/runbooks/alerts/web-vital-degradation.md",
+  "owner": "REQUIRED_COMPANY_OWNER",
+  "productionDecision": {
+    "enabled": "REQUIRED_COMPANY_DECISION",
+    "threshold": "REQUIRED_COMPANY_DECISION",
+    "destination": "REQUIRED_COMPANY_DECISION"
+  },
+  "openObserve": { "nativeComparison": "single_query_threshold", "createsIncident": false }
+}

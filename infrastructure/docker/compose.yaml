@@ -149,6 +149,50 @@ services:
     logging: *default-logging
     restart: *default-restart
 
+  alert-sink:
+    build:
+      context: ../../apps/mock-api
+      dockerfile: ../../infrastructure/docker/mock-api/Dockerfile
+    image: chicek-lab/mock-api:6.0.0
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    # OpenObserve v0.91.0 blocks private-IP destinations by default. The lab
+    # sink shares OpenObserve's own network namespace and is reached only via
+    # loopback; no external network or host port is exposed.
+    network_mode: "service:openobserve"
+    environment:
+      PORT: "4312"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4312/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 6
+    depends_on:
+      openobserve:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.10"
+          memory: 64M
+          pids: 64
+        reservations:
+          memory: 32M
+    logging: *default-logging
+    restart: *default-restart
+
   openobserve:
     build:
       context: ./openobserve
@@ -191,6 +235,10 @@ services:
       ZO_RUM_VERSION: "2026.07.1"
       ZO_RUM_ORGANIZATION_IDENTIFIER: default
       ZO_RUM_API_VERSION: v1
+      # Lab-only: lets the local alert sink receive notifications over
+      # OpenObserve's loopback interface while private Docker-network IPs
+      # remain blocked by the v0.91.0 SSRF guard.
+      ZO_SSRF_ALLOW_LOOPBACK: "true"
     healthcheck:
       test: ["CMD", "/healthcheck.sh"]
       interval: 10s

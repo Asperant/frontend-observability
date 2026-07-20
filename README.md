@@ -120,7 +120,25 @@ pnpm lab:dashboards:restore-starters --confirm  # yalnız explicit reset; normal
 pnpm test:stage16:dashboards             # tam kabul kapısı
 ```
 
-Session Replay paneli veya guaranteed-delivery iddiası hiçbir dashboardda yoktur; route bazlı overview breakdown pinned şemada normalize edilmiş bir route alanı olmadığı için desteklenmiyor (detay için governance dokümanına bakın). Alert oluşturma Aşama 17'ye bırakıldı; metric catalog yalnız placeholder `alertReady` metadata taşır.
+Session Replay paneli veya guaranteed-delivery iddiası hiçbir dashboardda yoktur; route bazlı overview breakdown pinned şemada normalize edilmiş bir route alanı olmadığı için desteklenmiyor (detay için governance dokümanına bakın).
+
+## OpenObserve Alert ve Incident Governance (Aşama 17)
+
+Altı starter alert policy (`infrastructure/openobserve/alerts/`) Stage 16 metric/query catalog'larını referanslar: error-session-rate, errors-per-thousand-views, resource-failure-rate, web-vital-degradation, telemetry-freshness ve version-regression. Production starter alert'leri disabled gelir; threshold, destination, owner, expected traffic ve escalation kararları `REQUIRED_COMPANY_DECISION` olarak kalır. Capability sonucu için bkz. [`docs/openobserve-v0.91-alert-capabilities.md`](docs/openobserve-v0.91-alert-capabilities.md), yönetim modeli için bkz. [`docs/openobserve-alert-incident-governance.md`](docs/openobserve-alert-incident-governance.md).
+
+```bash
+pnpm lab:alerts:install-starters
+pnpm lab:alerts:status
+pnpm lab:alerts:audit
+pnpm lab:alerts:export
+pnpm lab:alerts:import
+pnpm lab:alerts:backup
+pnpm lab:alerts:restore-starters --confirm
+pnpm lab:alerts:test-notification
+pnpm test:stage17:alerts
+```
+
+Local mock notification sink external network kullanmaz; OpenObserve loopback üstünden bounded aggregate body alır. Native incident list endpoint'i var ama create/stats lifecycle desteklenmedi; silence/maintenance lifecycle güvenle doğrulanmadı. Bu nedenle Stage 17 incident'i notification + dashboard + runbook metadata sınırında tutar, şirket ticket/on-call entegrasyonunu Aşama 21'e bırakır.
 
 ## OpenObserve Entegrasyonu (Aşama 8)
 
