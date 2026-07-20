@@ -69,7 +69,10 @@
     "lab:alerts:import": "node scripts/lab/alerts-import.mjs",
     "lab:alerts:backup": "node scripts/lab/alerts-backup.mjs",
     "lab:alerts:restore-starters": "node scripts/lab/alerts-restore-starters.mjs",
-    "lab:alerts:test-notification": "node scripts/lab/alerts-test-notification.mjs"
+    "lab:alerts:test-notification": "node scripts/lab/alerts-test-notification.mjs",
+    "test:stage19:resilience": "node scripts/performance/verify-stage19-resilience.mjs",
+    "lab:stage19:benchmark": "node scripts/performance/run-stage19-benchmark.mjs",
+    "lab:stage19:soak": "node scripts/performance/run-stage19-soak.mjs"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",

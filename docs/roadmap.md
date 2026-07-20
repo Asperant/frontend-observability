@@ -21,7 +21,7 @@ Bu roadmap, test sonuçları ve yeni bulgularla ortak karar sonucu değiştirile
 16. Dashboard ve sorgular — bkz. `docs/openobserve-query-dashboard-governance.md`
 17. Alarm ve olay müdahale modeli — bkz. `docs/openobserve-alert-incident-governance.md`; native silence/incident lifecycle sınırları için `docs/openobserve-v0.91-alert-capabilities.md`
 18. Güvenlik doğrulaması
-19. Performans ve dayanıklılık doğrulaması
+19. Performans ve dayanıklılık doğrulaması — **Accepted with measured limitations**: `pnpm test:stage19:resilience` referans lab'da geçiyor (browser/proxy/ingestion/query/alert bütçeleri, 5 servis restart-recovery, network partition, kill switch under load, alert-sink independent restart). 60 dakikalık standart soak ve tam gate zinciri bu oturumda **çalıştırılmadı** — production capacity guarantee iddiası yok, bkz. `pnpm lab:stage19:benchmark` / `pnpm lab:stage19:soak --duration=60m`.
 20. Upgrade, rollback ve veri koruma
 21. Şirket entegrasyon paketi
 22. Nihai ürün kabulü

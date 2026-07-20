@@ -161,25 +161,30 @@ services:
       - ALL
     tmpfs:
       - /tmp:size=16m,mode=1777
-    # OpenObserve v0.91.0 blocks private-IP destinations by default. The lab
-    # sink shares OpenObserve's own network namespace and is reached only via
-    # loopback; no external network or host port is exposed.
+    # OpenObserve v0.91.0 blocks private-IP destinations by default and has
+    # no allowlist besides ZO_SSRF_ALLOW_LOOPBACK (verified in Stage 19 by
+    # extracting the pinned v0.91.0 binary's own config-key strings — no
+    # ZO_SSRF_ALLOWED_HOSTS/CIDR equivalent exists in this version). Given
+    # "no OpenObserve upgrade" and "no custom gateway/transport" are both
+    # out of scope for this lab, alert-sink reaching OpenObserve only via
+    # loopback is a hard constraint, not a design preference — full network
+    # namespace independence is not achievable here without breaking alert
+    # delivery outright. See docs/stage19-performance-resilience.md "Alert
+    # sink architecture" for the full writeup.
     #
-    # Stage 18 finding: this binding is to whatever network namespace
-    # openobserve has *at the moment alert-sink starts* — restarting (not
-    # recreating) the openobserve container alone, e.g. `docker compose
-    # restart openobserve` or the persistence/failure-isolation checks in
-    # scripts/lab/verify.mjs, has been observed to leave alert-sink unable
-    # to reach 127.0.0.1:4312 from openobserve's side afterward, even
-    # though both containers' own healthchecks stay green (each only
-    # checks its own /health, not the cross-container path). No data is
-    # lost or leaked — OpenObserve's own ingestion/query path is
-    # unaffected — but alert *delivery* to this destination silently stops
-    # working until alert-sink is also restarted:
-    # `docker compose restart alert-sink`. Not fixed here (would mean
-    # restructuring this deliberately-loopback-only network design from an
-    # earlier stage); recorded as an operational note for whoever restarts
-    # openobserve next.
+    # Stage 18 finding (residual risk, now closed): restarting (not
+    # recreating) the openobserve container alone previously left
+    # alert-sink unable to reach 127.0.0.1:4312 from openobserve's side
+    # afterward, even though both containers' own healthchecks stayed green
+    # (each only checks its own /health, not the cross-container path).
+    # `depends_on.openobserve.restart: true` below closes this: Compose
+    # itself now restarts alert-sink automatically whenever openobserve is
+    # restarted, so the shared-namespace coupling can no longer silently
+    # go stale. This is belt-and-suspenders — Stage 19's end-to-end
+    # notification-readiness probe (scripts/performance/lib/
+    # notification-readiness.mjs) is the layer that actually detects a
+    # silent break, independent of this auto-restart or of either
+    # container's own health status.
     network_mode: "service:openobserve"
     environment:
       PORT: "4312"
@@ -198,6 +203,7 @@ services:
     depends_on:
       openobserve:
         condition: service_healthy
+        restart: true
     deploy:
       resources:
         limits:

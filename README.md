@@ -15,6 +15,7 @@ Mevcut web uygulamalarına minimum müdahaleyle bağlanacak şekilde tasarlanır
 | 14 (Runtime Control & Kill Switch) | ACCEPTED                            |
 | 15 (Stream & Data Lifecycle)       | ACCEPTED                            |
 | 16 (Dashboard & Sorgular)          | ACCEPTED                            |
+| 19 (Performance & Resilience)      | ACCEPTED WITH MEASURED LIMITATIONS  |
 
 - RUM Sessions ve Browser Logs destekleniyor.
 - Session Replay desteklenmiyor (bkz. [`docs/session-replay-security-decision.md`](docs/session-replay-security-decision.md)).
@@ -23,6 +24,7 @@ Mevcut web uygulamalarına minimum müdahaleyle bağlanacak şekilde tasarlanır
 - Fail-closed runtime kill switch tamamlandı (bkz. [`docs/runtime-control-and-kill-switch.md`](docs/runtime-control-and-kill-switch.md)).
 - OpenObserve stream/schema/veri yaşam döngüsü governance'ı tamamlandı (bkz. [`docs/openobserve-stream-schema-lifecycle.md`](docs/openobserve-stream-schema-lifecycle.md)).
 - OpenObserve query/dashboard governance'ı (metric/query catalog, starter dashboardlar, audit/export/import/backup) tamamlandı (bkz. [`docs/openobserve-query-dashboard-governance.md`](docs/openobserve-query-dashboard-governance.md)).
+- Performans/dayanıklılık ölçülmüş güvenli zarf (measured safe envelope on reference lab): `pnpm test:stage19:resilience` referans lab'da geçiyor. **Ölçülmüş sınırlar**: standart 60 dakikalık soak (`pnpm lab:stage19:soak --duration=60m`) ve tam gate zinciri henüz canlı koşulmadı; production capacity guarantee, zero telemetry loss veya guaranteed notification delivery iddiası yok.
 
 ## Frontend Bootstrap (Aşama 7)
 

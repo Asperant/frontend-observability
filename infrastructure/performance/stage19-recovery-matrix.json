@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "description": "Restart-recovery scenarios scripts/performance/verify-stage19-resilience.mjs and scripts/performance/lib/recovery-matrix.mjs measure against. Each scenario restarts exactly one Docker Compose service (`docker compose restart <service>`, never --force-recreate, matching how an operator would actually restart a single component) and measures the listed timings plus a state-drift read-back.",
+  "scenarios": [
+    {
+      "target": "demo-frontend",
+      "measure": ["failureDetectionTimeMs", "unreadyDurationMs", "recoveryTimeMs"],
+      "readBack": [],
+      "notes": "Static nginx container; no server-side state to drift."
+    },
+    {
+      "target": "reverse-proxy",
+      "measure": [
+        "failureDetectionTimeMs",
+        "unreadyDurationMs",
+        "recoveryTimeMs",
+        "firstSuccessfulIngestMs",
+        "firstSuccessfulQueryMs"
+      ],
+      "readBack": ["runtimeControl"],
+      "notes": "Runtime-control document and kill-switch gate live on a bind-mounted directory, not in the container — must survive a plain restart unchanged."
+    },
+    {
+      "target": "mock-api",
+      "measure": ["failureDetectionTimeMs", "unreadyDurationMs", "recoveryTimeMs"],
+      "readBack": [],
+      "notes": "Demo host frontend's business-API dependency; isolated from the telemetry path by design (Section 13)."
+    },
+    {
+      "target": "alert-sink",
+      "measure": [
+        "failureDetectionTimeMs",
+        "unreadyDurationMs",
+        "recoveryTimeMs",
+        "firstSuccessfulNotificationMs"
+      ],
+      "readBack": [],
+      "notes": "Independent container lifecycle sharing openobserve's network namespace (hard SSRF-guard constraint, see compose.yaml); depends_on.restart:true covers the openobserve-restarts-first ordering automatically."
+    },
+    {
+      "target": "openobserve",
+      "measure": [
+        "failureDetectionTimeMs",
+        "unreadyDurationMs",
+        "recoveryTimeMs",
+        "firstSuccessfulIngestMs",
+        "firstSuccessfulQueryMs",
+        "firstSuccessfulNotificationMs"
+      ],
+      "readBack": [
+        "streamRumdata",
+        "streamRumlog",
+        "pipelines",
+        "streamSettings",
+        "starterDashboards4",
+        "starterAlerts6",
+        "companyOwnedDisposableAsset"
+      ],
+      "notes": "Heaviest, most stateful container. depends_on.restart:true on alert-sink means this scenario also exercises the alert-sink auto-restart path."
+    },
+    {
+      "target": "runtime-control-endpoint",
+      "measure": ["unreadyDurationMs", "recoveryTimeMs"],
+      "readBack": ["runtimeControl"],
+      "notes": "Not a container restart — reverse-proxy's runtime-control read path is exercised directly (see docs/runtime-control-and-kill-switch.md) while proxy restarts, to check the operator/kill-switch plane degrades and recovers independently of the browser-facing ingest plane."
+    },
+    {
+      "target": "docker-internal-network",
+      "measure": ["unreadyDurationMs", "recoveryTimeMs"],
+      "readBack": [],
+      "notes": "A short, reversible `docker network disconnect`/`connect` cycle on one internal service (not iptables, not host-level) simulating a partition, per Section 15's network-failure-injection list."
+    }
+  ],
+  "restartCountExpectation": "Every scenario's own docker-compose restart count for its target service must equal exactly 1 (the deliberate restart); no other service's restart count may change as a side effect, except alert-sink's after an openobserve-target scenario (expected, from depends_on.restart:true).",
+  "driftPolicy": "Any readBack key differing before vs. after a scenario is a Stage 19 finding (Section 20), not a soft warning."
+}

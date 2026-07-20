@@ -186,6 +186,22 @@ export default [
     },
   },
 
+  // scripts/performance/: also runs Playwright page.evaluate() closures
+  // whose body text executes in the browser, not Node — those closures need
+  // browser globals (document, performance.memory, etc.) recognized too.
+  {
+    files: ["scripts/performance/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+      },
+    },
+    rules: {
+      "no-console": "off",
+    },
+  },
+
   // tests/ and every package/app test directory: Node + browser globals, console allowed.
   {
     files: [

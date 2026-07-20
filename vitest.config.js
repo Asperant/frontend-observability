@@ -40,7 +40,7 @@ export default defineConfig({
           // part of `pnpm verify` — run explicitly via `pnpm test:lab`.
           name: "lab",
           environment: "node",
-          include: ["tests/lab/**/*.test.js"],
+          include: ["tests/lab/**/*.test.js", "tests/performance/stage19/unit/**/*.test.js"],
           exclude: ["**/node_modules/**", "**/dist/**"],
         },
       },
@@ -141,6 +141,12 @@ export default defineConfig({
           branches: 100,
         },
         "scripts/lab/alerts/**": {
+          statements: 100,
+          lines: 100,
+          functions: 100,
+          branches: 100,
+        },
+        "scripts/performance/lib/**": {
           statements: 100,
           lines: 100,
           functions: 100,
