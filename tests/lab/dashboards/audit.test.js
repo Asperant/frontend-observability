@@ -189,6 +189,52 @@ describe("auditDashboard — SECURITY_RISK", () => {
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.findings.some((f) => f.message.includes("comment marker"))).toBe(true);
   });
+
+  it.each([undefined, null, "not-an-object", 42, [1, 2, 3]])(
+    "flags a non-object dashboard root instead of crashing: %p",
+    (dashboard) => {
+      const result = auditDashboard(dashboard);
+      expect(result.overall).toBe(RISK_CLASS.SECURITY_RISK);
+      expect(result.findings[0].message).toContain("dashboard body is not a valid object");
+    },
+  );
+
+  it.each([null, 42, "not-an-object"])(
+    "flags a non-object tab entry instead of crashing: %p",
+    (tab) => {
+      const result = auditDashboard({ title: "x", tabs: [tab] });
+      expect(result.overall).toBe(RISK_CLASS.SECURITY_RISK);
+      expect(
+        result.findings.some((f) => f.message.includes("tab entry is not a valid object")),
+      ).toBe(true);
+    },
+  );
+
+  it.each([null, 42, "not-an-object"])(
+    "flags a non-object panel entry instead of crashing: %p",
+    (panel) => {
+      const result = auditDashboard({ title: "x", tabs: [{ panels: [panel] }] });
+      expect(result.overall).toBe(RISK_CLASS.SECURITY_RISK);
+      expect(
+        result.findings.some((f) => f.message.includes("panel entry is not a valid object")),
+      ).toBe(true);
+    },
+  );
+
+  it("flags a non-string query field instead of crashing", () => {
+    const dashboard = dashboardWithPanel({
+      id: "p1",
+      type: "table",
+      title: "P",
+      description: "",
+      queries: [{ query: 12345 }],
+    });
+    const result = auditDashboard(dashboard);
+    expect(result.overall).toBe(RISK_CLASS.SECURITY_RISK);
+    expect(result.findings.some((f) => f.message.includes("query field is not a string"))).toBe(
+      true,
+    );
+  });
 });
 
 describe("auditDashboard — QUERY_RISK", () => {

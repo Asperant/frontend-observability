@@ -1,5 +1,5 @@
 import { ReasonCodes } from "../diagnostics/reason-codes.js";
-import { normalizeKeyForPolicy } from "../sanitization/detectors/keys.js";
+import { isReservedObjectKey, normalizeKeyForPolicy } from "../sanitization/detectors/keys.js";
 import { recordCorrelation } from "./counters.js";
 
 const RESERVED_KEY_CATEGORIES = Object.freeze([
@@ -14,6 +14,7 @@ const RESERVED_KEY_CATEGORIES = Object.freeze([
 ]);
 
 export function isReservedCorrelationKey(key) {
+  if (isReservedObjectKey(key)) return true;
   const normalized = normalizeKeyForPolicy(key);
   return RESERVED_KEY_CATEGORIES.some((category) => normalized.includes(category));
 }

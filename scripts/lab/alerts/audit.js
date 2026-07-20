@@ -22,7 +22,8 @@ function push(findings, klass, message) {
 }
 
 function hasRawSensitiveSqlProjection(sql) {
-  const selectClause = sql?.match(/select\s+([\s\S]*?)\s+from/i)?.[1] ?? "";
+  if (typeof sql !== "string") return false;
+  const selectClause = sql.match(/select\s+([\s\S]*?)\s+from/i)?.[1] ?? "";
   const aggregateSafeClause = selectClause.replace(
     /\b(?:count|count_distinct|approx_count_distinct|uniq)\s*\([^)]*\bsession_id\b[^)]*\)/gi,
     "aggregate_session_count",
@@ -30,17 +31,49 @@ function hasRawSensitiveSqlProjection(sql) {
   return SENSITIVE_SQL_FIELD.test(aggregateSafeClause);
 }
 
+function safeStringify(value, findings, label) {
+  try {
+    // Both call sites always pass a real object literal (never a bare
+    // `undefined`/function/symbol), so JSON.stringify(value) here can
+    // never itself return `undefined` -- no `?? ""` fallback needed.
+    return JSON.stringify(value);
+  } catch {
+    push(
+      findings,
+      RISK_CLASS.SECURITY_RISK,
+      `${label} could not be serialized for scanning (circular or invalid structure)`,
+    );
+    return "";
+  }
+}
+
 export function auditAlertDefinition(alert) {
   const findings = [];
-  const trigger = alert.trigger_condition ?? {};
-  const query = alert.query_condition ?? {};
-  const text = JSON.stringify(alert);
-  const notificationText = JSON.stringify({
-    description: alert.description,
-    row_template: alert.row_template,
-    context_attributes: alert.context_attributes,
-    template: alert.template,
-  });
+  if (!alert || typeof alert !== "object" || Array.isArray(alert)) {
+    push(
+      findings,
+      RISK_CLASS.SECURITY_RISK,
+      "alert definition is not a valid object and could not be audited",
+    );
+    return { class: findings[0].class, findings };
+  }
+  const trigger =
+    alert.trigger_condition && typeof alert.trigger_condition === "object"
+      ? alert.trigger_condition
+      : {};
+  const query =
+    alert.query_condition && typeof alert.query_condition === "object" ? alert.query_condition : {};
+  const text = safeStringify(alert, findings, "alert definition");
+  const notificationText = safeStringify(
+    {
+      description: alert.description,
+      row_template: alert.row_template,
+      context_attributes: alert.context_attributes,
+      template: alert.template,
+    },
+    findings,
+    "alert notification fields",
+  );
 
   if (!alert.owner || /REQUIRED|placeholder/i.test(alert.owner)) {
     push(findings, RISK_CLASS.ROUTING_RISK, "owner is missing or a placeholder");

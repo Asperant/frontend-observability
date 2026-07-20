@@ -1,5 +1,11 @@
 import { KILL_SWITCH_REASON_CODES } from "../../packages/browser-observability/src/runtime-control/constants.js";
-import { assertExactLabToolchain, log, logError } from "./common.mjs";
+import {
+  assertExactLabToolchain,
+  killSwitchLockPath,
+  log,
+  logError,
+  withExclusiveLock,
+} from "./common.mjs";
 import { generateRuntimeControl, readCurrentRuntimeControl } from "./generate-runtime-control.mjs";
 import {
   readProxyGateActive,
@@ -23,11 +29,13 @@ export async function killSwitchOn({ reason }) {
       `--reason is required and must be one of: ${ACTIVATION_REASON_CODES.join(", ")}`,
     );
   }
-  writeProxyGate(true);
-  reloadReverseProxy();
-  await waitForReloadSettle();
-  const document = generateRuntimeControl({ killSwitch: { active: true, reasonCode: reason } });
-  return { document, proxyGateActive: true };
+  return withExclusiveLock(killSwitchLockPath, async () => {
+    writeProxyGate(true);
+    reloadReverseProxy();
+    await waitForReloadSettle();
+    const document = generateRuntimeControl({ killSwitch: { active: true, reasonCode: reason } });
+    return { document, proxyGateActive: true };
+  });
 }
 
 /**
@@ -39,11 +47,13 @@ export async function killSwitchOn({ reason }) {
  * have any chance to resume — the fail-closed direction always wins first).
  */
 export async function killSwitchOff() {
-  const document = generateRuntimeControl({ killSwitch: { active: false, reasonCode: "none" } });
-  writeProxyGate(false);
-  reloadReverseProxy();
-  await waitForReloadSettle();
-  return { document, proxyGateActive: false };
+  return withExclusiveLock(killSwitchLockPath, async () => {
+    const document = generateRuntimeControl({ killSwitch: { active: false, reasonCode: "none" } });
+    writeProxyGate(false);
+    reloadReverseProxy();
+    await waitForReloadSettle();
+    return { document, proxyGateActive: false };
+  });
 }
 
 export function killSwitchStatus() {

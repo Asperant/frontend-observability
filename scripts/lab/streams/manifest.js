@@ -6,6 +6,12 @@
 // No I/O here: reading the manifest file and calling the admin API both
 // live in scripts/lab/streams-*.mjs.
 
+// Exact reserved property names: a raw server JSON response that happens to
+// contain an own "__proto__" key (e.g. a compromised/MITM'd OpenObserve
+// response) would otherwise reshape `normalized`'s prototype via the
+// bracket assignment below instead of storing a data property.
+const RESERVED_OBJECT_KEYS = Object.freeze(["__proto__", "constructor", "prototype"]);
+
 const MANAGED_FIELDS = Object.freeze([
   "data_retention",
   "max_query_range",
@@ -47,6 +53,7 @@ export function normalizeServerSettings(rawSettings, volatileServerFields = []) 
   for (const field of Object.keys(rawSettings)) {
     if (MANAGED_FIELDS.includes(field)) continue;
     if (volatileServerFields.includes(field)) continue;
+    if (RESERVED_OBJECT_KEYS.includes(field)) continue;
     normalized[field] = rawSettings[field];
   }
   return normalized;

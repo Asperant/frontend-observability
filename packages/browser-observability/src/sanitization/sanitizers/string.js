@@ -1,17 +1,21 @@
 import { ReasonCodes } from "../../diagnostics/reason-codes.js";
 import { accept, drop, redact } from "../diagnostics/results.js";
-import { byteLength, truncateByChars } from "../limits/limits.js";
+import { LIMITS, byteLength, truncateByChars } from "../limits/limits.js";
 import { redactSensitiveText } from "../detectors/sensitive-values.js";
 
 export function sanitizeString(value, { maxLength = 128, dropSecrets = true } = {}) {
   try {
     if (typeof value !== "string") return accept(value);
-    const stripped = stripUrlQueryAndFragment(value);
+    const scannable =
+      value.length > LIMITS.maxSanitizerScanLength
+        ? value.slice(0, LIMITS.maxSanitizerScanLength)
+        : value;
+    const stripped = stripUrlQueryAndFragment(scannable);
     const redacted = redactSensitiveText(stripped);
     if (redacted.drop && dropSecrets) return drop(ReasonCodes.SECRET_DETECTED);
     const text = truncateByChars(redacted.drop ? "" : redacted.text, maxLength);
     const reasons = [...redacted.reasons];
-    if (stripped !== value) reasons.push(ReasonCodes.PII_REDACTED);
+    if (stripped !== scannable) reasons.push(ReasonCodes.PII_REDACTED);
     if (byteLength(value) > byteLength(text)) reasons.push(ReasonCodes.PAYLOAD_TOO_LARGE);
     return reasons.length > 0 ? redact(text, [...new Set(reasons)]) : accept(text);
   } catch {

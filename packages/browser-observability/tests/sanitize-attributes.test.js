@@ -47,4 +47,33 @@ describe("sanitizeAttributes", () => {
     const result = sanitizeAttributes(input);
     expect(Object.keys(result)).toHaveLength(12);
   });
+
+  it("rejects an own __proto__ key instead of letting it change the result's prototype", () => {
+    const attacker = JSON.parse('{"__proto__": null, "safe": "ok"}');
+    const result = sanitizeAttributes(attacker);
+    expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
+    expect(result).toEqual({ safe: "ok" });
+  });
+
+  it.each(["__proto__", "constructor", "prototype"])(
+    "drops the reserved key %p instead of storing it",
+    (key) => {
+      const attacker = JSON.parse(`{"${key}": "x", "safe": "ok"}`);
+      const result = sanitizeAttributes(attacker);
+      expect(result).toEqual({ safe: "ok" });
+    },
+  );
+
+  it("does not reject a legitimate key that merely contains 'proto' as a substring", () => {
+    const result = sanitizeAttributes({ protocol: "https" });
+    expect(result).toEqual({ protocol: "https" });
+  });
+
+  it("bounds regex-based PII/secret scanning for values far longer than the scan limit", () => {
+    const huge = "x".repeat(200_000);
+    const start = Date.now();
+    const result = sanitizeAttributes({ big: huge });
+    expect(Date.now() - start).toBeLessThan(2000);
+    expect(result.big).not.toBe(huge);
+  });
 });

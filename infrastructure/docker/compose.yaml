@@ -164,6 +164,22 @@ services:
     # OpenObserve v0.91.0 blocks private-IP destinations by default. The lab
     # sink shares OpenObserve's own network namespace and is reached only via
     # loopback; no external network or host port is exposed.
+    #
+    # Stage 18 finding: this binding is to whatever network namespace
+    # openobserve has *at the moment alert-sink starts* — restarting (not
+    # recreating) the openobserve container alone, e.g. `docker compose
+    # restart openobserve` or the persistence/failure-isolation checks in
+    # scripts/lab/verify.mjs, has been observed to leave alert-sink unable
+    # to reach 127.0.0.1:4312 from openobserve's side afterward, even
+    # though both containers' own healthchecks stay green (each only
+    # checks its own /health, not the cross-container path). No data is
+    # lost or leaked — OpenObserve's own ingestion/query path is
+    # unaffected — but alert *delivery* to this destination silently stops
+    # working until alert-sink is also restarted:
+    # `docker compose restart alert-sink`. Not fixed here (would mean
+    # restructuring this deliberately-loopback-only network design from an
+    # earlier stage); recorded as an operational note for whoever restarts
+    # openobserve next.
     network_mode: "service:openobserve"
     environment:
       PORT: "4312"

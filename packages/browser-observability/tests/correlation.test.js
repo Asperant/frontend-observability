@@ -116,6 +116,21 @@ describe("reserved-field stripping", () => {
   it.each([null, undefined, "x", ["session"]])("leaves non-plain contexts alone: %p", (value) => {
     expect(stripReservedFields(value).value).toBe(value);
   });
+
+  it.each(["__proto__", "constructor", "prototype"])(
+    "recognizes the reserved object-shaped key %p as reserved",
+    (key) => {
+      expect(isReservedCorrelationKey(key)).toBe(true);
+    },
+  );
+
+  it("strips an own __proto__ key instead of letting it change the result's prototype", () => {
+    const attacker = JSON.parse('{"__proto__": null, "safe": "ok"}');
+    const result = stripReservedFields(attacker);
+    expect(Object.getPrototypeOf(result.value)).toBe(Object.prototype);
+    expect(result.value).toEqual({ safe: "ok" });
+    expect(result.removed).toBe(true);
+  });
 });
 
 describe("native context extraction", () => {

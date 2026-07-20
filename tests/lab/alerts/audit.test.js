@@ -116,4 +116,49 @@ describe("auditAlertDefinition", () => {
       message: "query groups by high-cardinality fields",
     });
   });
+
+  it("does not crash when query_condition.sql is a non-string value", () => {
+    const result = auditAlertDefinition({ ...safeAlert, query_condition: { sql: 12345 } });
+    expect(result.findings.some((f) => f.message === "sensitive/raw field appears in alert")).toBe(
+      false,
+    );
+  });
+
+  it("does not flag a raw sensitive projection when the SQL has no SELECT...FROM shape to inspect", () => {
+    const result = auditAlertDefinition({
+      ...safeAlert,
+      query_condition: { sql: "not a select statement at all" },
+    });
+    expect(result.findings.some((f) => f.message === "sensitive/raw field appears in alert")).toBe(
+      false,
+    );
+  });
+
+  it.each([undefined, null, "not-an-object", 42, [1, 2, 3]])(
+    "flags a non-object alert root instead of crashing: %p",
+    (alert) => {
+      const result = auditAlertDefinition(alert);
+      expect(result.class).toBe(RISK_CLASS.SECURITY_RISK);
+      expect(result.findings[0].message).toContain("alert definition is not a valid object");
+    },
+  );
+
+  it("flags a circular alert structure instead of crashing on JSON.stringify", () => {
+    const circular = { ...safeAlert };
+    circular.self = circular;
+    const result = auditAlertDefinition(circular);
+    expect(
+      result.findings.some((f) => f.message.includes("could not be serialized for scanning")),
+    ).toBe(true);
+  });
+
+  it("flags a circular notification-field structure instead of crashing on JSON.stringify", () => {
+    const circularContext = {};
+    circularContext.self = circularContext;
+    const alert = { ...safeAlert, context_attributes: circularContext };
+    const result = auditAlertDefinition(alert);
+    expect(
+      result.findings.some((f) => f.message.includes("could not be serialized for scanning")),
+    ).toBe(true);
+  });
 });

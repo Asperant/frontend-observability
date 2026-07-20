@@ -111,6 +111,14 @@ describe("normalizeServerSettings", () => {
     const normalized = normalizeServerSettings(rawWithoutDistinctValueFields, VOLATILE_FIELDS);
     expect(normalized).not.toHaveProperty("distinct_value_fields");
   });
+
+  it("drops an own __proto__ key from a raw server response instead of letting it change the normalized object's prototype", () => {
+    const attackerResponse = JSON.parse('{"__proto__": {"polluted": true}, "custom_field": "ok"}');
+    const normalized = normalizeServerSettings(attackerResponse, VOLATILE_FIELDS);
+    expect(Object.getPrototypeOf(normalized)).toBe(Object.prototype);
+    expect(normalized.custom_field).toBe("ok");
+    expect(normalized.polluted).toBeUndefined();
+  });
 });
 
 describe("diffSettings", () => {

@@ -29,6 +29,7 @@
     "test:stage15:streams": "node scripts/lab/verify-stage15-streams.mjs",
     "test:stage16:dashboards": "node scripts/lab/verify-stage16-dashboards.mjs",
     "test:stage17:alerts": "node scripts/lab/verify-stage17-alerts.mjs",
+    "test:stage18:security-acceptance": "node scripts/security/verify-stage18-security-acceptance.mjs",
     "test:coverage": "vitest run --project unit --coverage",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",

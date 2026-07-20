@@ -2,13 +2,16 @@ import { spawnSync } from "node:child_process";
 import { constants as fsConstants } from "node:fs";
 import {
   chmodSync,
+  closeSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
+  openSync,
   renameSync,
   rmSync,
   statSync,
   readFileSync,
+  unlinkSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, join } from "node:path";
@@ -46,6 +49,7 @@ export const runtimeConfigPath = join(generatedDir, "runtime-config.json");
 export const proxyDynamicDir = join(generatedDir, "proxy-dynamic");
 export const runtimeControlPath = join(proxyDynamicDir, "runtime-control.json");
 export const proxyGatePath = join(proxyDynamicDir, "proxy-gate.conf");
+export const killSwitchLockPath = join(generatedDir, "kill-switch.lock");
 
 export const COMPOSE_PROJECT_NAME = "chicek-lab";
 
@@ -196,6 +200,59 @@ export function rejectSymlink(path) {
 
 export function fileMode(path) {
   return statSync(path).mode & 0o777;
+}
+
+/**
+ * Cross-process mutual exclusion via an exclusively-created lock file
+ * (`wx` flag: fails with EEXIST if the file already exists, which is
+ * atomic at the filesystem level and therefore safe against two separate
+ * CLI invocations racing each other — unlike an in-process JS mutex, which
+ * only protects concurrent calls within a single Node process).
+ *
+ * Stage 18 finding: `killSwitchOn()`/`killSwitchOff()` each perform
+ * multiple non-atomic steps (write proxy gate, reload nginx, publish a
+ * runtime-control document); running one of each concurrently (e.g. two
+ * separate `pnpm lab:kill-switch:*` invocations, or two automation scripts)
+ * previously let their steps interleave, leaving the proxy gate and the
+ * control document disagreeing about whether the kill switch is active —
+ * the stronger, proxy-layer protection could end up silently *not*
+ * engaged while the control document (and therefore `killSwitchStatus()`)
+ * reported it as active. This wraps the critical section so a second
+ * concurrent call waits (bounded) rather than interleaving, and fails
+ * loudly instead of producing a silently inconsistent kill-switch state.
+ */
+export async function withExclusiveLock(
+  lockPath,
+  fn,
+  { maxAttempts = 50, retryDelayMs = 100 } = {},
+) {
+  rejectSymlink(lockPath);
+  mkdirSync(dirname(lockPath), { recursive: true });
+  let fd;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    try {
+      fd = openSync(lockPath, "wx");
+      break;
+    } catch (error) {
+      if (error.code !== "EEXIST") throw error;
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+    }
+  }
+  if (fd === undefined) {
+    throw new Error(
+      `could not acquire exclusive lock at ${lockPath} after ${maxAttempts} attempts — another kill-switch operation appears to be in progress.`,
+    );
+  }
+  try {
+    return await fn();
+  } finally {
+    closeSync(fd);
+    try {
+      unlinkSync(lockPath);
+    } catch {
+      /* already removed by a concurrent cleanup; nothing left to do */
+    }
+  }
 }
 
 export function isWorldOrGroupReadableSecret(path) {

@@ -180,7 +180,14 @@ function scanSqlText(sql, findings, { panelId, source }) {
 
 function auditQuery(panel, query, findings, queryResults) {
   const panelId = panel.id;
-  const sql = query.query ?? "";
+  if (query.query !== undefined && query.query !== null && typeof query.query !== "string") {
+    findings.push({
+      class: RISK_CLASS.SECURITY_RISK,
+      panelId,
+      message: `panel '${panelId}' query field is not a string and could not be audited`,
+    });
+  }
+  const sql = typeof query.query === "string" ? query.query : "";
   scanSqlText(sql, findings, { panelId, source: `panel '${panelId}' query` });
 
   const drilldown = isExactDrilldownQuery(sql);
@@ -290,6 +297,15 @@ function highestSeverity(classes) {
  */
 export function auditDashboard(dashboard, { queryResults } = {}) {
   const findings = [];
+  if (!dashboard || typeof dashboard !== "object" || Array.isArray(dashboard)) {
+    findings.push({
+      class: RISK_CLASS.SECURITY_RISK,
+      panelId: null,
+      message: "dashboard body is not a valid object and could not be audited",
+    });
+    return { overall: RISK_CLASS.SECURITY_RISK, findings };
+  }
+
   scanForbiddenFieldSignals(dashboard.title, findings, {
     panelId: null,
     source: "dashboard title",
@@ -300,7 +316,23 @@ export function auditDashboard(dashboard, { queryResults } = {}) {
   });
 
   for (const tab of dashboard.tabs ?? []) {
+    if (!tab || typeof tab !== "object") {
+      findings.push({
+        class: RISK_CLASS.SECURITY_RISK,
+        panelId: null,
+        message: "a tab entry is not a valid object and could not be audited",
+      });
+      continue;
+    }
     for (const panel of tab.panels ?? []) {
+      if (!panel || typeof panel !== "object") {
+        findings.push({
+          class: RISK_CLASS.SECURITY_RISK,
+          panelId: null,
+          message: "a panel entry is not a valid object and could not be audited",
+        });
+        continue;
+      }
       auditPanel(panel, findings, queryResults);
     }
   }
