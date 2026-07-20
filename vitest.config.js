@@ -61,6 +61,15 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json-summary", "html"],
       reportsDirectory: "coverage",
+      // scripts/lab/streams/**/*.js is deliberately NOT in this default
+      // include list: `pnpm test:coverage` (--project unit) never touches
+      // it, so folding it in here would dilute/break the existing global
+      // thresholds below with 0%-covered files the "unit" project never
+      // runs. It is only measured when `pnpm test:stage15:streams`
+      // (scripts/lab/verify-stage15-streams.mjs) explicitly runs vitest
+      // with a --coverage.include override scoped to just that path — see
+      // the "scripts/lab/streams/**" entry in `thresholds` below, which
+      // stays dormant here and only applies to that scoped run.
       include: ["packages/browser-observability/src/**/*.js"],
       exclude: [
         "packages/browser-observability/src/internal/generated/**",
@@ -114,6 +123,12 @@ export default defineConfig({
           branches: 100,
         },
         "packages/browser-observability/src/status/**": {
+          statements: 100,
+          lines: 100,
+          functions: 100,
+          branches: 100,
+        },
+        "scripts/lab/streams/**": {
           statements: 100,
           lines: 100,
           functions: 100,

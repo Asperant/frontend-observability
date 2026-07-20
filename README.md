@@ -13,13 +13,14 @@ Mevcut web uygulamalarına minimum müdahaleyle bağlanacak şekilde tasarlanır
 | 12 (Reverse Proxy Hardening)       | ACCEPTED                            |
 | 13 (Sampling/Queue/Retry)          | SECURITY BLOCKED / CLOSED BY DESIGN |
 | 14 (Runtime Control & Kill Switch) | ACCEPTED                            |
+| 15 (Stream & Data Lifecycle)       | ACCEPTED                            |
 
 - RUM Sessions ve Browser Logs destekleniyor.
 - Session Replay desteklenmiyor (bkz. [`docs/session-replay-security-decision.md`](docs/session-replay-security-decision.md)).
 - Guaranteed delivery veya native SDK queue purge desteklenmiyor (bkz. [`docs/telemetry-delivery-security-decision.md`](docs/telemetry-delivery-security-decision.md)).
 - Reverse proxy hardening tamamlandı (bkz. Aşama 12 bölümü aşağıda).
 - Fail-closed runtime kill switch tamamlandı (bkz. [`docs/runtime-control-and-kill-switch.md`](docs/runtime-control-and-kill-switch.md)).
-- Aşama 15 henüz başlamadı.
+- OpenObserve stream/schema/veri yaşam döngüsü governance'ı tamamlandı (bkz. [`docs/openobserve-stream-schema-lifecycle.md`](docs/openobserve-stream-schema-lifecycle.md)).
 
 ## Frontend Bootstrap (Aşama 7)
 
@@ -85,6 +86,22 @@ Auth, cookie, referer, forwarded ve client-IP header'ları upstream'e iletilmez 
 Aşama 13'ün blocked bıraktığı delivery garantisi eksikliğine karşı, telemetriyi canlı olarak durdurabilen fail-closed bir runtime kill switch eklendi. Kontrol dokümanı same-origin `GET/HEAD /observability/control.json` adresinden en fazla 8 KiB ve 3 saniye timeout ile çekilir; query string, yanlış method, yanlış Content-Type ve oversized body reddedilir. Kontrol dokümanı yalnız kill-switch alanlarını etkiler — SDK'nın tam config'i hot-reload edilmez ve control state yalnız memory'de tutulur.
 
 Doğrulama fail-closed'dır: duplicate key, bilinmeyen key, gelecekteki `issuedAt`, TTL/expiry aşımı ve geri giden revision reddedilir. Kill switch page-latched'dır: bir sayfa `active:false` gördükten sonra, aynı sayfa reload olmadan yeniden aktifleşmez. İki katmanlı gate vardır: browser tarafı yeni RUM/log/manual event'leri durdurur; proxy tarafı exact RUM/logs endpoint'lerinde upstream'e hiç gitmeden `410` döner (retry fırtınası oluşturmaz). Kill switch, Aşama 13'te zaten kabul edilmiş olan native SDK retry queue purge garantisi eksikliğini değiştirmez — yalnız yeni telemetriyi durdurur, SDK'nın önceden kabul ettiği event'leri purge ettiğini iddia etmez. Detaylar için bkz. [`docs/runtime-control-and-kill-switch.md`](docs/runtime-control-and-kill-switch.md).
+
+## OpenObserve Stream ve Veri Yaşam Döngüsü (Aşama 15)
+
+Yalnız iki canonical stream yönetilir: `_rumdata` (RUM) ve `_rumlog` (browser logs). `_sessionreplay` veya başka bir replay stream'i, servis/environment başına ayrı stream, veya genel amaçlı custom telemetry stream'i yoktur; Stage 9 sanitization pipeline'ının hedefi (`chicek_rumdata_sanitize_pipeline_v1`/`chicek_rumlog_sanitize_pipeline_v1`) her `lab:streams:verify` çalışmasında bu iki canonical stream'le uyumlu olduğu yeniden doğrulanır.
+
+Her capability iddiası, pinned `v0.91.0` container'ına karşı gerçek API çağrılarıyla doğrulandı — bkz. [`docs/openobserve-v0.91-stream-capabilities.md`](docs/openobserve-v0.91-stream-capabilities.md). Lab desired state: retention 7 gün, max query range 168 saat, UDS/`store_original_data` kapalı, tüm full-text/index/bloom/partition/distinct-value alanları kapalı — production retention `REQUIRED_COMPANY_DECISION`'dır ve hiçbir yerde production default'u gibi davranılmaz. Şema contract'ı native RUM/browser-logs alanlarını katı bir allow-list ile dondurmaz (OpenObserve'un kendi şeması additive-only'dir); required/conditional/controlled/forbidden alan sınıfları ve drift sınıfları (`NO_DRIFT`…`PIPELINE_DESTINATION_DRIFT`) için bkz. [`docs/openobserve-stream-schema-lifecycle.md`](docs/openobserve-stream-schema-lifecycle.md).
+
+```bash
+pnpm lab:streams:status     # read-only özet
+pnpm lab:streams:dry-run    # normalized diff, write yok
+pnpm lab:streams:provision  # yalnız pre-validated non-destructive değişiklik
+pnpm lab:streams:verify     # API read-back + settings/schema-type/pipeline drift
+pnpm test:stage15:streams   # tam kabul kapısı (disposable lifecycle + Chromium/Firefox canary + management isolation dahil)
+```
+
+Canonical streamler destructive işlemlere karşı hard-block'ludur; generic destructive test/lifecycle harness'i yalnız `_chicek_lifecycle_test_<run-id>` prefix'li, tek kullanımlık stream'ler üzerinde çalışır. Bu pinned OSS sürümünde time-range deletion ve deletion job/status API'si yok (yalnız whole-stream delete ve retention/compactor var); user-specific deletion desteklenmiyor; backup Aşama 20'ye bırakıldı. Index/partition için ölçülmüş bir query-profile faydası olmadığından yeni bir index/partition uygulanmadı — karar gerekçesi ve Aşama 16'ya devri için bkz. lifecycle dokümanı.
 
 ## OpenObserve Entegrasyonu (Aşama 8)
 

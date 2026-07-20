@@ -17,7 +17,7 @@ Bu roadmap, test sonuçları ve yeni bulgularla ortak karar sonucu değiştirile
 12. Gateway ve Collector pipeline
 13. Sampling, queue, retry ve kesinti davranışı — **Security Blocked**: OpenObserve browser SDK 0.3.4'ün native retry queue'su consent revoke/shutdown sırasında purge edilemiyor (bkz. `docs/telemetry-delivery-security-decision.md`)
 14. Runtime config ve kill switch
-15. OpenObserve stream ve veri yaşam döngüsü
+15. OpenObserve stream ve veri yaşam döngüsü — bkz. `docs/openobserve-stream-schema-lifecycle.md`
 16. Dashboard ve sorgular
 17. Alarm ve olay müdahale modeli
 18. Güvenlik doğrulaması

@@ -26,6 +26,7 @@
     "test:stage10:correlation": "node scripts/lab/verify-stage10-correlation.mjs",
     "test:stage12:proxy-security": "node scripts/lab/verify-proxy-security.mjs",
     "test:stage14:runtime-control": "node scripts/lab/verify-stage14-runtime-control.mjs",
+    "test:stage15:streams": "node scripts/lab/verify-stage15-streams.mjs",
     "test:coverage": "vitest run --project unit --coverage",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
@@ -46,7 +47,11 @@
     "lab:purge": "node scripts/lab/purge.mjs",
     "lab:kill-switch:on": "node scripts/lab/kill-switch.mjs on",
     "lab:kill-switch:off": "node scripts/lab/kill-switch.mjs off",
-    "lab:kill-switch:status": "node scripts/lab/kill-switch.mjs status"
+    "lab:kill-switch:status": "node scripts/lab/kill-switch.mjs status",
+    "lab:streams:status": "node scripts/lab/streams-status.mjs",
+    "lab:streams:dry-run": "node scripts/lab/streams-dry-run.mjs",
+    "lab:streams:provision": "node scripts/lab/streams-provision.mjs",
+    "lab:streams:verify": "node scripts/lab/streams-verify.mjs"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",

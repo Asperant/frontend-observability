@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "org": "default",
+  "streamName": "_rumlog",
+  "streamType": "logs",
+  "description": "Canonical OpenObserve browser-logs stream (@openobserve/browser-logs). No per-service/per-environment/custom log stream is ever created — see docs/openobserve-stream-schema-lifecycle.md.",
+  "desiredSettings": {
+    "data_retention": 7,
+    "max_query_range": 168,
+    "store_original_data": false,
+    "full_text_search_keys": [],
+    "index_fields": [],
+    "bloom_filter_fields": [],
+    "partition_keys": [],
+    "distinct_value_fields": []
+  },
+  "volatileServerFields": [
+    "approx_partition",
+    "index_updated_at",
+    "index_fields_updated_at",
+    "extended_retention_days",
+    "index_original_data",
+    "index_all_values",
+    "enable_distinct_fields",
+    "enable_log_patterns_extraction",
+    "is_llm_stream",
+    "storage_type"
+  ],
+  "productionRetentionDecision": "REQUIRED_COMPANY_DECISION",
+  "notes": [
+    "data_retention:7 and max_query_range:168 are lab-only desired values, verified writable/readable against the pinned OpenObserve v0.91.0 API (see docs/openobserve-v0.91-stream-capabilities.md, capability #7/#8/#9). They are NOT a production default — production retention is an explicit open company decision (REQUIRED_COMPANY_DECISION) and must never be auto-applied outside this lab.",
+    "store_original_data stays false: enabling it exposes a raw, un-sanitized pre-flatten '_original' column that bypasses the Stage 9 sanitization pipeline's field-level redaction (verified — see capability #10). Any drift to true on this stream is SECURITY_DRIFT.",
+    "full_text_search_keys/index_fields/bloom_filter_fields/partition_keys/distinct_value_fields are all left at the server default (empty/off) pending a real Stage 10 query-profile measurement — see docs/openobserve-stream-schema-lifecycle.md#index-and-partition-decision. No custom index/partition is applied without measured benefit."
+  ]
+}
