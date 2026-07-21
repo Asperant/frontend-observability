@@ -1,0 +1,549 @@
+{
+  "schemaVersion": 1,
+  "stage": 20,
+  "decision": "ACCEPTED",
+  "runId": "2026-07-21T22-59-29-194Z",
+  "capturedAt": "2026-07-21T22:59:29.195Z",
+  "sourceVersion": {
+    "tag": "v0.91.0",
+    "digest": "sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8",
+    "image": "public.ecr.aws/zinclabs/openobserve:v0.91.0@sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8"
+  },
+  "targetVersion": {
+    "tag": "v0.91.2",
+    "digest": "sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15",
+    "image": "public.ecr.aws/zinclabs/openobserve:v0.91.2@sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15"
+  },
+  "compatibility": {
+    "sourceToTarget": "v0.91.0 -> v0.91.2",
+    "composeDelta": [
+      "Target updates only the upstream OpenObserve base image tag/digest.",
+      "Wrapper entrypoint, healthcheck, non-root model, loopback alert-sink, and data directory stay compatible."
+    ],
+    "apiSurfacesExercised": [
+      "streams",
+      "stream schema/settings",
+      "functions",
+      "pipelines",
+      "dashboards/folders",
+      "alerts",
+      "templates",
+      "destinations",
+      "ingest",
+      "search"
+    ]
+  },
+  "mainTargetBackup": {
+    "logical": {
+      "path": ".runtime/stage20/2026-07-21T22-59-29-194Z/backups/target-logical-export.json",
+      "sha256": "2397ee30137e942c5f983964b6c85a56f74afdcdc8586b32e65d9c95b857311f",
+      "controlPlane": {
+        "streamCount": 6,
+        "pipelines": 2,
+        "functions": 4,
+        "folders": 2,
+        "dashboards": 4,
+        "alerts": 6,
+        "templates": 9,
+        "destinations": 1
+      }
+    },
+    "coldVolume": {
+      "archive": ".runtime/stage20/2026-07-21T22-59-29-194Z/backups/target-openobserve-data.tar",
+      "sha256": "f62def7cd64e258f3303829905e11ee0bc21cedc4b03f04021bcbafea5ef710e",
+      "bytes": 14716928,
+      "volumeSizeKiB": 16012,
+      "checksum": {
+        "verified": true,
+        "sha256": "f62def7cd64e258f3303829905e11ee0bc21cedc4b03f04021bcbafea5ef710e"
+      }
+    }
+  },
+  "restoreTarget": {
+    "newMarker": "target-restore-new-45bb9789-9e2a-4ab0-b776-65061ac5ab73",
+    "newVisible": true,
+    "controlPlane": {
+      "streamCount": 6,
+      "pipelines": 2,
+      "functions": 4,
+      "folders": 2,
+      "dashboards": 4,
+      "alerts": 6,
+      "templates": 9,
+      "destinations": 1
+    },
+    "sanitization": {
+      "redacted": true,
+      "secretDropped": true
+    },
+    "alertSmoke": {
+      "firingOk": true,
+      "resolvedOk": true
+    },
+    "startupMs": 6024,
+    "volumeSizeKiB": 16012
+  },
+  "upgrade": {
+    "startupMs": 6083,
+    "elapsedMs": 7490,
+    "oldRumdata": true,
+    "oldRumlog": true,
+    "smoke": {
+      "newMarker": "upgrade-new-0ca2fd58-bc3d-4a6d-ac0a-5fe85a478cbf",
+      "newVisible": true,
+      "controlPlane": {
+        "streamCount": 2,
+        "pipelines": 2,
+        "functions": 4,
+        "folders": 1,
+        "dashboards": 1,
+        "alerts": 1,
+        "templates": 9,
+        "destinations": 1
+      },
+      "sanitization": {
+        "redacted": true,
+        "secretDropped": true
+      },
+      "alertSmoke": {
+        "firingOk": true,
+        "resolvedOk": true
+      }
+    },
+    "volumeSizeKiB": 5104,
+    "logSummary": {
+      "warningCount": 4,
+      "errorCount": 0,
+      "tail": "openobserve-1  | 2026-07-21T23:00:37.497333567+00:00 INFO openobserve::job::compactor: [compactor_clean_done_jobs] pausable job started\nopenobserve-1  | 2026-07-21T23:00:37.497337477+00:00 INFO openobserve::job::compactor: [run_compactor_pending_jobs_metric] pausable job started\nopenobserve-1  | 2026-07-21T23:00:37.497340587+00:00 INFO openobserve::job::compactor: [compactor_sync_to_db] pausable job started\nopenobserve-1  | 2026-07-21T23:00:37.497741845+00:00 INFO openobserve::service::enrichment::storage::remote: [ENRICHMENT::STORAGE] Running enrichment table merge job\nopenobserve-1  | 2026-07-21T23:00:37.497753964+00:00 INFO openobserve::service::enrichment::storage::remote: [enchrichment_table_merge_job] pausable job started\nopenobserve-1  | 2026-07-21T23:00:37.497867387+00:00 INFO openobserve::service::runtime_metrics: Registered runtime 'grpc' for metrics collection\nopenobserve-1  | 2026-07-21T23:00:37.497877691+00:00 INFO openobserve: starting gRPC server  at 0.0.0.0:5081\nopenobserve-1  | 2026-07-21T23:00:37.497887152+00:00 INFO openobserve::service::runtime_metrics: Registered runtime 'http' for metrics collection\nopenobserve-1  | 2026-07-21T23:00:37.497889909+00:00 INFO openobserve::service::runtime_metrics: Starting runtime metrics collector (basic mode - compile with --cfg tokio_unstable for detail)\nopenobserve-1  | 2026-07-21T23:00:37.497910724+00:00 INFO openobserve::service::db::schema: EnrichmentTables Cached\nopenobserve-1  | 2026-07-21T23:00:37.498093272+00:00 INFO openobserve::service::db::pipeline: [Pipeline] Cached id->org mapping for 2 pipelines\nopenobserve-1  | 2026-07-21T23:00:37.549729990+00:00 WARN ingester::wal: replay wal file: \"/data/wal/logs/0/_meta/logs/1784674808660562.wal\" starting...\nopenobserve-1  | 2026-07-21T23:00:37.551641475+00:00 WARN ingester::wal: replay wal file: \"/data/wal/logs/0/_meta/logs/1784674808660562.wal\" done, json_size: 3805, arrow_size: 79579, file_num: 2 batch_num: 6, took: 1 ms\nopenobserve-1  | 2026-07-21T23:00:37.554429443+00:00 INFO openobserve::service::db::pipeline: [Pipeline] Cached realtime pipelines: 2, scheduled pipelines: 0\nopenobserve-1  | 2026-07-21T23:00:37.555060739+00:00 INFO openobserve::service::db::dashboards: [Dashboard] Cached id->org mapping for 1 dashboards\nopenobserve-1  | 2026-07-21T23:00:37.555233155+00:00 INFO openobserve: Starting HTTP server at: 0.0.0.0:5080\nopenobserve-1  | 2026-07-21T23:00:37.555249805+00:00 INFO openobserve: HTTP client IP sources (in order, implicit ConnectInfo fallback): XEnvoyExternalAddress,XRealIp,RightmostXForwardedFor\nopenobserve-1  | 2026-07-21T23:00:37.602267306+00:00 INFO ingester: Replay wal files done\nopenobserve-1  | 2026-07-21T23:00:40.507092171+00:00 INFO config::axum::middlewares::access_log: 127.0.0.1 \"GET /healthz HTTP/1.1\" 200 - \"-\" \"-\" \"Wget\" 0.000\nopenobserve-1  | 2026-07-21T23:00:41.052162902+00:00 INFO config::axum::middlewares::access_log: 172.25.0.1 \"GET /health HTTP/1.1\" 401 - \"-\" \"-\" \"node\" 0.000"
+    }
+  },
+  "rollback": {
+    "startupMs": 6147,
+    "elapsedMs": 7322,
+    "oldRumdata": true,
+    "oldRumlog": true,
+    "smoke": {
+      "newMarker": "rollback-new-9c7175ce-1f58-4f1a-b292-ab11d193544e",
+      "newVisible": true,
+      "controlPlane": {
+        "streamCount": 2,
+        "pipelines": 2,
+        "functions": 4,
+        "folders": 1,
+        "dashboards": 1,
+        "alerts": 1,
+        "templates": 9,
+        "destinations": 1
+      },
+      "sanitization": {
+        "redacted": true,
+        "secretDropped": true
+      },
+      "alertSmoke": {
+        "firingOk": true,
+        "resolvedOk": true
+      }
+    },
+    "volumeSizeKiB": 5104
+  },
+  "reUpgrade": {
+    "startupMs": 6068,
+    "elapsedMs": 7309,
+    "oldRumdata": true,
+    "oldRumlog": true,
+    "smoke": {
+      "newMarker": "reupgrade-new-721d51ca-87a5-4f77-950e-c244321ed858",
+      "newVisible": true,
+      "controlPlane": {
+        "streamCount": 2,
+        "pipelines": 2,
+        "functions": 4,
+        "folders": 1,
+        "dashboards": 1,
+        "alerts": 1,
+        "templates": 9,
+        "destinations": 1
+      },
+      "sanitization": {
+        "redacted": true,
+        "secretDropped": true
+      },
+      "alertSmoke": {
+        "firingOk": true,
+        "resolvedOk": true
+      }
+    },
+    "volumeSizeKiB": 5104
+  },
+  "sourceFixture": {
+    "capturedAt": "2026-07-21T23:00:08.597Z",
+    "controlPlane": {
+      "streamCount": 2,
+      "pipelines": 2,
+      "functions": 4,
+      "folders": 1,
+      "dashboards": 1,
+      "alerts": 1,
+      "templates": 9,
+      "destinations": 1
+    },
+    "streamSchemas": {
+      "_rumdata": {
+        "name": "_rumdata",
+        "storage_type": "disk",
+        "stream_type": "logs",
+        "stats": {
+          "created_at": 1784674808481000,
+          "doc_time_min": 0,
+          "doc_time_max": 0,
+          "doc_num": 0,
+          "file_num": 0,
+          "storage_size": 0,
+          "compressed_size": 0,
+          "index_size": 0
+        },
+        "schema": [
+          {
+            "name": "_timestamp",
+            "type": "Int64"
+          },
+          {
+            "name": "action_target_name",
+            "type": "Utf8"
+          },
+          {
+            "name": "chicek_policy_version",
+            "type": "Utf8"
+          },
+          {
+            "name": "env",
+            "type": "Utf8"
+          },
+          {
+            "name": "error_source_type",
+            "type": "Utf8"
+          },
+          {
+            "name": "error_type",
+            "type": "Utf8"
+          },
+          {
+            "name": "level",
+            "type": "Utf8"
+          },
+          {
+            "name": "marker",
+            "type": "Utf8"
+          },
+          {
+            "name": "message",
+            "type": "Utf8"
+          },
+          {
+            "name": "resource_duration",
+            "type": "Int64"
+          },
+          {
+            "name": "resource_status_code",
+            "type": "Int64"
+          },
+          {
+            "name": "resource_type",
+            "type": "Utf8"
+          },
+          {
+            "name": "resource_url",
+            "type": "Utf8"
+          },
+          {
+            "name": "service",
+            "type": "Utf8"
+          },
+          {
+            "name": "session_id",
+            "type": "Utf8"
+          },
+          {
+            "name": "version",
+            "type": "Utf8"
+          },
+          {
+            "name": "view_cumulative_layout_shift",
+            "type": "Float64"
+          },
+          {
+            "name": "view_id",
+            "type": "Utf8"
+          },
+          {
+            "name": "view_interaction_to_next_paint",
+            "type": "Int64"
+          },
+          {
+            "name": "view_largest_contentful_paint",
+            "type": "Int64"
+          },
+          {
+            "name": "view_loading_time",
+            "type": "Int64"
+          }
+        ],
+        "settings": {
+          "partition_keys": {},
+          "full_text_search_keys": [],
+          "index_fields": [],
+          "bloom_filter_fields": [],
+          "distinct_value_fields": [
+            {
+              "name": "service",
+              "added_ts": 1784674808536396
+            },
+            {
+              "name": "env",
+              "added_ts": 1784674808536668
+            }
+          ],
+          "data_retention": 0,
+          "max_query_range": 0,
+          "store_original_data": false,
+          "approx_partition": false,
+          "index_updated_at": 0,
+          "extended_retention_days": [],
+          "index_original_data": false,
+          "index_all_values": false,
+          "enable_distinct_fields": true,
+          "enable_log_patterns_extraction": false,
+          "is_llm_stream": false,
+          "storage_type": "normal"
+        },
+        "total_fields": 21,
+        "is_derived": true
+      },
+      "_rumlog": {
+        "name": "_rumlog",
+        "storage_type": "disk",
+        "stream_type": "logs",
+        "stats": {
+          "created_at": 1784674808501000,
+          "doc_time_min": 0,
+          "doc_time_max": 0,
+          "doc_num": 0,
+          "file_num": 0,
+          "storage_size": 0,
+          "compressed_size": 0,
+          "index_size": 0
+        },
+        "schema": [
+          {
+            "name": "_timestamp",
+            "type": "Int64"
+          },
+          {
+            "name": "action_target_name",
+            "type": "Utf8"
+          },
+          {
+            "name": "chicek_policy_version",
+            "type": "Utf8"
+          },
+          {
+            "name": "env",
+            "type": "Utf8"
+          },
+          {
+            "name": "error_source_type",
+            "type": "Utf8"
+          },
+          {
+            "name": "error_type",
+            "type": "Utf8"
+          },
+          {
+            "name": "level",
+            "type": "Utf8"
+          },
+          {
+            "name": "marker",
+            "type": "Utf8"
+          },
+          {
+            "name": "message",
+            "type": "Utf8"
+          },
+          {
+            "name": "resource_duration",
+            "type": "Int64"
+          },
+          {
+            "name": "resource_status_code",
+            "type": "Int64"
+          },
+          {
+            "name": "resource_type",
+            "type": "Utf8"
+          },
+          {
+            "name": "resource_url",
+            "type": "Utf8"
+          },
+          {
+            "name": "service",
+            "type": "Utf8"
+          },
+          {
+            "name": "session_id",
+            "type": "Utf8"
+          },
+          {
+            "name": "version",
+            "type": "Utf8"
+          },
+          {
+            "name": "view_cumulative_layout_shift",
+            "type": "Float64"
+          },
+          {
+            "name": "view_id",
+            "type": "Utf8"
+          },
+          {
+            "name": "view_interaction_to_next_paint",
+            "type": "Int64"
+          },
+          {
+            "name": "view_largest_contentful_paint",
+            "type": "Int64"
+          },
+          {
+            "name": "view_loading_time",
+            "type": "Int64"
+          }
+        ],
+        "settings": {
+          "partition_keys": {},
+          "full_text_search_keys": [],
+          "index_fields": [],
+          "bloom_filter_fields": [],
+          "distinct_value_fields": [],
+          "data_retention": 0,
+          "max_query_range": 0,
+          "store_original_data": false,
+          "approx_partition": false,
+          "index_updated_at": 0,
+          "extended_retention_days": [],
+          "index_original_data": false,
+          "index_all_values": false,
+          "enable_distinct_fields": true,
+          "enable_log_patterns_extraction": false,
+          "is_llm_stream": false,
+          "storage_type": "normal"
+        },
+        "total_fields": 21,
+        "is_derived": true
+      }
+    }
+  },
+  "sourceBackup": {
+    "archive": ".runtime/stage20/2026-07-21T22-59-29-194Z/backups/source-openobserve-data.tar",
+    "sha256": "c2360bbf1e377d7e9e0d1e3c1cb83fcb08c8f1ff4a01f6aaaec862a8eb767d0e",
+    "bytes": 1078772736,
+    "volumeSizeKiB": 4960,
+    "checksum": {
+      "verified": true,
+      "sha256": "c2360bbf1e377d7e9e0d1e3c1cb83fcb08c8f1ff4a01f6aaaec862a8eb767d0e"
+    }
+  },
+  "sourceRestore": {
+    "startupMs": 6170,
+    "oldRumdata": true,
+    "oldRumlog": true,
+    "smoke": {
+      "newMarker": "source-restore-new-1ad442c7-7c8d-431c-9988-43063f0c8fcd",
+      "newVisible": true,
+      "controlPlane": {
+        "streamCount": 2,
+        "pipelines": 2,
+        "functions": 4,
+        "folders": 1,
+        "dashboards": 1,
+        "alerts": 1,
+        "templates": 9,
+        "destinations": 1
+      },
+      "sanitization": {
+        "redacted": true,
+        "secretDropped": true
+      },
+      "alertSmoke": {
+        "firingOk": true,
+        "resolvedOk": true
+      }
+    }
+  },
+  "rpo": {
+    "labColdSnapshot": "0",
+    "rationale": "Cold tar snapshot is taken while the source OpenObserve process is stopped."
+  },
+  "sessionReplay": {
+    "closedByStage19Regression": true,
+    "sessionReplayStreamAbsent": true
+  },
+  "streamGovernance": {
+    "firstRun": {
+      "_rumdata": "NO_CHANGE",
+      "_rumlog": "NO_CHANGE"
+    },
+    "secondRun": {
+      "_rumdata": "NO_CHANGE",
+      "_rumlog": "NO_CHANGE"
+    },
+    "verify": {
+      "_rumdata": "NO_DRIFT",
+      "_rumlog": "NO_DRIFT"
+    }
+  },
+  "backupManifest": {
+    "generatedAt": "2026-07-21T23:01:18.710Z",
+    "sourceVersion": {
+      "tag": "v0.91.0",
+      "digest": "sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8",
+      "image": "public.ecr.aws/zinclabs/openobserve:v0.91.0@sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8"
+    },
+    "targetVersion": {
+      "tag": "v0.91.2",
+      "digest": "sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15",
+      "image": "public.ecr.aws/zinclabs/openobserve:v0.91.2@sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15"
+    },
+    "files": [
+      {
+        "role": "target-logical-control-plane-export",
+        "path": ".runtime/stage20/2026-07-21T22-59-29-194Z/backups/target-logical-export.json",
+        "sha256": "2397ee30137e942c5f983964b6c85a56f74afdcdc8586b32e65d9c95b857311f",
+        "bytes": 18131
+      },
+      {
+        "role": "target-cold-data-volume",
+        "path": ".runtime/stage20/2026-07-21T22-59-29-194Z/backups/target-openobserve-data.tar",
+        "sha256": "f62def7cd64e258f3303829905e11ee0bc21cedc4b03f04021bcbafea5ef710e",
+        "bytes": 14716928
+      },
+      {
+        "role": "source-cold-data-volume",
+        "path": ".runtime/stage20/2026-07-21T22-59-29-194Z/backups/source-openobserve-data.tar",
+        "sha256": "c2360bbf1e377d7e9e0d1e3c1cb83fcb08c8f1ff4a01f6aaaec862a8eb767d0e",
+        "bytes": 1078772736
+      }
+    ],
+    "objectCounts": {
+      "streamCount": 6,
+      "pipelines": 2,
+      "functions": 4,
+      "folders": 2,
+      "dashboards": 4,
+      "alerts": 6,
+      "templates": 9,
+      "destinations": 1
+    }
+  },
+  "runtimeResultPath": ".runtime/stage20/2026-07-21T22-59-29-194Z/stage20-results.json"
+}

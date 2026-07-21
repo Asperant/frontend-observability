@@ -56,8 +56,8 @@ function canonicalVrlSource(source) {
   return trimmed.endsWith(".") ? trimmed : `${trimmed} \n .`;
 }
 
-async function apiFetch(auth, path, options = {}) {
-  const response = await fetch(`${OPENOBSERVE_ADMIN_URL}${path}`, {
+async function apiFetch(baseUrl, auth, path, options = {}) {
+  const response = await fetch(`${baseUrl}${path}`, {
     ...options,
     headers: {
       Authorization: auth,
@@ -75,15 +75,15 @@ async function apiFetch(auth, path, options = {}) {
   return { status: response.status, body };
 }
 
-async function ensureFunction(auth, name, source) {
-  const existing = await getFunction(auth, name);
+async function ensureFunction(baseUrl, auth, name, source) {
+  const existing = await getFunction(baseUrl, auth, name);
   const payload = { name, function: source, trans_type: 0 };
   if (existing && canonicalVrlSource(getFunctionSource(existing)) === canonicalVrlSource(source)) {
     return { ok: true, changed: false };
   }
 
   const path = existing ? `/api/${ORG_ID}/functions/${name}` : `/api/${ORG_ID}/functions`;
-  const response = await apiFetch(auth, path, {
+  const response = await apiFetch(baseUrl, auth, path, {
     method: existing ? "PUT" : "POST",
     body: JSON.stringify(payload),
   });
@@ -91,7 +91,7 @@ async function ensureFunction(auth, name, source) {
     return { ok: true, changed: true };
   }
   if (!existing && response.status === 400) {
-    const update = await apiFetch(auth, `/api/${ORG_ID}/functions/${name}`, {
+    const update = await apiFetch(baseUrl, auth, `/api/${ORG_ID}/functions/${name}`, {
       method: "PUT",
       body: JSON.stringify(payload),
     });
@@ -102,13 +102,13 @@ async function ensureFunction(auth, name, source) {
   return { ok: false, status: response.status };
 }
 
-async function getFunction(auth, name) {
-  const functions = await listFunctions(auth);
+async function getFunction(baseUrl, auth, name) {
+  const functions = await listFunctions(baseUrl, auth);
   return functions.find((item) => item.name === name);
 }
 
-async function listFunctions(auth) {
-  const response = await apiFetch(auth, `/api/${ORG_ID}/functions`, { method: "GET" });
+async function listFunctions(baseUrl, auth) {
+  const response = await apiFetch(baseUrl, auth, `/api/${ORG_ID}/functions`, { method: "GET" });
   if (Array.isArray(response.body)) return response.body;
   if (Array.isArray(response.body?.list)) return response.body.list;
   if (Array.isArray(response.body?.functions)) return response.body.functions;
@@ -119,9 +119,9 @@ function getFunctionSource(fn) {
   return String(fn?.function ?? fn?.vrl ?? fn?.source ?? "");
 }
 
-async function ensurePipeline(auth, spec) {
+async function ensurePipeline(baseUrl, auth, spec) {
   const desired = createPipelinePayload(spec);
-  const existing = await listPipelines(auth);
+  const existing = await listPipelines(baseUrl, auth);
   const related = existing.filter((pipeline) => isRelatedPipeline(pipeline, spec));
   const desiredExisting = related.find((pipeline) => pipeline.name === spec.name);
 
@@ -130,18 +130,18 @@ async function ensurePipeline(auth, spec) {
       (pipeline) => getPipelineId(pipeline) !== getPipelineId(desiredExisting),
     );
     for (const pipeline of stale) {
-      const removed = await deletePipeline(auth, pipeline);
+      const removed = await deletePipeline(baseUrl, auth, pipeline);
       if (!removed.ok) return removed;
     }
     return { ok: true, changed: stale.length > 0 };
   }
 
   for (const pipeline of related) {
-    const removed = await deletePipeline(auth, pipeline);
+    const removed = await deletePipeline(baseUrl, auth, pipeline);
     if (!removed.ok) return removed;
   }
 
-  const response = await apiFetch(auth, `/api/${ORG_ID}/pipelines`, {
+  const response = await apiFetch(baseUrl, auth, `/api/${ORG_ID}/pipelines`, {
     method: "POST",
     body: JSON.stringify(desired),
   });
@@ -151,12 +151,12 @@ async function ensurePipeline(auth, spec) {
   return { ok: true, changed: true };
 }
 
-async function deletePipeline(auth, pipeline) {
+async function deletePipeline(baseUrl, auth, pipeline) {
   const pipelineId = getPipelineId(pipeline);
   if (!pipelineId) {
     return { ok: false, message: `pipeline ${pipeline?.name ?? "unknown"} has no API id` };
   }
-  const response = await apiFetch(auth, `/api/${ORG_ID}/pipelines/${pipelineId}`, {
+  const response = await apiFetch(baseUrl, auth, `/api/${ORG_ID}/pipelines/${pipelineId}`, {
     method: "DELETE",
   });
   return [200, 204, 404].includes(response.status)
@@ -262,8 +262,8 @@ function createPipelineEdge(source, target) {
   return { id: `e${source}-${target}`, source, target };
 }
 
-async function listPipelines(auth) {
-  const response = await apiFetch(auth, `/api/${ORG_ID}/pipelines`, { method: "GET" });
+async function listPipelines(baseUrl, auth) {
+  const response = await apiFetch(baseUrl, auth, `/api/${ORG_ID}/pipelines`, { method: "GET" });
   if (Array.isArray(response.body?.list)) return response.body.list;
   if (Array.isArray(response.body)) return response.body;
   return [];
@@ -356,9 +356,9 @@ function sameEdges(actualEdges = [], desiredEdges = []) {
   return JSON.stringify(normalize(actualEdges)) === JSON.stringify(normalize(desiredEdges));
 }
 
-async function verifyProvisioned(auth, sources) {
+async function verifyProvisioned(baseUrl, auth, sources) {
   const findings = [];
-  const functions = await listFunctions(auth);
+  const functions = await listFunctions(baseUrl, auth);
   for (const [name, source] of Object.entries(sources)) {
     const matches = functions.filter((fn) => fn.name === name);
     if (matches.length !== 1) {
@@ -372,7 +372,7 @@ async function verifyProvisioned(auth, sources) {
     }
   }
 
-  const pipelines = await listPipelines(auth);
+  const pipelines = await listPipelines(baseUrl, auth);
   const related = pipelines.filter((pipeline) => {
     return PIPELINES.some((spec) => isRelatedPipeline(pipeline, spec));
   });
@@ -393,9 +393,13 @@ async function verifyProvisioned(auth, sources) {
   return findings;
 }
 
-export async function provisionSanitization() {
-  const { email, password } = readAdminCredentials();
-  const auth = basicAuthHeader(email, password);
+export async function provisionSanitization({ baseUrl = OPENOBSERVE_ADMIN_URL, auth } = {}) {
+  const resolvedAuth =
+    auth ??
+    (() => {
+      const { email, password } = readAdminCredentials();
+      return basicAuthHeader(email, password);
+    })();
   const rumVrl = readFileSync(join(SANITIZATION_DIR, "rum.vrl"), "utf8");
   const rumlogVrl = readFileSync(join(SANITIZATION_DIR, "rumlog.vrl"), "utf8");
   const correlationVrl = readFileSync(join(SANITIZATION_DIR, "correlation.vrl"), "utf8");
@@ -409,7 +413,7 @@ export async function provisionSanitization() {
 
   log("lab:provision-sanitization — verifying OpenObserve function API support...");
   for (const [name, source] of Object.entries(functionSources)) {
-    const result = await ensureFunction(auth, name, source);
+    const result = await ensureFunction(baseUrl, resolvedAuth, name, source);
     if (!result.ok) {
       return {
         pass: false,
@@ -422,7 +426,7 @@ export async function provisionSanitization() {
 
   log("lab:provision-sanitization — verifying OpenObserve realtime pipeline API support...");
   for (const spec of PIPELINES) {
-    const result = await ensurePipeline(auth, spec);
+    const result = await ensurePipeline(baseUrl, resolvedAuth, spec);
     if (!result.ok) {
       return {
         pass: false,
@@ -433,7 +437,7 @@ export async function provisionSanitization() {
     }
   }
 
-  const findings = await verifyProvisioned(auth, functionSources);
+  const findings = await verifyProvisioned(baseUrl, resolvedAuth, functionSources);
   return { pass: findings.length === 0, findings };
 }
 

@@ -73,7 +73,8 @@
     "lab:alerts:history-shim": "node scripts/lab/alerts-history-shim.mjs",
     "test:stage19:resilience": "node scripts/performance/verify-stage19-resilience.mjs",
     "lab:stage19:benchmark": "node scripts/performance/run-stage19-benchmark.mjs",
-    "lab:stage19:soak": "node scripts/performance/run-stage19-soak.mjs"
+    "lab:stage19:soak": "node scripts/performance/run-stage19-soak.mjs",
+    "lab:stage20:proof": "node scripts/recovery/run-stage20-proof.mjs"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",
