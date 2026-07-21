@@ -1,4 +1,16 @@
-import { assertExactLabToolchain, run, log, runDockerCompose } from "./common.mjs";
+import { spawn } from "node:child_process";
+import { writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+import {
+  assertExactLabToolchain,
+  run,
+  log,
+  repoRoot,
+  runDockerCompose,
+  runtimeControlDaemonPidPath,
+  stopDetachedProcess,
+} from "./common.mjs";
 import { fetchRealRumToken, persistRumToken } from "./fetch-rum-token.mjs";
 import { generateRuntimeConfig } from "./generate-runtime-config.mjs";
 import { generateRuntimeControl } from "./generate-runtime-control.mjs";
@@ -6,6 +18,28 @@ import { labInit } from "./init.mjs";
 import { provisionSanitization } from "./provision-sanitization.mjs";
 import { runAllStaticChecks } from "./static-checks.mjs";
 import { waitForHealthy } from "./wait.mjs";
+
+const runtimeControlDaemonScript = fileURLToPath(
+  new URL("./runtime-control-refresh-daemon.mjs", import.meta.url),
+);
+
+/**
+ * Starts (or restarts) the detached background process that keeps
+ * re-stamping runtime-control.json well inside its 10-minute TTL for as
+ * long as the lab stays up — see runtime-control-refresh-daemon.mjs for
+ * why this exists. Stops any daemon left over from a previous lab:up
+ * first, so re-running lab:up without lab:down never accumulates orphans.
+ */
+function restartRuntimeControlDaemon() {
+  stopDetachedProcess(runtimeControlDaemonPidPath);
+  const child = spawn(process.execPath, [runtimeControlDaemonScript], {
+    cwd: repoRoot,
+    detached: true,
+    stdio: "ignore",
+  });
+  child.unref();
+  writeFileSync(runtimeControlDaemonPidPath, String(child.pid), { mode: 0o600 });
+}
 
 function checkToolchain() {
   const docker = run("docker", ["--version"], { capture: true, allowFailure: true });
@@ -103,6 +137,12 @@ export async function labUp() {
   // how much of that window is left for whatever runs against the lab next.
   generateRuntimeControl({ killSwitch: { active: false, reasonCode: "none" } });
   log("  runtime control: re-stamped with a fresh issuedAt/expiresAt window.");
+
+  restartRuntimeControlDaemon();
+  log(
+    "  runtime control: refresh daemon (re-)started — keeps the document " +
+      "inside its 10-minute TTL for as long as the lab stays up.",
+  );
 
   log("lab:up complete. Demo: https://localhost:8443  OpenObserve UI: http://localhost:5080");
 }

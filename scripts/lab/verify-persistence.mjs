@@ -34,6 +34,29 @@ async function search(canaryId, authHeader) {
 }
 
 /**
+ * alert-sink shares openobserve's network namespace (`network_mode:
+ * service:openobserve`) and is cascade-restarted alongside it. Right after
+ * openobserve's own healthcheck flips green, alert-sink's restart can still
+ * be tearing down/rebuilding that shared namespace, which briefly resets
+ * the host-mapped port and surfaces as a raw socket error rather than a
+ * normal HTTP response. Retry a few times before treating it as real data
+ * loss.
+ */
+async function searchWithRetry(canaryId, authHeader, { attempts = 5, delayMs = 1000 } = {}) {
+  let lastResult = { found: false, statusCode: undefined };
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      lastResult = await search(canaryId, authHeader);
+      if (lastResult.found) return lastResult;
+    } catch (error) {
+      lastResult = { found: false, statusCode: undefined, error: error.message };
+    }
+    if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+  return lastResult;
+}
+
+/**
  * Ingests a unique synthetic event via the loopback OpenObserve data port
  * (never through the browser-facing reverse proxy), confirms it is
  * searchable, restarts the openobserve container, and confirms the same
@@ -63,15 +86,24 @@ export async function checkPersistence() {
 
   log("  persistence: canary ingested and found; restarting openobserve...");
   runDockerCompose(["restart", "openobserve"]);
-  const waitResult = await waitForHealthy({ services: ["openobserve"], timeoutMs: 120_000 });
+  // openobserve restart cascades to alert-sink (shared network namespace via
+  // depends_on.openobserve.restart: true), so both must be healthy before
+  // the shared namespace is considered stable.
+  const waitResult = await waitForHealthy({
+    services: ["openobserve", "alert-sink"],
+    timeoutMs: 120_000,
+  });
   if (!waitResult.healthy) {
-    findings.push("openobserve did not become healthy again after restart.");
+    findings.push("openobserve/alert-sink did not become healthy again after restart.");
     return { pass: false, findings };
   }
 
-  const afterRestart = await search(canaryId, authHeader);
+  const afterRestart = await searchWithRetry(canaryId, authHeader);
   if (!afterRestart.found) {
-    findings.push("Canary event was NOT found after openobserve restart (persistence failed).");
+    findings.push(
+      "Canary event was NOT found after openobserve restart (persistence failed)." +
+        (afterRestart.error ? ` Last error: ${afterRestart.error}` : ""),
+    );
   }
 
   return { pass: findings.length === 0, findings };

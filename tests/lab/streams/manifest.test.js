@@ -112,6 +112,44 @@ describe("normalizeServerSettings", () => {
     expect(normalized).not.toHaveProperty("distinct_value_fields");
   });
 
+  it("strips the server-assigned added_ts from a populated distinct_value_fields, keeping just names", () => {
+    const normalized = normalizeServerSettings(
+      {
+        ...REAL_SERVER_SETTINGS,
+        distinct_value_fields: [
+          { name: "service", added_ts: 1111 },
+          { name: "env", added_ts: 2222 },
+        ],
+      },
+      VOLATILE_FIELDS,
+    );
+    expect(normalized.distinct_value_fields).toEqual(["service", "env"]);
+  });
+
+  it("leaves an already-flat distinct_value_fields string array untouched", () => {
+    const normalized = normalizeServerSettings(
+      { ...REAL_SERVER_SETTINGS, distinct_value_fields: ["service"] },
+      VOLATILE_FIELDS,
+    );
+    expect(normalized.distinct_value_fields).toEqual(["service"]);
+  });
+
+  it("passes through a distinct_value_fields entry that is an object without a name key", () => {
+    const normalized = normalizeServerSettings(
+      { ...REAL_SERVER_SETTINGS, distinct_value_fields: [{ other: "x" }] },
+      VOLATILE_FIELDS,
+    );
+    expect(normalized.distinct_value_fields).toEqual([{ other: "x" }]);
+  });
+
+  it("passes through a non-array distinct_value_fields value unchanged", () => {
+    const normalized = normalizeServerSettings(
+      { ...REAL_SERVER_SETTINGS, distinct_value_fields: null },
+      VOLATILE_FIELDS,
+    );
+    expect(normalized.distinct_value_fields).toBeNull();
+  });
+
   it("drops an own __proto__ key from a raw server response instead of letting it change the normalized object's prototype", () => {
     const attackerResponse = JSON.parse('{"__proto__": {"polluted": true}, "custom_field": "ok"}');
     const normalized = normalizeServerSettings(attackerResponse, VOLATILE_FIELDS);
@@ -192,6 +230,21 @@ describe("diffSettings", () => {
     expect(diffs).toEqual([
       { field: "partition_keys", desired: { level: ["a"] }, actual: { region: ["a"] } },
     ]);
+  });
+
+  it("reports no diff for the _rumdata distinct_value_fields allowlist once actual matches it", () => {
+    const desired = { ...DESIRED_SETTINGS, distinct_value_fields: ["service", "env"] };
+    const normalized = normalizeServerSettings(
+      {
+        ...REAL_SERVER_SETTINGS,
+        distinct_value_fields: [
+          { name: "service", added_ts: 1111 },
+          { name: "env", added_ts: 2222 },
+        ],
+      },
+      VOLATILE_FIELDS,
+    );
+    expect(diffSettings(desired, normalized)).toEqual([]);
   });
 
   it("reports a diff when partition_keys objects share keys but differ in nested value", () => {

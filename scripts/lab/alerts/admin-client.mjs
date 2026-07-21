@@ -1,3 +1,9 @@
+// Thin I/O wrapper around OpenObserve's alerts admin API. Like
+// scripts/lab/streams/admin-client.mjs and scripts/lab/dashboards/
+// admin-client.mjs, this is pure I/O and not imported by any pure-logic
+// unit test, so it never actually counts toward the "scripts/lab/alerts/**"
+// 100% coverage gate in practice; its correctness is exercised live by
+// scripts/lab/alerts-*.mjs and scripts/lab/verify-stage17-alerts.mjs.
 import { runDockerCompose } from "../common.mjs";
 import {
   OPENOBSERVE_ADMIN_URL,
@@ -110,6 +116,22 @@ export async function createTemplate(auth, template) {
       title: "",
     }),
   });
+}
+
+export async function updateTemplate(auth, template) {
+  return apiFetch(
+    auth,
+    `/api/${ORG_ID}/alerts/templates/${encodeURIComponent(template.openObserveTemplateName)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        name: template.openObserveTemplateName,
+        body: template.body,
+        type: template.type,
+        title: "",
+      }),
+    },
+  );
 }
 
 export async function deleteTemplate(auth, name) {

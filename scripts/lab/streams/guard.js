@@ -48,6 +48,17 @@ export function validateDestructiveTarget({ org, streamName, confirmed }) {
   return { allowed: true, reason: GUARD_REASON.OK };
 }
 
+// The only distinct_value_fields value (besides clearing to `[]`) automatic
+// provisioning may ever write. `service`/`env` are bounded, single-value
+// identity fields in this lab (apps/demo-frontend/src/identity.js), not
+// unbounded/high-cardinality data — see
+// docs/openobserve-stream-schema-lifecycle.md#index-and-partition-decision
+// for why this specific pair was allowlisted instead of the empty default.
+// Order matters: this must match the exact order the pinned OpenObserve
+// build already returned once both names were added (verified against the
+// real _rumdata stream), since manifest.js's diff is order-sensitive.
+const LOW_CARDINALITY_DISTINCT_VALUE_FIELDS = Object.freeze(["service", "env"]);
+
 /**
  * True only for the exact settings fields Stage 15 provisioning is allowed
  * to change automatically (§5 of the roadmap task): a value can never
@@ -62,12 +73,19 @@ export function isNonDestructiveSettingsChange(field, nextValue) {
   if (field === "data_retention" || field === "max_query_range") {
     return Number.isInteger(nextValue) && nextValue >= 0;
   }
+  if (field === "distinct_value_fields") {
+    if (!Array.isArray(nextValue)) return false;
+    if (nextValue.length === 0) return true;
+    return (
+      nextValue.length === LOW_CARDINALITY_DISTINCT_VALUE_FIELDS.length &&
+      nextValue.every((name, index) => name === LOW_CARDINALITY_DISTINCT_VALUE_FIELDS[index])
+    );
+  }
   if (
     field === "full_text_search_keys" ||
     field === "index_fields" ||
     field === "bloom_filter_fields" ||
-    field === "partition_keys" ||
-    field === "distinct_value_fields"
+    field === "partition_keys"
   ) {
     return Array.isArray(nextValue) && nextValue.length === 0;
   }

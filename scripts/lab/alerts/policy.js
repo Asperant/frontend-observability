@@ -95,28 +95,11 @@ function thresholdValue(policy) {
 }
 
 function measuredValue(policy, row) {
-  if (policy.id === "version-regression") {
-    return {
-      absoluteDelta: row.currentRate - row.baselineRate,
-      relativeDelta:
-        row.baselineRate === 0 ? null : (row.currentRate - row.baselineRate) / row.baselineRate,
-    };
-  }
   if (policy.id === "telemetry-freshness") return row.ageMinutes;
   return row[policy.metricId] ?? row.p75 ?? null;
 }
 
 function hasMinimumSample(policy, row) {
-  if (policy.id === "version-regression") {
-    return (
-      row.currentVersion &&
-      row.baselineVersion &&
-      row.currentVersion !== "unknown" &&
-      row.baselineVersion !== "unknown" &&
-      row.currentSessions >= policy.sample.minimumCurrent &&
-      row.baselineSessions >= policy.sample.minimumBaseline
-    );
-  }
   if (policy.id === "telemetry-freshness")
     return row.last_event_us != null || row.ageMinutes != null;
   return Number(row[policy.sample.field] ?? 0) >= policy.sample.minimum;
@@ -124,13 +107,6 @@ function hasMinimumSample(policy, row) {
 
 function breaches(policy, row) {
   const value = measuredValue(policy, row);
-  if (policy.id === "version-regression") {
-    return (
-      value.absoluteDelta >= policy.threshold.absoluteStarterValue &&
-      value.relativeDelta !== null &&
-      value.relativeDelta >= policy.threshold.relativeStarterValue
-    );
-  }
   if (value === null || value === undefined || Number.isNaN(Number(value))) return false;
   if (policy.threshold.direction === "above") return value > thresholdValue(policy);
   return false;
@@ -138,13 +114,6 @@ function breaches(policy, row) {
 
 function recovers(policy, row) {
   const value = measuredValue(policy, row);
-  if (policy.id === "version-regression") {
-    return (
-      value.absoluteDelta <= policy.recoveryCondition.absoluteDeltaBelowOrEqual &&
-      (value.relativeDelta === null ||
-        value.relativeDelta <= policy.recoveryCondition.relativeDeltaBelowOrEqual)
-    );
-  }
   if (value === null || value === undefined || Number.isNaN(Number(value))) return false;
   if (policy.recoveryCondition.direction === "below_or_equal") {
     return value <= policy.recoveryCondition.value;

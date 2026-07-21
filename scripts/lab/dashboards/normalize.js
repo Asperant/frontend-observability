@@ -3,14 +3,22 @@
 // capability #6/#14) and a portable, secret-free canonical JSON used for
 // export/backup/import. No I/O.
 
-// The pinned build always wraps the real body in a versioned envelope
-// (`{v1..v8, version, hash, updatedAt, ...}`) where only `v3` is ever
-// populated (capability #6) — this repo only ever authors/reads v3.
+// OpenObserve wraps the real body in a versioned envelope
+// (`{v1..v8, version, hash, updatedAt, ...}`). Earlier pinned-build probes
+// only observed v3, but the same v0.91 UI may round-trip some panel shapes
+// as newer bodies such as v8. The repo authors portable starter dashboards;
+// callers should read the active body instead of assuming one fixed slot.
 export function extractDashboardBody(envelope) {
-  if (!envelope || envelope.version !== 3 || !envelope.v3) {
-    throw new Error("extractDashboardBody: expected a v3 dashboard envelope");
+  if (!envelope || typeof envelope !== "object") {
+    throw new Error("extractDashboardBody: expected a versioned dashboard envelope");
   }
-  return envelope.v3;
+  const preferred = Number.isInteger(envelope.version) ? envelope[`v${envelope.version}`] : null;
+  if (preferred) return preferred;
+  for (let version = 8; version >= 1; version -= 1) {
+    const body = envelope[`v${version}`];
+    if (body) return body;
+  }
+  throw new Error("extractDashboardBody: expected a populated dashboard body");
 }
 
 /**

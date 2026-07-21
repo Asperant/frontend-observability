@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "id": "last-observed-ingestion-age-rumdata",
-  "version": 1,
+  "version": 2,
   "metricId": "last_observed_ingestion_age_rumdata",
-  "title": "Telemetry freshness — _rumdata",
+  "title": "Telemetry freshness — _rumdata (seconds since last event)",
   "queryClass": "OVERVIEW",
   "stream": "_rumdata",
-  "sqlTemplate": "select max(_timestamp) as last_event_us from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}}",
+  "sqlTemplate": "select extract(epoch from now()) - max(_timestamp) / 1000000.0 as freshness_seconds from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}}",
   "requiredVariables": ["service", "environment"],
   "optionalVariables": [
     {
@@ -21,11 +21,11 @@
   "timeoutBudgetMs": 10000,
   "expectedColumns": [
     {
-      "name": "last_event_us",
-      "type": "Int64"
+      "name": "freshness_seconds",
+      "type": "Float64"
     }
   ],
-  "emptyDataSemantics": "No matching records in the query window -> max(_timestamp) is SQL NULL -> NO_DATA (freshness undefined), never age 0.",
+  "emptyDataSemantics": "No matching records in the query window -> max(_timestamp) is SQL NULL -> freshness_seconds is NULL -> NO_DATA (freshness undefined), never rendered as age 0.",
   "cardinalityClass": "LOW_CARDINALITY_OVERVIEW",
   "hasDivisionGuard": false
 }

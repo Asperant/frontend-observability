@@ -46,7 +46,14 @@ describe("buildPanel", () => {
           query:
             "select count(*) as sessions from _rumdata where service = 'demo-frontend' and env = 'lab'",
           customQuery: true,
-          fields: { stream: "_rumdata", stream_type: "logs", x: [], y: [], z: [], filter: [] },
+          fields: {
+            stream: "_rumdata",
+            stream_type: "logs",
+            x: [],
+            y: [],
+            z: [],
+            filter: { filterType: "group", logicalOperator: "AND", conditions: [] },
+          },
           config: { promql_legend: "" },
         },
       ],
@@ -62,6 +69,46 @@ describe("buildPanel", () => {
     });
     expect(panel.description).toBe("");
     expect(panel.config).toEqual({});
+  });
+
+  it("builds a y field descriptor per expectedColumns entry so the OpenObserve UI can bind/render the result (capability #11b)", () => {
+    const queryManifestWithColumns = {
+      ...QUERY_MANIFEST,
+      expectedColumns: [
+        { name: "sessions", type: "Int64" },
+        { name: "sessions_with_error", type: "Int64" },
+      ],
+    };
+    const panel = buildPanel(PANEL_MANIFEST, queryManifestWithColumns, {
+      service: "demo-frontend",
+      environment: "lab",
+    });
+    expect(panel.queries[0].fields.y).toEqual([
+      {
+        label: "sessions",
+        alias: "sessions",
+        color: "#5960b2",
+        type: "build",
+        functionName: "count",
+        args: [{ type: "field", value: { field: "sessions" } }],
+        isDerived: false,
+        havingConditions: [],
+        treatAsNonTimestamp: true,
+        showFieldAsJson: false,
+      },
+      {
+        label: "sessions_with_error",
+        alias: "sessions_with_error",
+        color: "#eb5757",
+        type: "build",
+        functionName: "count",
+        args: [{ type: "field", value: { field: "sessions_with_error" } }],
+        isDerived: false,
+        havingConditions: [],
+        treatAsNonTimestamp: true,
+        showFieldAsJson: false,
+      },
+    ]);
   });
 });
 
@@ -99,6 +146,18 @@ describe("buildDashboardVariablesList", () => {
         },
       ],
     });
+  });
+
+  it("uses a constant variable default value when provided", () => {
+    const list = buildDashboardVariablesList([
+      {
+        name: "session_id",
+        label: "Session ID",
+        type: "constant",
+        defaultValue: "paste-session-id",
+      },
+    ]);
+    expect(list.list[0].value).toBe("paste-session-id");
   });
 
   it("builds a query_values variable", () => {
@@ -179,7 +238,7 @@ describe("buildStarterDashboardBody", () => {
       { service: "demo-frontend", environment: "lab" },
       { owner: "admin@example.com", createdAt: "2026-07-20T00:00:00.000Z" },
     );
-    expect(body.version).toBe(3);
+    expect(body.version).toBe(8);
     expect(body.dashboardId).toBe("");
     expect(body.title).toBe("Frontend Operations");
     expect(body.description).toBe("Overview dashboard. [chicek:starter:frontend-operations:v1]");

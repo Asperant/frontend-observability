@@ -70,6 +70,7 @@
     "lab:alerts:backup": "node scripts/lab/alerts-backup.mjs",
     "lab:alerts:restore-starters": "node scripts/lab/alerts-restore-starters.mjs",
     "lab:alerts:test-notification": "node scripts/lab/alerts-test-notification.mjs",
+    "lab:alerts:history-shim": "node scripts/lab/alerts-history-shim.mjs",
     "test:stage19:resilience": "node scripts/performance/verify-stage19-resilience.mjs",
     "lab:stage19:benchmark": "node scripts/performance/run-stage19-benchmark.mjs",
     "lab:stage19:soak": "node scripts/performance/run-stage19-soak.mjs"

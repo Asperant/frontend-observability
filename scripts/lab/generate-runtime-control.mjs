@@ -60,3 +60,16 @@ export function generateRuntimeControl(options = {}) {
   atomicWriteFile(runtimeControlPath, `${JSON.stringify(document, null, 2)}\n`, { mode: 0o644 });
   return document;
 }
+
+/**
+ * Re-stamps the runtime-control document with a fresh issuedAt/expiresAt
+ * window and bumped revision, preserving whatever killSwitch state is
+ * already live. Unlike calling generateRuntimeControl() directly, this
+ * never defaults killSwitch back to inactive — a periodic refresh must
+ * never silently undo an operator's `pnpm lab:kill-switch:on`.
+ */
+export function refreshRuntimeControl() {
+  const current = readCurrentRuntimeControl();
+  const killSwitch = current?.killSwitch ?? { active: false, reasonCode: "none" };
+  return generateRuntimeControl({ killSwitch });
+}

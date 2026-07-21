@@ -101,6 +101,26 @@ describe("isNonDestructiveSettingsChange", () => {
     }
   });
 
+  it("allows distinct_value_fields to be set to exactly the low-cardinality [service, env] allowlist", () => {
+    expect(isNonDestructiveSettingsChange("distinct_value_fields", ["service", "env"])).toBe(true);
+  });
+
+  it("refuses distinct_value_fields in the wrong order", () => {
+    expect(isNonDestructiveSettingsChange("distinct_value_fields", ["env", "service"])).toBe(false);
+  });
+
+  it("refuses distinct_value_fields with an extra field beyond the allowlist", () => {
+    expect(
+      isNonDestructiveSettingsChange("distinct_value_fields", ["service", "env", "session_id"]),
+    ).toBe(false);
+  });
+
+  it("refuses distinct_value_fields with the right length but a different field name", () => {
+    expect(isNonDestructiveSettingsChange("distinct_value_fields", ["service", "session_id"])).toBe(
+      false,
+    );
+  });
+
   it("rejects any field it does not recognize", () => {
     expect(isNonDestructiveSettingsChange("unknown_field", "value")).toBe(false);
   });

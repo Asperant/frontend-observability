@@ -7,6 +7,7 @@ import {
   checkNamedOpenobserveVolume,
   checkNoDangerousPrivileges,
   checkNoFloatingImages,
+  checkOpenObserveUiRumDisabled,
   checkResourceAndReliabilityLimits,
   checkSingleComposeFile,
   loadComposeDocument,
@@ -143,6 +144,30 @@ describe("static compose safety checks (against the real infrastructure/docker/c
   it("openobserve-data is a named volume mounted at /data, not a bind mount", () => {
     const { doc } = loadComposeDocument();
     expect(checkNamedOpenobserveVolume(doc)).toEqual({ pass: true, findings: [] });
+  });
+
+  it("keeps OpenObserve's own admin UI RUM instrumentation disabled", () => {
+    const { doc } = loadComposeDocument();
+    expect(checkOpenObserveUiRumDisabled(doc)).toEqual({ pass: true, findings: [] });
+  });
+
+  it("flags OpenObserve admin UI RUM instrumentation if it is reintroduced", () => {
+    const doc = {
+      services: {
+        openobserve: {
+          environment: {
+            ZO_RUM_ENABLED: "true",
+            ZO_RUM_SITE: "localhost:8443",
+          },
+        },
+      },
+    };
+    const result = checkOpenObserveUiRumDisabled(doc);
+    expect(result.pass).toBe(false);
+    expect(result.findings).toEqual([
+      expect.stringContaining("ZO_RUM_ENABLED"),
+      expect.stringContaining("ZO_RUM_SITE"),
+    ]);
   });
 
   it("images.lock.json has the expected schema shape", () => {

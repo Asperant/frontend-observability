@@ -92,7 +92,7 @@ describe("renderQueryTemplate", () => {
     expect(sql).toBe("select * from _rumdata where session_id = 'abc-123' limit 10");
   });
 
-  it("renders a DashboardVariableToken as a raw $-prefixed token, unescaped", () => {
+  it("renders a DashboardVariableToken as a quoted OpenObserve variable token", () => {
     const manifest = {
       sqlTemplate: "select * from _rumdata where session_id = {{session_id}} limit 10",
       requiredVariables: [],
@@ -102,7 +102,7 @@ describe("renderQueryTemplate", () => {
     const sql = renderQueryTemplate(manifest, {
       session_id: new DashboardVariableToken("session_id"),
     });
-    expect(sql).toBe("select * from _rumdata where session_id = $session_id limit 10");
+    expect(sql).toBe("select * from _rumdata where session_id = '$session_id' limit 10");
   });
 
   it("throws UNRESOLVED_PLACEHOLDER when the template contains an unrecognized token", () => {
@@ -137,8 +137,8 @@ describe("renderQueryTemplate", () => {
 });
 
 describe("DashboardVariableToken", () => {
-  it("exposes the $-prefixed SQL form via toSql", () => {
-    expect(new DashboardVariableToken("session_id").toSql()).toBe("$session_id");
+  it("exposes the quoted SQL-literal variable form via toSql", () => {
+    expect(new DashboardVariableToken("session_id").toSql()).toBe("'$session_id'");
   });
 
   it("throws for an invalid token name", () => {

@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "starterId": "frontend-operations",
-  "starterVersion": 1,
+  "starterVersion": 8,
   "folderName": "CHICEK Starters",
   "title": "Frontend Operations",
-  "description": "High-level health overview: session/view volume, error and resource failure rates, browser log levels, telemetry freshness, and error/resource/performance trends. Installed by pnpm lab:dashboards:install-starters as an initial template — edit or delete freely from the OpenObserve UI; this stage never overwrites your changes.",
+  "description": "High-level health overview: session/view volume, error and resource failure rates, browser log levels, telemetry freshness, and error/resource/performance trends. Installed by pnpm lab:dashboards:install-starters as an initial template \u2014 edit or delete freely from the OpenObserve UI; this stage never overwrites your changes.",
   "tabs": [
     {
-      "tabId": "default",
+      "tabId": "overview",
       "name": "Overview",
       "panels": [
         {
@@ -15,108 +15,204 @@
           "type": "metric",
           "title": "Sessions",
           "description": "",
-          "config": { "show_legends": false },
+          "config": {
+            "show_legends": false
+          },
           "queryRef": "sessions-count",
-          "layout": { "x": 0, "y": 0, "w": 4, "h": 6, "i": 1 }
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "w": 48,
+            "h": 6,
+            "i": 1
+          }
         },
         {
           "id": "views",
           "type": "metric",
           "title": "Views",
           "description": "",
-          "config": { "show_legends": false },
+          "config": {
+            "show_legends": false
+          },
           "queryRef": "views-count",
-          "layout": { "x": 4, "y": 0, "w": 4, "h": 6, "i": 2 }
+          "layout": {
+            "x": 0,
+            "y": 6,
+            "w": 48,
+            "h": 6,
+            "i": 2
+          }
         },
         {
           "id": "session-error-rate",
-          "type": "metric",
+          "type": "table",
           "title": "Sessions with error (rate)",
           "description": "0-1 ratio; NO_DATA when there are no sessions in range.",
-          "config": { "show_legends": false },
+          "config": {
+            "show_legends": false
+          },
           "queryRef": "session-error-rate",
-          "layout": { "x": 8, "y": 0, "w": 4, "h": 6, "i": 3 }
+          "layout": {
+            "x": 0,
+            "y": 12,
+            "w": 48,
+            "h": 8,
+            "i": 3
+          }
         },
         {
           "id": "errors-per-1000-views",
-          "type": "metric",
+          "type": "table",
           "title": "Errors per 1000 views",
           "description": "NO_DATA when there are no views in range.",
-          "config": { "show_legends": false },
+          "config": {
+            "show_legends": false
+          },
           "queryRef": "errors-per-1000-views",
-          "layout": { "x": 0, "y": 6, "w": 4, "h": 6, "i": 4 }
+          "layout": {
+            "x": 0,
+            "y": 20,
+            "w": 48,
+            "h": 8,
+            "i": 4
+          }
         },
         {
           "id": "resource-failure-rate",
-          "type": "metric",
+          "type": "table",
           "title": "Resource failure rate",
           "description": "0-1 ratio; NO_DATA when there are no resource events in range.",
-          "config": { "show_legends": false },
+          "config": {
+            "show_legends": false
+          },
           "queryRef": "resource-failure-rate",
-          "layout": { "x": 4, "y": 6, "w": 4, "h": 6, "i": 5 }
+          "layout": {
+            "x": 0,
+            "y": 28,
+            "w": 48,
+            "h": 8,
+            "i": 5
+          }
         },
         {
           "id": "freshness-rumdata",
           "type": "metric",
-          "title": "Freshness — RUM (_rumdata)",
-          "description": "Most recent _rumdata event timestamp (microseconds epoch); NO_DATA when nothing matched in range.",
-          "config": { "show_legends": false },
+          "title": "Freshness \u2014 RUM (_rumdata), seconds since last event",
+          "description": "Seconds elapsed since the most recent _rumdata event; NO_DATA when nothing matched in range.",
+          "config": {
+            "show_legends": false
+          },
           "queryRef": "last-observed-ingestion-age-rumdata",
-          "layout": { "x": 8, "y": 6, "w": 4, "h": 6, "i": 6 }
+          "layout": {
+            "x": 0,
+            "y": 36,
+            "w": 48,
+            "h": 6,
+            "i": 6
+          }
         },
         {
           "id": "freshness-rumlog",
           "type": "metric",
-          "title": "Freshness — Browser logs (_rumlog)",
-          "description": "Most recent _rumlog event timestamp (microseconds epoch); NO_DATA when nothing matched in range.",
-          "config": { "show_legends": false },
+          "title": "Freshness \u2014 Browser logs (_rumlog), seconds since last event",
+          "description": "Seconds elapsed since the most recent _rumlog event; NO_DATA when nothing matched in range.",
+          "config": {
+            "show_legends": false
+          },
           "queryRef": "last-observed-ingestion-age-rumlog",
-          "layout": { "x": 0, "y": 12, "w": 6, "h": 6, "i": 7 }
+          "layout": {
+            "x": 0,
+            "y": 42,
+            "w": 48,
+            "h": 6,
+            "i": 7
+          }
         },
         {
           "id": "browser-log-levels",
           "type": "table",
           "title": "Browser log counts by level",
           "description": "",
-          "config": { "show_legends": true },
+          "config": {
+            "show_legends": true
+          },
           "queryRef": "browser-log-counts-by-level",
-          "layout": { "x": 6, "y": 12, "w": 6, "h": 8, "i": 8 }
+          "layout": {
+            "x": 0,
+            "y": 48,
+            "w": 48,
+            "h": 8,
+            "i": 8
+          }
         },
         {
           "id": "error-trend",
-          "type": "line",
+          "type": "table",
           "title": "Error trend (hourly)",
           "description": "",
-          "config": { "show_legends": true },
+          "config": {
+            "show_legends": true
+          },
           "queryRef": "error-trend",
-          "layout": { "x": 0, "y": 20, "w": 12, "h": 8, "i": 9 }
+          "layout": {
+            "x": 0,
+            "y": 56,
+            "w": 48,
+            "h": 8,
+            "i": 9
+          }
         },
         {
           "id": "resource-failure-trend",
-          "type": "line",
+          "type": "table",
           "title": "Resource failure trend (hourly)",
           "description": "",
-          "config": { "show_legends": true },
+          "config": {
+            "show_legends": true
+          },
           "queryRef": "resource-failure-trend",
-          "layout": { "x": 0, "y": 28, "w": 12, "h": 8, "i": 10 }
+          "layout": {
+            "x": 0,
+            "y": 64,
+            "w": 48,
+            "h": 8,
+            "i": 10
+          }
         },
         {
           "id": "performance-trend",
-          "type": "line",
+          "type": "table",
           "title": "Long task trend (hourly)",
-          "description": "Native long_task capture is best-effort (see docs/openobserve-v0.91-stream-capabilities.md, Stage 15) — an empty trend is expected, not an error.",
-          "config": { "show_legends": true },
+          "description": "Native long_task capture is best-effort (see docs/openobserve-v0.91-stream-capabilities.md, Stage 15) \u2014 an empty trend is expected, not an error.",
+          "config": {
+            "show_legends": true
+          },
           "queryRef": "long-task-trend",
-          "layout": { "x": 0, "y": 36, "w": 12, "h": 8, "i": 11 }
+          "layout": {
+            "x": 0,
+            "y": 72,
+            "w": 48,
+            "h": 8,
+            "i": 11
+          }
         },
         {
           "id": "version-distribution",
           "type": "table",
           "title": "Version distribution (sessions vs. errors)",
           "description": "",
-          "config": { "show_legends": true },
+          "config": {
+            "show_legends": true
+          },
           "queryRef": "version-comparison",
-          "layout": { "x": 0, "y": 44, "w": 12, "h": 8, "i": 12 }
+          "layout": {
+            "x": 0,
+            "y": 80,
+            "w": 48,
+            "h": 8,
+            "i": 12
+          }
         }
       ]
     }

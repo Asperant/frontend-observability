@@ -19,7 +19,6 @@
     "errors-per-thousand-views",
     "resource-failure-rate",
     "web-vital-degradation",
-    "telemetry-freshness",
-    "version-regression"
+    "telemetry-freshness"
   ]
 }

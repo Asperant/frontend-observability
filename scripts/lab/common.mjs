@@ -3,6 +3,7 @@ import { constants as fsConstants } from "node:fs";
 import {
   chmodSync,
   closeSync,
+  existsSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
@@ -50,6 +51,7 @@ export const proxyDynamicDir = join(generatedDir, "proxy-dynamic");
 export const runtimeControlPath = join(proxyDynamicDir, "runtime-control.json");
 export const proxyGatePath = join(proxyDynamicDir, "proxy-gate.conf");
 export const killSwitchLockPath = join(generatedDir, "kill-switch.lock");
+export const runtimeControlDaemonPidPath = join(generatedDir, "runtime-control-daemon.pid");
 
 export const COMPOSE_PROJECT_NAME = "chicek-lab";
 
@@ -253,6 +255,32 @@ export async function withExclusiveLock(
       /* already removed by a concurrent cleanup; nothing left to do */
     }
   }
+}
+
+/**
+ * Stops a previously detached background process recorded by PID at
+ * `pidPath` (see runtime-control-refresh-daemon.mjs), then removes the PID
+ * file regardless of whether the process was still alive — a stale PID
+ * left behind (e.g. after a host reboot) must never block a future start.
+ */
+export function stopDetachedProcess(pidPath) {
+  if (!existsSync(pidPath)) return { stopped: false };
+  const pid = Number.parseInt(readFileSync(pidPath, "utf8").trim(), 10);
+  let stopped = false;
+  if (Number.isInteger(pid) && pid > 0) {
+    try {
+      process.kill(pid, "SIGTERM");
+      stopped = true;
+    } catch (error) {
+      if (error.code !== "ESRCH") throw error;
+    }
+  }
+  try {
+    unlinkSync(pidPath);
+  } catch {
+    /* already removed */
+  }
+  return { stopped };
 }
 
 export function isWorldOrGroupReadableSecret(path) {

@@ -1,4 +1,10 @@
-import { assertExactLabToolchain, log, runDockerCompose } from "./common.mjs";
+import {
+  assertExactLabToolchain,
+  log,
+  runDockerCompose,
+  runtimeControlDaemonPidPath,
+  stopDetachedProcess,
+} from "./common.mjs";
 
 /**
  * Removes containers and networks but deliberately never passes `-v`, so
@@ -6,6 +12,8 @@ import { assertExactLabToolchain, log, runDockerCompose } from "./common.mjs";
  * certs, generated runtime config) survive.
  */
 export function labDown() {
+  log("lab:down — stopping the runtime-control refresh daemon...");
+  stopDetachedProcess(runtimeControlDaemonPidPath);
   log("lab:down — stopping and removing containers/networks (volume and .runtime/ preserved)...");
   runDockerCompose(["down"]);
   log("lab:down complete.");

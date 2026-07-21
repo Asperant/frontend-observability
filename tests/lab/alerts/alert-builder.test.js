@@ -65,6 +65,16 @@ describe("buildOpenObserveAlert", () => {
       no_data_policy: "NOT_HEALTHY",
       query_error_policy: "NOT_HEALTHY",
     });
+    // Folded into description because OpenObserve's real, pinned-build-verified
+    // template tokens never include {alert_context_attributes.*} — only
+    // {alert_description} is real (docs/openobserve-v0.91-alert-capabilities.md #16).
+    expect(alert.description).toContain("severity=high");
+    expect(alert.description).toContain("service=svc'quoted");
+    expect(alert.description).toContain("environment=lab");
+    expect(alert.description).toContain("version=1.2.3");
+    expect(alert.description).toContain("dashboardRef=dashboard");
+    expect(alert.description).toContain("runbookRef=runbook");
+    expect(alert.description).toContain("dedupKey=dedup");
   });
 
   it("uses p75 for web vital candidate SQL and nullable version scope text", () => {
@@ -84,25 +94,14 @@ describe("buildOpenObserveAlert", () => {
     expect(alert.context_attributes.version).toBe("bounded-by-alert-query");
   });
 
-  it("keeps telemetry freshness and version regression disabled until company decisions exist", () => {
+  it("keeps telemetry freshness disabled until a company decision exists", () => {
     const freshness = build({
       ...basePolicy,
       id: "telemetry-freshness",
       metricId: "last_observed_ingestion_age_rumdata",
       threshold: { starterValue: "REQUIRED_COMPANY_DECISION" },
-      sample: { field: "last_event_us", minimum: 1 },
+      sample: { field: "freshness_seconds", minimum: 1 },
     });
-    expect(freshness.query_condition.sql).toContain("last_event_us is not null and false");
-
-    const version = build({
-      ...basePolicy,
-      id: "version-regression",
-      metricId: "version_comparison",
-      threshold: { absoluteStarterValue: 0.05 },
-      sample: { minimumCurrent: 30, minimumBaseline: 30 },
-    });
-    expect(version.query_condition.sql).toContain(
-      "current_sessions >= 30 and baseline_sessions >= 30 and false",
-    );
+    expect(freshness.query_condition.sql).toContain("freshness_seconds is not null and false");
   });
 });

@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "resolvedAt": "2026-07-19T00:00:00Z",
+  "resolvedAt": "2026-07-21T00:00:00Z",
   "images": [
     {
       "purpose": "openobserve",
       "registry": "public.ecr.aws",
       "repository": "zinclabs/openobserve",
-      "tag": "v0.91.0",
-      "digest": "sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8",
+      "tag": "v0.91.2",
+      "digest": "sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15",
       "platform": "linux/amd64",
       "prerelease": false
     },

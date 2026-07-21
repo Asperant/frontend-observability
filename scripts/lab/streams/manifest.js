@@ -35,7 +35,25 @@ function normalizeManagedValue(field, value) {
     if (value && typeof value === "object") return Object.keys(value).length === 0 ? [] : value;
     return value;
   }
+  if (field === "distinct_value_fields") {
+    return normalizeDistinctValueFields(value);
+  }
   return value;
+}
+
+/**
+ * The real API read-back shape for a populated `distinct_value_fields` is
+ * an object array carrying a server-assigned `added_ts` per entry
+ * (`[{"name":"service","added_ts":<int>}, ...]`), not the flat string array
+ * a manifest declares (see docs/openobserve-v0.91-stream-capabilities.md
+ * capability #11a). Strip the volatile `added_ts` down to just the name so
+ * it can be compared 1:1 against a manifest's desired plain-string array.
+ */
+function normalizeDistinctValueFields(value) {
+  if (!Array.isArray(value)) return value;
+  return value.map((entry) =>
+    entry && typeof entry === "object" && "name" in entry ? entry.name : entry,
+  );
 }
 
 /**

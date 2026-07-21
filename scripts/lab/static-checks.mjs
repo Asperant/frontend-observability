@@ -306,6 +306,29 @@ export function checkNamedOpenobserveVolume(doc) {
   return { pass: findings.length === 0, findings };
 }
 
+/**
+ * The lab must not enable OpenObserve's own web-UI RUM instrumentation.
+ * Browser telemetry for this project is produced only by apps/demo-frontend
+ * through @chicek/browser-observability. If the admin UI instruments itself,
+ * it sends noisy /rum and /replay requests to the browser-facing self-signed
+ * endpoint and can make dashboard UX appear frozen.
+ */
+export function checkOpenObserveUiRumDisabled(doc) {
+  const findings = [];
+  const environment = doc.services?.openobserve?.environment ?? {};
+  const rumKeys = Object.keys(environment).filter((key) => key.startsWith("ZO_RUM_"));
+  if (rumKeys.includes("ZO_RUM_ENABLED")) {
+    findings.push("openobserve must not set ZO_RUM_ENABLED; admin UI RUM must stay disabled.");
+  }
+  const uiRumConfigKeys = rumKeys.filter((key) => key !== "ZO_RUM_CLIENT_TOKEN");
+  if (uiRumConfigKeys.length > 0) {
+    findings.push(
+      `openobserve must not set web-UI RUM config keys: ${uiRumConfigKeys.join(", ")}.`,
+    );
+  }
+  return { pass: findings.length === 0, findings };
+}
+
 export function runAllStaticChecks() {
   const { doc } = loadComposeDocument();
   const checks = [
@@ -317,6 +340,7 @@ export function runAllStaticChecks() {
     ["no dangerous privileges", checkNoDangerousPrivileges(doc)],
     ["resource/reliability limits", checkResourceAndReliabilityLimits(doc)],
     ["named openobserve volume", checkNamedOpenobserveVolume(doc)],
+    ["openobserve admin UI RUM disabled", checkOpenObserveUiRumDisabled(doc)],
   ];
   const findings = [];
   for (const [label, result] of checks) {

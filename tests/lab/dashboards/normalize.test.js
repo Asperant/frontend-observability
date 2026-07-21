@@ -36,12 +36,22 @@ describe("extractDashboardBody", () => {
     expect(extractDashboardBody(REAL_ENVELOPE)).toBe(REAL_ENVELOPE.v3);
   });
 
-  it("throws for a non-v3 envelope", () => {
-    expect(() => extractDashboardBody({ version: 2, v3: null })).toThrow(/expected a v3/);
+  it("extracts the active version body from a newer OpenObserve envelope", () => {
+    const envelope = {
+      ...REAL_ENVELOPE,
+      v3: null,
+      v8: { ...REAL_ENVELOPE.v3, version: 8, title: "Session Investigation" },
+      version: 8,
+    };
+    expect(extractDashboardBody(envelope)).toBe(envelope.v8);
+  });
+
+  it("throws for an envelope with no populated body", () => {
+    expect(() => extractDashboardBody({ version: 2, v3: null })).toThrow(/populated/);
   });
 
   it("throws for a null/undefined envelope", () => {
-    expect(() => extractDashboardBody(null)).toThrow(/expected a v3/);
+    expect(() => extractDashboardBody(null)).toThrow(/versioned dashboard envelope/);
   });
 });
 

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "id": "web-vital-inp-percentiles",
-  "version": 1,
+  "version": 2,
   "metricId": "web_vital_percentiles_inp",
-  "title": "Interaction to Next Paint percentiles",
+  "title": "Interaction to Next Paint percentiles (ms)",
   "queryClass": "OVERVIEW",
   "stream": "_rumdata",
-  "sqlTemplate": "select approx_percentile_cont(view_interaction_to_next_paint, 0.5) as p50, approx_percentile_cont(view_interaction_to_next_paint, 0.75) as p75, approx_percentile_cont(view_interaction_to_next_paint, 0.95) as p95, count(*) filter (where view_interaction_to_next_paint is not null) as sample_count from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'view'",
+  "sqlTemplate": "select approx_percentile_cont(view_interaction_to_next_paint, 0.5) / 1000000.0 as p50, approx_percentile_cont(view_interaction_to_next_paint, 0.75) / 1000000.0 as p75, approx_percentile_cont(view_interaction_to_next_paint, 0.95) / 1000000.0 as p95, count(*) filter (where view_interaction_to_next_paint is not null) as sample_count from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'view'",
   "requiredVariables": ["service", "environment"],
   "optionalVariables": [
     {
@@ -22,22 +22,22 @@
   "expectedColumns": [
     {
       "name": "p50",
-      "type": "Int64"
+      "type": "Float64"
     },
     {
       "name": "p75",
-      "type": "Int64"
+      "type": "Float64"
     },
     {
       "name": "p95",
-      "type": "Int64"
+      "type": "Float64"
     },
     {
       "name": "sample_count",
       "type": "Int64"
     }
   ],
-  "emptyDataSemantics": "sample_count = 0 -> p50/p75/p95 are SQL NULL -> NO_DATA, never rendered as 0ns.",
+  "emptyDataSemantics": "sample_count = 0 -> p50/p75/p95 are SQL NULL -> NO_DATA, never rendered as 0ms.",
   "cardinalityClass": "LOW_CARDINALITY_OVERVIEW",
   "hasDivisionGuard": false
 }

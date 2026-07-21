@@ -24,6 +24,7 @@ import { loadAllQueryManifests, loadAllStarterDashboards } from "./dashboards/ca
 import { decideRestoreAction } from "./dashboards/guard.js";
 import { recordStarterInstalled } from "./dashboards/install-state.mjs";
 import { parseMarker } from "./dashboards/marker.js";
+import { extractDashboardBody } from "./dashboards/normalize.js";
 import { buildStarterDashboardBody } from "./dashboards/panel-builder.js";
 import { DashboardVariableToken } from "./dashboards/sql-template.js";
 import { DEMO_IDENTITY } from "../../apps/demo-frontend/src/identity.js";
@@ -100,7 +101,7 @@ export async function dashboardsRestoreStarters({ confirmed }) {
       continue;
     }
 
-    const dashboardId = created.body.v3.dashboardId;
+    const dashboardId = extractDashboardBody(created.body).dashboardId;
     const readBack = await getDashboard(auth, dashboardId, folderId);
     recordStarterInstalled(starter.starterId, starter.starterVersion);
     results.push({

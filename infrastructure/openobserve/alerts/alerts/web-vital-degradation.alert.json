@@ -16,8 +16,8 @@
   "evaluation": { "intervalMinutes": 1, "lookbackMinutes": 15 },
   "threshold": {
     "direction": "above",
-    "starterValue": 2500000000,
-    "unit": "nanoseconds",
+    "starterValue": 2500,
+    "unit": "milliseconds",
     "productionValue": "REQUIRED_COMPANY_DECISION"
   },
   "sample": { "field": "sample_count", "minimum": 30 },
@@ -26,7 +26,7 @@
   "deduplicationKey": "frontend:{service}:{environment}:web-vital-degradation:lcp",
   "recoveryCondition": {
     "direction": "below_or_equal",
-    "value": 2000000000,
+    "value": 2000,
     "requiredConsecutiveHealthy": 2
   },
   "noDataPolicy": "NOT_HEALTHY",

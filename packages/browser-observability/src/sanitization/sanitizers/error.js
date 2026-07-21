@@ -53,10 +53,38 @@ function normalizeError(error) {
     if (typeof error === "string") {
       return { name: "Error", message: error, stack: undefined };
     }
+    if (isPreNormalizedError(error)) {
+      return {
+        name: sanitizeName(error.name),
+        message: error.message,
+        stack: typeof error.stack === "string" ? error.stack : undefined,
+      };
+    }
   } catch {
     return { name: "UnknownError", message: "Unknown error", stack: undefined };
   }
   return { name: "UnknownError", message: "Unknown error", stack: undefined };
+}
+
+/**
+ * Recognizes the exact {name, message, stack} shape this same sanitizer
+ * already produces (see the `instanceof Error` branch above and
+ * ../sanitize-error.js's return value). Without this, calling sanitizeError
+ * a second time on its own already-sanitized output — which is exactly what
+ * happens on the real recordError() path: record-error.js sanitizes the
+ * caller's raw error once, then hands the resulting plain object to the
+ * active adapter's mapError(), which defensively sanitizes again — would
+ * hit neither the `instanceof Error` nor the `string` branch and silently
+ * collapse every error to "UnknownError"/"Unknown error", discarding the
+ * real name and message end-to-end.
+ */
+function isPreNormalizedError(value) {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    typeof value.message === "string"
+  );
 }
 
 function sanitizeName(name) {

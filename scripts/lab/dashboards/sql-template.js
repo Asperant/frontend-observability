@@ -62,7 +62,7 @@ export class DashboardVariableToken {
   }
 
   toSql() {
-    return `$${this.name}`;
+    return `'$${this.name}'`;
   }
 }
 

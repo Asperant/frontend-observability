@@ -18,6 +18,26 @@ import {
 import { loadAllStreamDefinitions } from "./streams/load-manifests.mjs";
 import { diffSettings, isNoChange, normalizeServerSettings } from "./streams/manifest.js";
 
+// distinct_value_fields is additive-only and a single PUT only ever
+// registers the first name in the array (see
+// docs/openobserve-v0.91-stream-capabilities.md capability #11a) — it
+// cannot share the generic single-PUT patch every other managed field
+// uses. Each name in the desired list that isn't already present needs its
+// own sequential call, shaped as a one-element nested array.
+async function applyDistinctValueFieldsDiff(auth, manifest, diff, actualNames) {
+  const missingNames = diff.desired.filter((name) => !actualNames.includes(name));
+  for (const name of missingNames) {
+    const result = await updateStreamSettings(
+      auth,
+      manifest.streamName,
+      { distinct_value_fields: [[name]] },
+      manifest.streamType,
+    );
+    if (!result.ok) return result;
+  }
+  return { ok: true };
+}
+
 export async function streamsProvision() {
   const auth = readAdminAuthHeader();
   const results = [];
@@ -50,13 +70,27 @@ export async function streamsProvision() {
       continue;
     }
 
-    const patch = Object.fromEntries(diffs.map((diff) => [diff.field, diff.desired]));
-    const applyResult = await updateStreamSettings(
-      auth,
-      manifest.streamName,
-      patch,
-      manifest.streamType,
-    );
+    const distinctDiff = diffs.find((diff) => diff.field === "distinct_value_fields");
+    const otherDiffs = diffs.filter((diff) => diff.field !== "distinct_value_fields");
+
+    let applyResult = { ok: true };
+    if (otherDiffs.length > 0) {
+      const patch = Object.fromEntries(otherDiffs.map((diff) => [diff.field, diff.desired]));
+      applyResult = await updateStreamSettings(
+        auth,
+        manifest.streamName,
+        patch,
+        manifest.streamType,
+      );
+    }
+    if (applyResult.ok && distinctDiff) {
+      applyResult = await applyDistinctValueFieldsDiff(
+        auth,
+        manifest,
+        distinctDiff,
+        before.distinct_value_fields ?? [],
+      );
+    }
     if (!applyResult.ok) {
       results.push({
         stream: manifest.streamName,

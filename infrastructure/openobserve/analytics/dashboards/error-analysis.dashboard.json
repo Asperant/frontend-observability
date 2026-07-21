@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "starterId": "error-analysis",
-  "starterVersion": 1,
+  "starterVersion": 5,
   "folderName": "CHICEK Starters",
   "title": "Error Analysis",
-  "description": "Error classification, browser/version breakdowns, error trend, and a bounded recent-errors detail table (session_id column only, for manual drill-down into the Session Investigation dashboard's session_id variable — this stage does not verify deep-linking between dashboards). Normalized per-route breakdown is not supported on this pinned schema: no low-cardinality route field exists (only raw, high-cardinality view_url) without adding a new pipeline-derived field, which is out of this stage's scope — see docs/openobserve-query-dashboard-governance.md. Installed by pnpm lab:dashboards:install-starters as an initial template — edit or delete freely from the OpenObserve UI; this stage never overwrites your changes.",
+  "description": "Error classification, browser/version breakdowns, error trend, and a bounded recent-errors detail table (session_id column only, for manual drill-down into the Session Investigation dashboard's session_id variable \u2014 this stage does not verify deep-linking between dashboards). Normalized per-route breakdown is not supported on this pinned schema: no low-cardinality route field exists (only raw, high-cardinality view_url) without adding a new pipeline-derived field, which is out of this stage's scope \u2014 see docs/openobserve-query-dashboard-governance.md. Installed by pnpm lab:dashboards:install-starters as an initial template \u2014 edit or delete freely from the OpenObserve UI; this stage never overwrites your changes.",
   "tabs": [
     {
-      "tabId": "default",
+      "tabId": "overview",
       "name": "Overview",
       "panels": [
         {
@@ -15,45 +15,85 @@
           "type": "table",
           "title": "Top error classifications",
           "description": "",
-          "config": { "show_legends": true },
+          "config": {
+            "show_legends": true
+          },
           "queryRef": "top-error-classifications",
-          "layout": { "x": 0, "y": 0, "w": 12, "h": 8, "i": 1 }
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "w": 48,
+            "h": 8,
+            "i": 1
+          }
         },
         {
           "id": "browser-breakdown",
           "type": "table",
           "title": "Sessions by browser family",
           "description": "",
-          "config": { "show_legends": true },
+          "config": {
+            "show_legends": true
+          },
           "queryRef": "browser-distribution",
-          "layout": { "x": 0, "y": 8, "w": 6, "h": 8, "i": 2 }
+          "layout": {
+            "x": 0,
+            "y": 8,
+            "w": 48,
+            "h": 8,
+            "i": 2
+          }
         },
         {
           "id": "version-breakdown",
           "type": "table",
           "title": "Version breakdown (sessions vs. errors)",
           "description": "",
-          "config": { "show_legends": true },
+          "config": {
+            "show_legends": true
+          },
           "queryRef": "version-comparison",
-          "layout": { "x": 6, "y": 8, "w": 6, "h": 8, "i": 3 }
+          "layout": {
+            "x": 0,
+            "y": 16,
+            "w": 48,
+            "h": 8,
+            "i": 3
+          }
         },
         {
           "id": "error-trend",
-          "type": "line",
+          "type": "table",
           "title": "Error trend (hourly)",
           "description": "",
-          "config": { "show_legends": true },
+          "config": {
+            "show_legends": true
+          },
           "queryRef": "error-trend",
-          "layout": { "x": 0, "y": 16, "w": 12, "h": 8, "i": 4 }
+          "layout": {
+            "x": 0,
+            "y": 24,
+            "w": 48,
+            "h": 8,
+            "i": 4
+          }
         },
         {
           "id": "recent-errors-detail",
           "type": "table",
           "title": "Recent errors (detail, session drill-down)",
-          "description": "Bounded to the most recent 20 errors. error_message/session_id are high-cardinality fields shown only in this bounded, ordered list — never grouped on. Copy a session_id into the Session Investigation dashboard's session_id variable to drill in.",
-          "config": { "show_legends": true },
+          "description": "Bounded to the most recent 20 errors. error_message/session_id are high-cardinality fields shown only in this bounded, ordered list \u2014 never grouped on. Copy a session_id into the Session Investigation dashboard's session_id variable to drill in.",
+          "config": {
+            "show_legends": true
+          },
           "queryRef": "recent-errors-detail",
-          "layout": { "x": 0, "y": 24, "w": 12, "h": 8, "i": 5 }
+          "layout": {
+            "x": 0,
+            "y": 32,
+            "w": 48,
+            "h": 8,
+            "i": 5
+          }
         }
       ]
     }

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "id": "web-vital-lcp-by-browser",
-  "version": 1,
+  "version": 2,
   "metricId": null,
-  "title": "Largest Contentful Paint by browser family",
+  "title": "Largest Contentful Paint by browser family (ms)",
   "queryClass": "TABLE",
   "stream": "_rumdata",
-  "sqlTemplate": "select user_agent_user_agent_family as browser, approx_percentile_cont(view_largest_contentful_paint, 0.75) as p75, count(*) filter (where view_largest_contentful_paint is not null) as sample_count from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'view' group by user_agent_user_agent_family order by p75 desc limit 20",
+  "sqlTemplate": "select user_agent_user_agent_family as browser, approx_percentile_cont(view_largest_contentful_paint, 0.75) / 1000000.0 as p75, count(*) filter (where view_largest_contentful_paint is not null) as sample_count from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'view' group by user_agent_user_agent_family order by p75 desc limit 20",
   "requiredVariables": ["service", "environment"],
   "optionalVariables": [
     { "name": "version", "column": "version", "clausePlaceholder": "{{version_clause}}" }
@@ -17,7 +17,7 @@
   "timeoutBudgetMs": 10000,
   "expectedColumns": [
     { "name": "browser", "type": "Utf8" },
-    { "name": "p75", "type": "Int64" },
+    { "name": "p75", "type": "Float64" },
     { "name": "sample_count", "type": "Int64" }
   ],
   "emptyDataSemantics": "No matching view records -> an empty result set (zero rows); a present row's p75 is only NULL if that browser group's sample_count is 0, which cannot happen since the GROUP BY only ever produces rows for browsers that had at least one matching view.",

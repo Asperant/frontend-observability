@@ -69,17 +69,30 @@ function createAlertSinkState() {
 function sanitizeAlertSinkBody(body) {
   if (!body || typeof body !== "object" || Array.isArray(body)) return {};
   const allowed = [
+    // Real, live-verified OpenObserve scheduled-alert notification fields
+    // (docs/openobserve-v0.91-alert-capabilities.md capability #16):
+    // alert_name/alert_agg_value/alert_period/alert_trigger_time_str/
+    // stream_name/org_name/alert_description are the only tokens this
+    // pinned build actually substitutes.
     "alert",
+    "measuredValue",
+    "evaluationWindowMinutes",
+    "firingTime",
+    "stream",
+    "org",
+    "description",
+    // scripts/lab/alerts-test-notification.mjs's own synthetic probe fields
+    // (a manually-constructed firing/resolved pair sent straight to this
+    // sink to verify it can handle either shape — not fields OpenObserve's
+    // real scheduled-alert engine currently populates).
     "severity",
     "status",
     "service",
     "environment",
     "version",
-    "measuredValue",
     "threshold",
     "sampleSize",
     "evaluationWindow",
-    "firingTime",
     "dashboardRef",
     "runbookRef",
     "dedupKey",

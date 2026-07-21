@@ -19,7 +19,7 @@
     "starterValue": "REQUIRED_COMPANY_DECISION_MAXIMUM_SILENCE_MINUTES",
     "productionValue": "REQUIRED_COMPANY_DECISION"
   },
-  "sample": { "field": "last_event_us", "minimum": 1 },
+  "sample": { "field": "freshness_seconds", "minimum": 1 },
   "breach": { "requiredConsecutiveBreaches": 2 },
   "cooldown": { "minutes": 30 },
   "deduplicationKey": "frontend:{service}:{environment}:telemetry-freshness",

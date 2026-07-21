@@ -10,6 +10,7 @@ import {
   listDestinations,
   listTemplates,
   readAdminAuthHeader,
+  updateTemplate,
 } from "./alerts/admin-client.mjs";
 import { buildOpenObserveAlert } from "./alerts/alert-builder.js";
 import { loadAllAlertPolicies, loadAlertTemplates } from "./alerts/catalog.mjs";
@@ -19,14 +20,28 @@ import { loadAllQueryManifests } from "./dashboards/catalog.mjs";
 
 export const LOCAL_DESTINATION_NAME = "chicek-stage17-local-alert-sink";
 
+// A name-only existence check would silently ignore a body edit to this
+// repo's own template forever (this is exactly why getting capability
+// #16's token fix live required manually deleting the template/destination
+// by hand instead of just re-running this command) — so body content is
+// diffed and pushed via a real update, not just "already exists".
 async function ensureTemplate(auth, template) {
   const existing = await listTemplates(auth);
-  if (existing.some((item) => item.name === template.openObserveTemplateName)) {
+  const match = existing.find((item) => item.name === template.openObserveTemplateName);
+  if (!match) {
+    const result = await createTemplate(auth, template);
+    return {
+      outcome: result.status === 200 ? "TEMPLATE_CREATED" : "TEMPLATE_CREATE_FAILED",
+      status: result.status,
+      name: template.openObserveTemplateName,
+    };
+  }
+  if (match.body === template.body) {
     return { outcome: "TEMPLATE_EXISTS", name: template.openObserveTemplateName };
   }
-  const result = await createTemplate(auth, template);
+  const result = await updateTemplate(auth, template);
   return {
-    outcome: result.status === 200 ? "TEMPLATE_CREATED" : "TEMPLATE_CREATE_FAILED",
+    outcome: result.status === 200 ? "TEMPLATE_UPDATED" : "TEMPLATE_UPDATE_FAILED",
     status: result.status,
     name: template.openObserveTemplateName,
   };

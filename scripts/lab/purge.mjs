@@ -1,7 +1,15 @@
 import { createInterface } from "node:readline/promises";
 import { rmSync } from "node:fs";
 
-import { assertExactLabToolchain, log, logError, runDockerCompose, runtimeDir } from "./common.mjs";
+import {
+  assertExactLabToolchain,
+  log,
+  logError,
+  runDockerCompose,
+  runtimeControlDaemonPidPath,
+  runtimeDir,
+  stopDetachedProcess,
+} from "./common.mjs";
 
 async function confirmInteractively() {
   if (!process.stdin.isTTY) return false;
@@ -28,6 +36,9 @@ export async function labPurge({ yes = false } = {}) {
     logError("lab:purge aborted: confirmation required (pass --yes or confirm interactively).");
     return { purged: false };
   }
+
+  log("lab:purge — stopping the runtime-control refresh daemon...");
+  stopDetachedProcess(runtimeControlDaemonPidPath);
 
   log("lab:purge — removing containers, networks, and volumes for this project...");
   runDockerCompose(["down", "--volumes", "--remove-orphans"]);

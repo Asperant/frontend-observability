@@ -5,9 +5,11 @@ import { atomicWriteFile, runtimeConfigPath, rumClientTokenSecretPath } from "./
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Must match the ZO_RUM_* environment the openobserve service is given in
-// compose.yaml, and the exact ingestion path the real SDK will build from
-// them: https://{site}/rum/{apiVersion}/{organizationIdentifier}/{rum|logs}.
+// Must match the exact ingestion path the real SDK will build and the
+// reverse proxy allowlists: https://{site}/rum/{apiVersion}/{organizationIdentifier}/{rum|logs}.
+// Do not mirror these values into OpenObserve's own ZO_RUM_* web-UI
+// instrumentation env vars; the lab observes the demo app, not the
+// OpenObserve admin UI.
 export const RUM_SITE = "localhost:8443";
 export const RUM_ORGANIZATION_IDENTIFIER = "default";
 export const RUM_APPLICATION_ID = "chicek-demo-frontend";

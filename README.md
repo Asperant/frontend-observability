@@ -126,7 +126,7 @@ Session Replay paneli veya guaranteed-delivery iddiası hiçbir dashboardda yokt
 
 ## OpenObserve Alert ve Incident Governance (Aşama 17)
 
-Altı starter alert policy (`infrastructure/openobserve/alerts/`) Stage 16 metric/query catalog'larını referanslar: error-session-rate, errors-per-thousand-views, resource-failure-rate, web-vital-degradation, telemetry-freshness ve version-regression. Production starter alert'leri disabled gelir; threshold, destination, owner, expected traffic ve escalation kararları `REQUIRED_COMPANY_DECISION` olarak kalır. Capability sonucu için bkz. [`docs/openobserve-v0.91-alert-capabilities.md`](docs/openobserve-v0.91-alert-capabilities.md), yönetim modeli için bkz. [`docs/openobserve-alert-incident-governance.md`](docs/openobserve-alert-incident-governance.md).
+Beş starter alert policy (`infrastructure/openobserve/alerts/`) Stage 16 metric/query catalog'larını referanslar: error-session-rate, errors-per-thousand-views, resource-failure-rate, web-vital-degradation ve telemetry-freshness. Production starter alert'leri disabled gelir; threshold, destination, owner, expected traffic ve escalation kararları `REQUIRED_COMPANY_DECISION` olarak kalır. Capability sonucu için bkz. [`docs/openobserve-v0.91-alert-capabilities.md`](docs/openobserve-v0.91-alert-capabilities.md), yönetim modeli için bkz. [`docs/openobserve-alert-incident-governance.md`](docs/openobserve-alert-incident-governance.md).
 
 ```bash
 pnpm lab:alerts:install-starters

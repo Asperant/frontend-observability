@@ -6,7 +6,7 @@
 # and is always exec'd as PID 1 with its original, unmodified arguments.
 FROM docker.io/library/busybox:1.38.0-musl@sha256:ffcc8d72c1b3749dd2240e27f79b987eb227538835a2675b1d5849b053a39195 AS shell
 
-FROM public.ecr.aws/zinclabs/openobserve:v0.91.0@sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8
+FROM public.ecr.aws/zinclabs/openobserve:v0.91.2@sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15
 
 COPY --from=shell /bin/busybox /bin/busybox
 RUN ["/bin/busybox", "sh", "-c", "\

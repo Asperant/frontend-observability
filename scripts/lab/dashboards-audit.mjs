@@ -17,6 +17,7 @@ import {
   search,
 } from "./dashboards/admin-client.mjs";
 import { auditDashboard, RISK_CLASS } from "./dashboards/audit.js";
+import { extractDashboardBody } from "./dashboards/normalize.js";
 
 const AUDIT_WINDOW_HOURS = 168;
 
@@ -42,8 +43,9 @@ export async function dashboardsAudit() {
   for (const folder of folders) {
     const dashboards = await listDashboards(auth, folder.folderId);
     for (const dashboard of dashboards) {
+      const dashboardBody = extractDashboardBody(dashboard);
       const queryResults = {};
-      for (const tab of dashboard.v3.tabs ?? []) {
+      for (const tab of dashboardBody.tabs ?? []) {
         for (const panel of tab.panels ?? []) {
           for (const query of panel.queries ?? []) {
             if (containsUnresolvedVariableToken(query.query ?? "")) continue;
@@ -51,7 +53,7 @@ export async function dashboardsAudit() {
           }
         }
       }
-      const audit = auditDashboard(dashboard.v3, { queryResults });
+      const audit = auditDashboard(dashboardBody, { queryResults });
       reports.push({
         folderName: folder.name,
         dashboardId: dashboard.dashboard_id,

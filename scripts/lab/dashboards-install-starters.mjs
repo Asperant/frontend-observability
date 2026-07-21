@@ -28,6 +28,7 @@ import {
 } from "./dashboards/guard.js";
 import { readInstallState, recordStarterInstalled } from "./dashboards/install-state.mjs";
 import { parseMarker } from "./dashboards/marker.js";
+import { extractDashboardBody } from "./dashboards/normalize.js";
 import { buildStarterDashboardBody } from "./dashboards/panel-builder.js";
 import { DashboardVariableToken } from "./dashboards/sql-template.js";
 import { DEMO_IDENTITY } from "../../apps/demo-frontend/src/identity.js";
@@ -119,15 +120,17 @@ export async function dashboardsInstallStarters() {
       continue;
     }
 
-    const dashboardId = created.body.v3.dashboardId;
+    const createdBody = extractDashboardBody(created.body);
+    const dashboardId = createdBody.dashboardId;
     const readBack = await getDashboard(auth, dashboardId, folderId);
-    const marker = readBack ? parseMarker(readBack.v3.description) : null;
+    const readBackBody = readBack ? extractDashboardBody(readBack) : null;
+    const marker = readBackBody ? parseMarker(readBackBody.description) : null;
     const readBackOk =
-      readBack !== null &&
-      readBack.v3.title === starter.title &&
+      readBackBody !== null &&
+      readBackBody.title === starter.title &&
       marker?.starterId === starter.starterId &&
       marker?.starterVersion === starter.starterVersion &&
-      countPanels(readBack.v3.tabs) === countPanels(body.tabs);
+      countPanels(readBackBody.tabs) === countPanels(body.tabs);
 
     recordStarterInstalled(starter.starterId, starter.starterVersion);
 

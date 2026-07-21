@@ -231,9 +231,8 @@ Stage 8's own gate already does.
 ## Index and partition decision
 
 **Default result: no custom partition, no all-fields full-text index, no all-fields
-secondary index, no distinct-values index.** All of `full_text_search_keys`,
-`index_fields`, `bloom_filter_fields`, `partition_keys`, `distinct_value_fields` stay at
-the server default (empty/off) in both manifests.
+secondary index.** `full_text_search_keys`, `index_fields`, `bloom_filter_fields`,
+`partition_keys` stay at the server default (empty/off) in both manifests.
 
 This is a decision to defer, not an oversight. The roadmap task is explicit that a real
 index/partition change requires a _measured_ query-profile benefit against Stage 10's own
@@ -246,6 +245,27 @@ production-shaped data volume and query pattern this stage does not have — tha
 measurement, and any resulting index/partition change, is explicitly left to Stage 16
 (Dashboard ve sorgular), which is the stage that will actually define and run the
 representative query workload.
+
+`distinct_value_fields` is the one exception, and it was not a Stage 15 decision: Stage 16
+installed starter dashboards (`performance-resources.dashboard.json`) whose Service/
+Environment `query_values` variables depend on this exact capability, and provisioning
+against it (before this asymmetry was understood) left `_rumdata` with `service`/`env`
+both added. This pinned OpenObserve build's `distinct_value_fields` is
+**additive-only and cannot be cleared back to empty** once a name has been added — proven
+on a disposable stream, not inferred (see
+`docs/openobserve-v0.91-stream-capabilities.md` capability #11a): a `{"distinct_value_fields":[]}`
+write returns `200` but a follow-up read-back shows the exact same entries, unchanged. Given
+that the field cannot be reverted short of deleting the whole canonical stream, and that
+`service`/`env` are both bounded, single-value-in-this-lab identity fields (see
+`apps/demo-frontend/src/identity.js`) rather than unbounded/high-cardinality data, Stage 15's
+`_rumdata` manifest now asserts this state explicitly — `["service", "env"]` — instead of
+fighting an API limitation that cannot be undone. This is a narrow, explicit allowlist, not a
+general policy change: `scripts/lab/streams/guard.js#isNonDestructiveSettingsChange` only ever
+treats writing exactly these two field names (or clearing to `[]`, even though clearing is now
+known to be a no-op) as a safe automatic provisioning action — any other `distinct_value_fields`
+value, on either canonical stream, still reports as `INDEX_DRIFT` via `lab:streams:verify` and is
+refused by `lab:streams:provision`. `_rumlog` keeps the original empty-default decision above
+unchanged; it was never subject to this drift.
 
 Two real, verified constraints future work must account for either way (capability audit
 #7a): the settings-write shape for `full_text_search_keys`/`index_fields`/
