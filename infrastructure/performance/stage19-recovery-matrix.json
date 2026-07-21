@@ -53,7 +53,7 @@
         "pipelines",
         "streamSettings",
         "starterDashboards4",
-        "starterAlerts6",
+        "starterAlerts",
         "companyOwnedDisposableAsset"
       ],
       "notes": "Heaviest, most stateful container. depends_on.restart:true on alert-sink means this scenario also exercises the alert-sink auto-restart path."

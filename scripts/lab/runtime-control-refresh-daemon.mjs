@@ -40,6 +40,8 @@ process.on("SIGTERM", () => {
   process.exit(0);
 });
 
-logLine(`runtime-control-refresh-daemon started (pid=${process.pid}, interval=${REFRESH_INTERVAL_MS}ms)`);
+logLine(
+  `runtime-control-refresh-daemon started (pid=${process.pid}, interval=${REFRESH_INTERVAL_MS}ms)`,
+);
 tick();
 setInterval(tick, REFRESH_INTERVAL_MS);

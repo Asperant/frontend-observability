@@ -80,6 +80,7 @@ function companyAlertBody(owner, queryManifest) {
 async function verifyOwnershipLifecycle() {
   const auth = readAdminAuthHeader();
   const owner = readFileSync(emailSecretPath, "utf8").trim();
+  const expectedStarterCount = loadAllAlertPolicies().length;
   const queries = new Map(loadAllQueryManifests().map((query) => [query.id, query]));
   const company = await createAlert(
     auth,
@@ -102,8 +103,10 @@ async function verifyOwnershipLifecycle() {
   const restored = await alertsRestoreStarters({ confirmed: true });
   if (!restored.allowed) throw new Error("confirmed starter restore was refused");
   const restoredStatus = await alertsStatus();
-  if (restoredStatus.starters !== 6) {
-    throw new Error(`confirmed starter restore left ${restoredStatus.starters} starters`);
+  if (restoredStatus.starters !== expectedStarterCount) {
+    throw new Error(
+      `confirmed starter restore left ${restoredStatus.starters} starters, expected ${expectedStarterCount}`,
+    );
   }
 }
 
@@ -132,7 +135,10 @@ export async function verifyStage17Alerts() {
   await alertsInstallStarters();
   await alertsInstallStarters();
   const status = await alertsStatus();
-  if (status.starters !== 6) throw new Error(`expected 6 starter alerts, got ${status.starters}`);
+  const expectedStarterCount = loadAllAlertPolicies().length;
+  if (status.starters !== expectedStarterCount) {
+    throw new Error(`expected ${expectedStarterCount} starter alerts, got ${status.starters}`);
+  }
   log("  ownership lifecycle...");
   await verifyOwnershipLifecycle();
   log("  read-only audit/export/backup...");

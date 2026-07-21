@@ -165,6 +165,11 @@ describe("sanitization branch coverage", () => {
     expect(sanitizeStack("Error\n".repeat(30)).value.split("\n")).toHaveLength(20);
     expect(sanitizeError("plain").value.error.name).toBe("Error");
     expect(sanitizeError(42).value.error.name).toBe("UnknownError");
+    expect(sanitizeError({ name: "CustomError", message: "safe", stack: 10 }).value.error).toEqual({
+      name: "CustomError",
+      message: "safe",
+      stack: undefined,
+    });
     expect(sanitizeError(custom).value.error.name).toBe("UnknownError");
     expect(sanitizeError(new Error("boom"), { token: "hidden" }).decision).toBe("drop");
   });

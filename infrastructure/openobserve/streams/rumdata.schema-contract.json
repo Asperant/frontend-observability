@@ -272,7 +272,7 @@
     "user_agent_user_agent_family": "Utf8",
     "version": "Utf8",
     "view_action_count": "Int64",
-    "view_cumulative_layout_shift": "Int64",
+    "view_cumulative_layout_shift": "Float64",
     "view_dom_complete": "Int64",
     "view_dom_content_loaded": "Int64",
     "view_dom_interactive": "Int64",

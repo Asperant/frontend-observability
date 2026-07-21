@@ -13,6 +13,7 @@ describe("parseByteSize", () => {
   it("parses decimal units", () => {
     expect(parseByteSize("800B")).toBe(800);
     expect(parseByteSize("1.5kB")).toBe(1500);
+    expect(parseByteSize("1e+03kB")).toBe(1_000_000);
     expect(parseByteSize("2MB")).toBe(2_000_000);
     expect(parseByteSize("1GB")).toBe(1_000_000_000);
     expect(parseByteSize("1TB")).toBe(1_000_000_000_000);
@@ -31,6 +32,7 @@ describe("parseByteSize", () => {
     expect(() => parseByteSize(undefined)).toThrow(DockerStatsParseError);
     expect(() => parseByteSize("not-a-size")).toThrow(DockerStatsParseError);
     expect(() => parseByteSize("nanXB")).toThrow(DockerStatsParseError);
+    expect(() => parseByteSize("1e999B")).toThrow(DockerStatsParseError);
     expect(() => parseByteSize("5QQ")).toThrow(DockerStatsParseError);
     expect(() => parseByteSize("..XB")).toThrow(DockerStatsParseError);
   });

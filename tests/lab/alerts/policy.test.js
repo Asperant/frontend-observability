@@ -232,7 +232,6 @@ describe("evaluatePolicySample", () => {
     ).toBe(POLICY_STATUS.HEALTHY);
   });
 
-
   it("handles telemetry freshness company window recovery", () => {
     const policy = {
       ...basePolicy,

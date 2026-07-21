@@ -4,9 +4,11 @@
 // full-fidelity reference-lab measurement lives in run-stage19-benchmark.mjs
 // and run-stage19-soak.mjs, not here. Never prints a raw secret/credential.
 
-import { readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { request as httpsRequest } from "node:https";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { chromium, firefox } from "@playwright/test";
 
 import {
@@ -16,6 +18,8 @@ import {
   logError,
   repoRoot,
   runDockerCompose,
+  runtimeControlDaemonPidPath,
+  stopDetachedProcess,
 } from "../lab/common.mjs";
 import { waitForHealthy } from "../lab/wait.mjs";
 import { readAdminAuthHeader, listPipelines, search } from "../lab/streams/admin-client.mjs";
@@ -29,6 +33,7 @@ import { LOCAL_DESTINATION_NAME } from "../lab/alerts-install-starters.mjs";
 import { loadAllQueryManifests } from "../lab/dashboards/catalog.mjs";
 import { renderQueryTemplate } from "../lab/dashboards/sql-template.js";
 import { killSwitchOff, killSwitchOn } from "../lab/kill-switch.mjs";
+import { readCurrentRuntimeControl } from "../lab/generate-runtime-control.mjs";
 import { DEMO_IDENTITY } from "../../apps/demo-frontend/src/identity.js";
 import { sampleContainerMetrics, sampleFileDescriptorCount } from "./collect-container-metrics.mjs";
 import { evaluateAllBudgets } from "./lib/budget-evaluator.js";
@@ -49,6 +54,9 @@ const BUDGETS_PATH = new URL(
   "../../infrastructure/performance/stage19-performance-budgets.json",
   import.meta.url,
 );
+const runtimeControlDaemonScript = fileURLToPath(
+  new URL("../lab/runtime-control-refresh-daemon.mjs", import.meta.url),
+);
 
 function loadJson(url) {
   return JSON.parse(readFileSync(url, "utf8"));
@@ -60,7 +68,7 @@ function percentile(sortedValues, p) {
   return sortedValues[Math.max(0, index)];
 }
 
-function requestProxy(
+export function requestProxy(
   path,
   { method = "POST", headers = {}, body = "{}", timeoutMs = 15_000 } = {},
 ) {
@@ -114,6 +122,89 @@ function rumPayload(overrides = {}) {
     session: { id: crypto.randomUUID() },
     ...overrides,
   });
+}
+
+function readPidFile(pidPath) {
+  if (!existsSync(pidPath)) return null;
+  const pid = Number.parseInt(readFileSync(pidPath, "utf8").trim(), 10);
+  return Number.isInteger(pid) && pid > 0 ? pid : null;
+}
+
+function isProcessAlive(pid) {
+  if (!pid) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function startRuntimeControlDaemon() {
+  const child = spawn(process.execPath, [runtimeControlDaemonScript], {
+    cwd: repoRoot,
+    detached: true,
+    stdio: "ignore",
+  });
+  child.unref();
+  writeFileSync(runtimeControlDaemonPidPath, String(child.pid), { mode: 0o600 });
+  return child.pid;
+}
+
+async function waitForRuntimeControlRevisionAfter(previousRevision, timeoutMs = 10_000) {
+  const deadlineMs = Date.now() + timeoutMs;
+  while (Date.now() < deadlineMs) {
+    const document = readCurrentRuntimeControl();
+    if (document && document.revision > previousRevision) return document;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  return readCurrentRuntimeControl();
+}
+
+async function waitForProcessExit(pid, timeoutMs = 5_000) {
+  const deadlineMs = Date.now() + timeoutMs;
+  while (Date.now() < deadlineMs) {
+    if (!isProcessAlive(pid)) return true;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  return !isProcessAlive(pid);
+}
+
+async function restartRuntimeControlAgentScenario() {
+  const startedAtMs = Date.now();
+  let offResult = null;
+  try {
+    const onResult = await killSwitchOn({ reason: "operator_request" });
+    const beforeRevision = onResult.document.revision;
+    const oldPid = readPidFile(runtimeControlDaemonPidPath);
+    stopDetachedProcess(runtimeControlDaemonPidPath);
+    const oldPidExited = await waitForProcessExit(oldPid);
+    const newPid = startRuntimeControlDaemon();
+    const refreshed = await waitForRuntimeControlRevisionAfter(beforeRevision);
+    offResult = await killSwitchOff();
+
+    return {
+      target: "runtime-control-agent",
+      healthRecovered: Boolean(refreshed && refreshed.revision > beforeRevision),
+      timings: {
+        recoveryTimeMs: Date.now() - startedAtMs,
+      },
+      oldPidAliveAfterStop: isProcessAlive(oldPid),
+      oldPidExited,
+      newPidAlive: isProcessAlive(newPid),
+      killSwitchPreservedDuringRefresh: refreshed?.killSwitch?.active === true,
+      previousRevision: beforeRevision,
+      refreshedRevision: refreshed?.revision ?? null,
+      finalRevision: offResult.document.revision,
+    };
+  } finally {
+    if (!offResult) {
+      await killSwitchOff().catch(() => {});
+    }
+    if (!isProcessAlive(readPidFile(runtimeControlDaemonPidPath))) {
+      startRuntimeControlDaemon();
+    }
+  }
 }
 
 // --- 1. lib unit coverage suite -------------------------------------------
@@ -231,6 +322,7 @@ export async function measureBrowserBudgets() {
 
 export async function measureProxyLatency() {
   const latencies = [];
+  const statusCounts = {};
   let unexpected5xx = 0;
   for (let i = 0; i < 40; i += 1) {
     const response = await requestProxy(LOGS_PATH, {
@@ -244,12 +336,20 @@ export async function measureProxyLatency() {
       }),
     });
     latencies.push(response.elapsedMs);
+    statusCounts[response.statusCode] = (statusCounts[response.statusCode] ?? 0) + 1;
     if (response.statusCode >= 500 && response.statusCode !== 502 && response.statusCode !== 504) {
       unexpected5xx += 1;
     }
   }
   latencies.sort((a, b) => a - b);
-  return { p95: percentile(latencies, 95), unexpected5xx, sampleCount: latencies.length };
+  return {
+    p50: percentile(latencies, 50),
+    p95: percentile(latencies, 95),
+    p99: percentile(latencies, 99),
+    unexpected5xx,
+    statusCounts,
+    sampleCount: latencies.length,
+  };
 }
 
 // --- 4. ingestion visibility canary -----------------------------------------
@@ -356,7 +456,7 @@ async function captureStateSnapshot() {
     streamRumlog: streams.find((s) => s.stream === "_rumlog")?.exists ?? false,
     pipelineCount: pipelines.length,
     starterDashboards4: dashboards.starters.filter((s) => s.status.startsWith("INSTALLED")).length,
-    starterAlerts6: alerts.starters,
+    starterAlerts: alerts.starters,
   };
 }
 
@@ -688,7 +788,30 @@ export async function verifyStage19Resilience() {
     );
   }
 
-  log("▶ stage19: restart recovery matrix (5 services)");
+  log("▶ stage19: runtime-control-agent restart/preserve check");
+  const runtimeControlAgent = await restartRuntimeControlAgentScenario();
+  if (!runtimeControlAgent.healthRecovered) {
+    overallPass = false;
+    findings.push("runtime-control-agent: did not refresh the document after restart");
+  }
+  if (!runtimeControlAgent.oldPidExited) {
+    overallPass = false;
+    findings.push("runtime-control-agent: old daemon process was still alive after stop");
+  }
+  if (!runtimeControlAgent.newPidAlive) {
+    overallPass = false;
+    findings.push("runtime-control-agent: replacement daemon process was not alive");
+  }
+  if (!runtimeControlAgent.killSwitchPreservedDuringRefresh) {
+    overallPass = false;
+    findings.push("runtime-control-agent: kill switch was not preserved across refresh");
+  }
+  measurements["runtimeControl.agent.readyTime"] = runtimeControlAgent.timings.recoveryTimeMs;
+  log(
+    `  ${runtimeControlAgent.healthRecovered ? "PASS" : "FAIL"} (recoveryTimeMs=${runtimeControlAgent.timings.recoveryTimeMs}, killSwitchPreserved=${runtimeControlAgent.killSwitchPreservedDuringRefresh})`,
+  );
+
+  log("▶ stage19: restart recovery matrix (5 containers)");
   const disposableAlertId = await createDisposableCompanyAlert();
   const restartMatrix = await runRestartRecoveryMatrix();
   const companyAlertPreserved = await verifyDisposableCompanyAlertPreserved(disposableAlertId);
@@ -783,13 +906,53 @@ export async function verifyStage19Resilience() {
     for (const finding of findings) logError(`  - ${finding}`);
   }
 
-  return { pass: overallPass, findings, measurements, budgetResults };
+  return {
+    pass: overallPass,
+    findings,
+    measurements,
+    budgetResults,
+    runtimeControlAgent,
+    restartMatrix,
+    readiness: readiness.result,
+    queryCatalog: queryPerf,
+    ingestion,
+    proxy,
+    resourceRecovery,
+  };
+}
+
+function writeStage19ResilienceReport(result) {
+  const outDir = join(repoRoot, ".runtime/stage19");
+  mkdirSync(outDir, { recursive: true });
+  const outPath = join(outDir, `resilience-${Date.now()}.json`);
+  writeFileSync(
+    outPath,
+    JSON.stringify(
+      {
+        schemaVersion: 1,
+        kind: "stage19-resilience",
+        generatedAt: new Date().toISOString(),
+        gitCommit: spawnSync("git", ["rev-parse", "HEAD"], {
+          cwd: repoRoot,
+          encoding: "utf8",
+        }).stdout.trim(),
+        ...result,
+      },
+      null,
+      2,
+    ),
+    { mode: 0o600 },
+  );
+  return outPath;
 }
 
 const isMainModule = process.argv[1] === new URL(import.meta.url).pathname;
 if (isMainModule) {
   try {
-    const { pass } = await verifyStage19Resilience();
+    const result = await verifyStage19Resilience();
+    const outPath = writeStage19ResilienceReport(result);
+    log(`stage19:resilience report written to ${outPath} (gitignored)`);
+    const { pass } = result;
     process.exit(pass ? 0 : 1);
   } catch (error) {
     logError(`test:stage19:resilience FAILED: ${error.message}\n${error.stack ?? ""}`);

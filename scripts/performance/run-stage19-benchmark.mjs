@@ -66,8 +66,11 @@ export async function runStage19Benchmark({ profile = "normal" } = {}) {
         })),
       },
       proxy: {
+        "ingest.p50": proxy.p50,
         "ingest.p95": proxy.p95,
+        "ingest.p99": proxy.p99,
         unexpected5xx: proxy.unexpected5xx,
+        statusCounts: proxy.statusCounts,
         sampleCount: proxy.sampleCount,
       },
       ingestion: { visibilityMs: ingestion.visibilityMs, accepted: ingestion.accepted },

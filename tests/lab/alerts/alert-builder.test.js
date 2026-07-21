@@ -104,4 +104,23 @@ describe("buildOpenObserveAlert", () => {
     });
     expect(freshness.query_condition.sql).toContain("freshness_seconds is not null and false");
   });
+
+  it("renders placeholder threshold and current sample fallback when policy omits starter values", () => {
+    const alert = build({
+      ...basePolicy,
+      threshold: {},
+      sample: { field: "current_sessions", minimumCurrent: 10 },
+    });
+    expect(alert.context_attributes.threshold).toBe("REQUIRED_COMPANY_DECISION");
+    expect(alert.context_attributes.sample_size).toBe("current_sessions >= 10");
+    expect(alert.context_attributes.minimum_sample).toBe("10");
+  });
+
+  it("renders generic sample label when a policy uses only minimumCurrent", () => {
+    const alert = build({
+      ...basePolicy,
+      sample: { minimumCurrent: 10 },
+    });
+    expect(alert.context_attributes.sample_size).toBe("current/baseline >= 10");
+  });
 });

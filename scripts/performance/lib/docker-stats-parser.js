@@ -24,7 +24,7 @@ export class DockerStatsParseError extends Error {
 }
 
 /**
- * Parses a single Docker byte-size string, e.g. "1.5MiB", "800B", "12kB".
+ * Parses a single Docker byte-size string, e.g. "1.5MiB", "800B", "12kB", "1e+03kB".
  * Docker's own formatter always emits a single number+unit token (no
  * spaces inside the token), case-sensitive for the "i" (binary) marker.
  */
@@ -32,7 +32,7 @@ export function parseByteSize(text) {
   if (typeof text !== "string" || text.trim() === "") {
     throw new DockerStatsParseError(`empty byte-size value`, text);
   }
-  const match = text.trim().match(/^([\d.]+)\s*([A-Za-z]+)$/);
+  const match = text.trim().match(/^((?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*([A-Za-z]+)$/i);
   if (!match) {
     throw new DockerStatsParseError(`unrecognized byte-size format: "${text}"`, text);
   }

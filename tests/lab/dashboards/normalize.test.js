@@ -46,6 +46,16 @@ describe("extractDashboardBody", () => {
     expect(extractDashboardBody(envelope)).toBe(envelope.v8);
   });
 
+  it("falls back to the newest populated body when the envelope version is absent", () => {
+    const envelope = {
+      ...REAL_ENVELOPE,
+      v3: null,
+      v6: { ...REAL_ENVELOPE.v3, version: 6, title: "Fallback Body" },
+      version: undefined,
+    };
+    expect(extractDashboardBody(envelope)).toBe(envelope.v6);
+  });
+
   it("throws for an envelope with no populated body", () => {
     expect(() => extractDashboardBody({ version: 2, v3: null })).toThrow(/populated/);
   });
