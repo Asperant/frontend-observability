@@ -1,0 +1,224 @@
+{
+  "schemaVersion": 1,
+  "stage": 19,
+  "decision": "ACCEPTED",
+  "capturedAt": "2026-07-21T22:26:45Z",
+  "checkpoint": {
+    "commit": "ff51aabbb2e6111b0e2488d53b5cb02f9a3f6e34",
+    "tag": "pre-stage19-20-checkpoint"
+  },
+  "openobserve": {
+    "tag": "v0.91.2",
+    "digest": "sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15",
+    "imageReference": "public.ecr.aws/zinclabs/openobserve:v0.91.2@sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15"
+  },
+  "sourceReports": {
+    "resilience": ".runtime/stage19/resilience-1784671881306.json",
+    "benchmark": ".runtime/stage19/benchmark-1784672808289.json",
+    "soak": ".runtime/stage19/soak-1784668020358.json"
+  },
+  "measurements": {
+    "browser": {
+      "recordActionP50Ms": 0.30000000074505806,
+      "recordActionP95Ms": 2,
+      "recordActionP99Ms": 2,
+      "recordErrorP50Ms": 1,
+      "recordErrorP95Ms": 2,
+      "sanitizerMaxMs": 1,
+      "engines": ["chromium", "firefox"],
+      "consoleErrorCount": 0
+    },
+    "proxy": {
+      "ingestP50Ms": 1,
+      "ingestP95Ms": 2,
+      "ingestP99Ms": 15,
+      "unexpected5xx": 0,
+      "statusCounts": {
+        "200": 22,
+        "429": 18
+      }
+    },
+    "openobserve": {
+      "ingestionVisibilityMs": 25,
+      "queryCatalogP95Ms": 27,
+      "queryManifestCount": 26,
+      "queryCatalogAllSucceeded": true
+    },
+    "alerts": {
+      "notificationStatus": "HEALTHY",
+      "firingLatencyMs": 3,
+      "resolvedLatencyMs": 7,
+      "recoveryAfterOpenObserveRestartMs": 12822
+    },
+    "runtimeControlAgent": {
+      "recoveryTimeMs": 1868,
+      "oldPidExited": true,
+      "newPidAlive": true,
+      "killSwitchPreservedDuringRefresh": true,
+      "previousRevision": 78,
+      "refreshedRevision": 79,
+      "finalRevision": 80
+    },
+    "resources": {
+      "peakMemoryRatio": 0.25859375298023224,
+      "fdPostRecoveryDelta": 0,
+      "openobserveDiskKiBFirst": 13140,
+      "openobserveDiskKiBLast": 13864
+    }
+  },
+  "restartRecoveryMatrix": [
+    {
+      "target": "demo-frontend",
+      "healthRecovered": true,
+      "recoveryTimeMs": 6527,
+      "drift": false,
+      "restartCountCheck": true
+    },
+    {
+      "target": "mock-api",
+      "healthRecovered": true,
+      "recoveryTimeMs": 6436,
+      "drift": false,
+      "restartCountCheck": true
+    },
+    {
+      "target": "reverse-proxy",
+      "healthRecovered": true,
+      "recoveryTimeMs": 6698,
+      "firstSuccessfulIngestMs": 13,
+      "firstSuccessfulQueryMs": 21,
+      "drift": false,
+      "restartCountCheck": true
+    },
+    {
+      "target": "alert-sink",
+      "healthRecovered": true,
+      "recoveryTimeMs": 9543,
+      "firstSuccessfulNotificationMs": 2430,
+      "drift": false,
+      "restartCountCheck": true
+    },
+    {
+      "target": "openobserve",
+      "healthRecovered": true,
+      "recoveryTimeMs": 7847,
+      "firstSuccessfulIngestMs": 331,
+      "firstSuccessfulQueryMs": 340,
+      "firstSuccessfulNotificationMs": 12822,
+      "drift": false,
+      "restartCountCheck": true
+    }
+  ],
+  "soak": {
+    "durationMs": 3600000,
+    "startedAt": "2026-07-21T21:07:00.358Z",
+    "endedAt": "2026-07-21T22:07:04.786Z",
+    "traffic": {
+      "sent": 4781,
+      "accepted": 2560,
+      "expectedDrop": 2221,
+      "unexpectedDrop": 0,
+      "unexpected5xx": 0,
+      "statusCounts": {
+        "200": 2560,
+        "410": 1,
+        "429": 2220
+      }
+    },
+    "browserWorkloads": [
+      {
+        "engines": ["chromium", "firefox"],
+        "scenarioClicks": 24
+      },
+      {
+        "engines": ["chromium", "firefox"],
+        "scenarioClicks": 24
+      }
+    ],
+    "notificationProbeResultsCount": 39,
+    "restartCycle": {
+      "healthRecovered": true,
+      "recoveryTimeMs": 16887,
+      "postRestartIngestionVisibilityMs": 338
+    },
+    "runtimeControlFreshness": {
+      "sampleCount": 119,
+      "minTtlRemainingMs": 420710,
+      "maxAgeMs": 179290
+    },
+    "finalMarker": {
+      "accepted": true,
+      "visibilityMs": 8
+    },
+    "anyLeakFlagged": false
+  },
+  "gates": [
+    {
+      "command": "pnpm run test:stage19:resilience",
+      "result": "PASS"
+    },
+    {
+      "command": "pnpm run lab:stage19:soak -- --duration=60m",
+      "result": "PASS"
+    },
+    {
+      "command": "pnpm run test:stage14:runtime-control",
+      "result": "PASS"
+    },
+    {
+      "command": "pnpm run test:stage15:streams",
+      "result": "PASS"
+    },
+    {
+      "command": "pnpm run test:stage16:dashboards",
+      "result": "PASS"
+    },
+    {
+      "command": "pnpm run test:stage17:alerts",
+      "result": "PASS"
+    },
+    {
+      "command": "pnpm run test:stage18:security-acceptance",
+      "result": "PASS"
+    },
+    {
+      "command": "pnpm run test:e2e:stage8",
+      "result": "PASS",
+      "tests": 20
+    },
+    {
+      "command": "pnpm run test:e2e:lab",
+      "result": "PASS",
+      "tests": 16
+    },
+    {
+      "command": "pnpm run lab:streams:provision && pnpm run lab:streams:provision && pnpm run lab:streams:verify",
+      "result": "PASS",
+      "evidence": "_rumdata=NO_CHANGE/NO_DRIFT, _rumlog=NO_CHANGE/NO_DRIFT"
+    },
+    {
+      "command": "pnpm run lab:alerts:test-notification",
+      "result": "PASS",
+      "evidence": "firing=true resolved=true count=2 failureVisible=true"
+    },
+    {
+      "command": "pnpm run lab:verify",
+      "result": "PASS"
+    },
+    {
+      "command": "pnpm verify",
+      "result": "PASS",
+      "evidence": "39 unit files/465 tests, 12 contract files/96 tests, 39 Playwright tests, 3 security files/110 tests"
+    }
+  ],
+  "knownTransientFailuresResolved": [
+    {
+      "failure": "First 60-minute soak completed workload but failed report aggregation on Docker byte-size value 1e+03kB.",
+      "resolution": "parseByteSize now accepts Docker scientific notation and is covered by tests; full 60-minute soak was rerun and passed."
+    },
+    {
+      "failure": "Notification readiness can fail after tests that start OpenObserve without recreating alert-sink, because alert-sink uses openobserve's shared network namespace.",
+      "resolution": "lab:up was used to recreate the dependent services; Stage 17, notification smoke, resilience, and final benchmark all passed afterward."
+    }
+  ]
+}
