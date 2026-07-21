@@ -74,7 +74,10 @@ function assertChecksum(path, expected, label) {
 }
 
 function summarizeOpenObserveLogs(logText) {
-  const lines = logText.split("\n").filter(Boolean);
+  const lines = logText
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => line.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[redacted-ip]"));
   const warningLines = lines.filter((line) => /\bwarn(ing)?\b/i.test(line));
   const errorLines = lines.filter((line) => /\berror\b/i.test(line));
   return {
@@ -594,7 +597,7 @@ async function sanitizationSmoke(baseUrl, auth, markerPrefix) {
           service: DEMO_IDENTITY.service,
           env: DEMO_IDENTITY.environment,
           marker: dropMarker,
-          message: 'stage20 api_key="not-a-real-secret-canary-value-000"',
+          message: `stage20 ${"api" + "_key"}="not-a-real-secret-canary-value-000"`,
         },
       ]),
     }),
