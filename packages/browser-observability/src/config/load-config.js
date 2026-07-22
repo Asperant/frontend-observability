@@ -16,6 +16,7 @@ const CONFIG_KEYS = Object.freeze([
   "rum",
   "browserLogs",
   "sessionReplay",
+  "sensitiveRoutes",
   "allowedRoutes",
   "allowedSelectors",
 ]);
@@ -141,18 +142,33 @@ export function validateRuntimeConfigShape(config) {
   if (Object.keys(config.browserLogs).length !== 1) return false;
   if (!isObject(config.sessionReplay) || config.sessionReplay.enabled !== false) return false;
   if (Object.keys(config.sessionReplay).length !== 1) return false;
-  if (!isStringArray(config.allowedRoutes, 100, 256)) return false;
-  if (!isStringArray(config.allowedSelectors, 200, 256)) return false;
+  // Exactly one of the canonical field (sensitiveRoutes) or its deprecated
+  // legacy alias (allowedRoutes) must be present — never neither, never
+  // both. Sending both is treated as a schema violation (fail-closed)
+  // rather than silently preferring one, so an authoring mistake can never
+  // quietly narrow or widen the exclusion list.
+  const hasSensitiveRoutes = config.sensitiveRoutes !== undefined;
+  const hasAllowedRoutes = config.allowedRoutes !== undefined;
+  if (hasSensitiveRoutes === hasAllowedRoutes) return false;
+  if (!isStringArray(hasSensitiveRoutes ? config.sensitiveRoutes : config.allowedRoutes, 100, 256))
+    return false;
+  // allowedSelectors is a deprecated no-op (Session Replay is disabled), so
+  // it is optional; when present it must still be well-formed.
+  if (config.allowedSelectors !== undefined && !isStringArray(config.allowedSelectors, 200, 256)) {
+    return false;
+  }
   return true;
 }
 
 function isSampling(value) {
-  return (
-    isObject(value) &&
-    Object.keys(value).every((key) => ["sessionSampleRate", "errorSampleRate"].includes(key)) &&
-    isRate(value.sessionSampleRate) &&
-    isRate(value.errorSampleRate)
-  );
+  if (!isObject(value)) return false;
+  if (!Object.keys(value).every((key) => ["sessionSampleRate", "errorSampleRate"].includes(key))) {
+    return false;
+  }
+  if (!isRate(value.sessionSampleRate)) return false;
+  // errorSampleRate is a deprecated no-op (never forwarded to the adapter):
+  // optional, but must be well-formed when a legacy config still sends it.
+  return value.errorSampleRate === undefined || isRate(value.errorSampleRate);
 }
 
 const RUM_SITE_PATTERN = /^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?(:[0-9]{1,5})?$/;

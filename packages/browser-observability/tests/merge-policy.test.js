@@ -88,6 +88,40 @@ describe("mergePrivacyPolicy", () => {
     expect(policy.excludedRoutes).toEqual(["/a", "/b"]);
   });
 
+  it("reads excludedRoutes from the canonical sensitiveRoutes field when present", () => {
+    const policy = mergePrivacyPolicy(
+      identity,
+      config({ allowedRoutes: undefined, sensitiveRoutes: ["/canonical"] }),
+    );
+    expect(policy.excludedRoutes).toEqual(["/canonical"]);
+  });
+
+  it("falls back to the deprecated legacy allowedRoutes field when sensitiveRoutes is absent", () => {
+    const policy = mergePrivacyPolicy(identity, config({ allowedRoutes: ["/legacy"] }));
+    expect(policy.excludedRoutes).toEqual(["/legacy"]);
+  });
+
+  it("defaults excludedRoutes to empty when neither sensitiveRoutes nor allowedRoutes is present", () => {
+    const policy = mergePrivacyPolicy(
+      identity,
+      config({ allowedRoutes: undefined, sensitiveRoutes: undefined }),
+    );
+    expect(policy.excludedRoutes).toEqual([]);
+  });
+
+  it("tolerates a config that omits the deprecated allowedSelectors field entirely", () => {
+    const policy = mergePrivacyPolicy(identity, config({ allowedSelectors: undefined }));
+    expect(policy.maskedSelectors).toEqual([]);
+    expect(policy.blockedSelectors).toEqual([]);
+  });
+
+  it("tolerates a config that omits the deprecated sampling.errorSampleRate field entirely", () => {
+    const policy = mergePrivacyPolicy(identity, config({ sampling: { sessionSampleRate: 0.5 } }));
+    expect(policy.sampling.errorSampleRate).toBe(
+      PLATFORM_PRIVACY_BASELINE.sampling.errorSampleRate,
+    );
+  });
+
   it("carries the host identity through", () => {
     const policy = mergePrivacyPolicy(identity, config());
     expect(policy.service).toBe("demo-frontend");

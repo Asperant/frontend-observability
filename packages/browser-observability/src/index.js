@@ -76,8 +76,10 @@ export const initializeObservability = (options) =>
   safeCall(() => _initializeObservability(options), Promise.resolve(publicFallback()));
 
 /**
- * Records the visitor's tracking consent decision ("granted" | "denied" | "unknown").
- * Never throws.
+ * Records the visitor's tracking consent decision ("granted" | "not-granted").
+ * Any other value (including legacy callers passing "denied" or "unknown")
+ * fails closed to "not-granted" — see src/internal/constants.js and
+ * src/consent/consent-manager.js. Never throws.
  */
 export const setTrackingConsent = (consent) =>
   safeCall(() => _setTrackingConsent(consent), publicFallback());

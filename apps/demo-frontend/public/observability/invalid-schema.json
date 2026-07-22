@@ -6,10 +6,9 @@
   "expiresAt": "2099-01-01T00:00:00.000Z",
   "killSwitch": { "engaged": false },
   "privacyProfile": "allow",
-  "sampling": { "sessionSampleRate": 1, "errorSampleRate": 1 },
+  "sampling": { "sessionSampleRate": 1 },
   "rum": {},
   "browserLogs": { "enabled": false },
   "sessionReplay": { "enabled": false },
-  "allowedRoutes": [],
-  "allowedSelectors": []
+  "sensitiveRoutes": []
 }

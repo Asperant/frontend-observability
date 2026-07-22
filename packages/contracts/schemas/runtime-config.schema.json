@@ -33,9 +33,7 @@
     "sampling",
     "rum",
     "browserLogs",
-    "sessionReplay",
-    "allowedRoutes",
-    "allowedSelectors"
+    "sessionReplay"
   ],
   "properties": {
     "schemaVersion": {
@@ -79,15 +77,20 @@
     "privacyProfile": {
       "type": "string",
       "enum": ["strict", "balanced"],
-      "description": "Closed set of privacy profiles. Neither profile permits body, credential, cookie, or session-token capture."
+      "description": "Closed set of privacy profiles. Neither profile permits body, credential, cookie, or session-token capture. Only 'strict' has distinct behavior; 'balanced' is a deprecated legacy alias the SDK normalizes to 'strict' and must not be used in new configs."
     },
     "sampling": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["sessionSampleRate", "errorSampleRate"],
+      "required": ["sessionSampleRate"],
       "properties": {
         "sessionSampleRate": { "type": "number", "minimum": 0, "maximum": 1 },
-        "errorSampleRate": { "type": "number", "minimum": 0, "maximum": 1 }
+        "errorSampleRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Deprecated legacy no-op: the adapter never applies a separate error sample rate (only sessionSampleRate is forwarded). Accepted for backward compatibility only; do not send in new configs."
+        }
       }
     },
     "rum": {
@@ -122,15 +125,23 @@
         }
       }
     },
+    "sensitiveRoutes": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "type": "string", "minLength": 1, "maxLength": 256 },
+      "description": "Canonical field. Routes excluded/redacted from telemetry capture. Send exactly one of sensitiveRoutes or the deprecated legacy alias allowedRoutes, never both."
+    },
     "allowedRoutes": {
       "type": "array",
       "maxItems": 100,
-      "items": { "type": "string", "minLength": 1, "maxLength": 256 }
+      "items": { "type": "string", "minLength": 1, "maxLength": 256 },
+      "description": "Deprecated legacy alias for sensitiveRoutes (the name was always misleading: these routes are excluded/redacted, not allowed). Accepted for backward compatibility only; do not send in new configs, and never send together with sensitiveRoutes."
     },
     "allowedSelectors": {
       "type": "array",
       "maxItems": 200,
-      "items": { "type": "string", "minLength": 1, "maxLength": 256 }
+      "items": { "type": "string", "minLength": 1, "maxLength": 256 },
+      "description": "Deprecated legacy no-op: Session Replay is disabled and unsupported, so there is no DOM masking/blocking behavior left for this field to control. Accepted for backward compatibility only; do not send in new configs."
     }
   },
   "allOf": [
@@ -160,6 +171,20 @@
           }
         }
       }
+    },
+    {
+      "anyOf": [
+        { "required": ["sensitiveRoutes"], "properties": { "sensitiveRoutes": true } },
+        { "required": ["allowedRoutes"], "properties": { "allowedRoutes": true } }
+      ],
+      "description": "Exactly one of the canonical field or its legacy alias must be present."
+    },
+    {
+      "not": {
+        "required": ["sensitiveRoutes", "allowedRoutes"],
+        "properties": { "sensitiveRoutes": true, "allowedRoutes": true }
+      },
+      "description": "Fail-closed if both the canonical field and the legacy alias are sent together."
     }
   ]
 }

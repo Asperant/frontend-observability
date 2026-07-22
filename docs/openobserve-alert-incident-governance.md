@@ -16,6 +16,8 @@ All starter alerts are disabled by default. Production enablement, thresholds, d
 
 Every starter requires minimum sample, consecutive breach count, cooldown, dedup key, recovery condition, `NO_DATA != HEALTHY`, and `QUERY_ERROR != HEALTHY`.
 
+Threshold and the query output it is compared against always share one canonical unit. `telemetry-freshness` measures `freshness_seconds` (seconds), so its unfilled placeholder is named `REQUIRED_COMPANY_DECISION_MAXIMUM_SILENCE_SECONDS` — a company must fill in a number of **seconds**, not minutes, when making that production decision.
+
 ## Destinations
 
 The lab uses a local mock sink on OpenObserve loopback. Notification bodies are bounded aggregate payloads only: alert, severity, service, environment, version, measured value, threshold, sample size, window, time, dashboard/runbook reference, and dedup key.

@@ -16,7 +16,7 @@
   "evaluation": { "intervalMinutes": 5, "lookbackMinutes": 60 },
   "threshold": {
     "direction": "above",
-    "starterValue": "REQUIRED_COMPANY_DECISION_MAXIMUM_SILENCE_MINUTES",
+    "starterValue": "REQUIRED_COMPANY_DECISION_MAXIMUM_SILENCE_SECONDS",
     "productionValue": "REQUIRED_COMPANY_DECISION"
   },
   "sample": { "field": "freshness_seconds", "minimum": 1 },

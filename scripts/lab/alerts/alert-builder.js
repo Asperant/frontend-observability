@@ -25,19 +25,24 @@ function sampleGuard(policy) {
 }
 
 // telemetry-freshness's threshold.starterValue is deliberately left as the
-// literal string "REQUIRED_COMPANY_DECISION_MAXIMUM_SILENCE_MINUTES" (unlike
+// literal string "REQUIRED_COMPANY_DECISION_MAXIMUM_SILENCE_SECONDS" (unlike
 // every other alert here, which has a real numeric starterValue) — how long
 // a silence is acceptable depends entirely on a given company's expected
 // traffic pattern (see requiredScope/expectedTrafficHours, also
 // REQUIRED_COMPANY_DECISION), so this reference project intentionally does
-// not invent one. Interpolating that placeholder string directly into SQL
-// would be a syntax error, so thresholdGuard() hardcodes "false" instead —
-// the query, sample guard, and dashboard panel it shares are still fully
-// real and correct (see last-observed-ingestion-age-rumdata.query.json), so
-// only the trigger condition itself is a stub. A real deployment must
-// replace threshold.starterValue with an actual number of minutes before
-// this alert can ever fire; until then it installs cleanly and evaluates on
-// schedule without error, but never breaches.
+// not invent one. The placeholder name is deliberately in *seconds*, not
+// minutes: sample.field ("freshness_seconds") is also seconds, so a company
+// filling in the placeholder with a raw number plugs directly into
+// `freshness_seconds > <value>` without a silent 60x unit mismatch. See
+// docs/openobserve-alert-incident-governance.md canonical-unit note.
+// Interpolating the un-filled placeholder string directly into SQL would be
+// a syntax error, so thresholdGuard() hardcodes "false" instead — the query,
+// sample guard, and dashboard panel it shares are still fully real and
+// correct (see last-observed-ingestion-age-rumdata.query.json), so only the
+// trigger condition itself is a stub. A real deployment must replace
+// threshold.starterValue with an actual number of seconds before this alert
+// can ever fire; until then it installs cleanly and evaluates on schedule
+// without error, but never breaches.
 function thresholdGuard(policy) {
   if (policy.id === "telemetry-freshness") return "false";
   return `${metricColumn(policy)} > ${policy.threshold.starterValue}`;

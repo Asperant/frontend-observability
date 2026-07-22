@@ -48,7 +48,12 @@ Because no public response/transport hook is available, no native SDK circuit br
 It does not implement, and does not claim to implement, any of the following:
 
 - admission sampling layered in front of the SDK (the only "sampling" this package configures is
-  the native SDK's own `sessionSampleRate`/`errorSampleRate` options, passed straight through),
+  the native SDK's own `sessionSampleRate` option, passed straight through). The runtime config's
+  `sampling.errorSampleRate` field is a deprecated no-op: it is validated and merged into the
+  internal policy object but never forwarded to the adapter (see
+  `packages/browser-observability/src/adapter/openobserve/build-rum-options.js` and
+  `build-logs-options.js`, which only read `sessionSampleRate`) — do not rely on it for a separate
+  error-sampling guarantee,
 - a manual dispatch queue or any other project-owned telemetry queue, in memory or persisted,
 - an offline-drop policy for new manual events beyond the SDK's own behavior,
 - a purge of the native SDK's retry queue on consent revoke or `shutdownObservability()`,

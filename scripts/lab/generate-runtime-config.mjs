@@ -17,12 +17,18 @@ export const RUM_API_VERSION = "v1";
 
 /**
  * Lab runtime config: real OpenObserve RUM + browser logs, enabled. Session
- * and error sampling are 100% — a deliberate lab-only relaxation (see the
- * platform privacy baseline in src/config/merge-policy.js, which still caps
- * both at 100% max) purely so Stage 8's browser/E2E and OpenObserve
- * integration tests are deterministic rather than flaky under partial
- * sampling. Session replay stays off; this schema version cannot express it
- * any other way.
+ * sampling is 100% — a deliberate lab-only relaxation (see the platform
+ * privacy baseline in src/config/merge-policy.js, which still caps it at
+ * 100% max) purely so Stage 8's browser/E2E and OpenObserve integration
+ * tests are deterministic rather than flaky under partial sampling. Session
+ * replay stays off; this schema version cannot express it any other way.
+ *
+ * Uses only the canonical company-facing fields (`sensitiveRoutes`,
+ * `privacyProfile: "strict"`, `sampling.sessionSampleRate`). The deprecated
+ * legacy aliases (`allowedRoutes`, `allowedSelectors`,
+ * `sampling.errorSampleRate`, `privacyProfile: "balanced"`) still validate
+ * for backward compatibility but must not appear in a newly authored
+ * config — see packages/contracts/schemas/runtime-config.schema.json.
  */
 export function buildLabRuntimeConfig(now = new Date(), { rumClientToken }) {
   return {
@@ -33,7 +39,7 @@ export function buildLabRuntimeConfig(now = new Date(), { rumClientToken }) {
     expiresAt: new Date(now.getTime() + DAY_MS).toISOString(),
     killSwitch: { engaged: false },
     privacyProfile: "strict",
-    sampling: { sessionSampleRate: 1, errorSampleRate: 1 },
+    sampling: { sessionSampleRate: 1 },
     rum: {
       site: RUM_SITE,
       organizationIdentifier: RUM_ORGANIZATION_IDENTIFIER,
@@ -43,8 +49,7 @@ export function buildLabRuntimeConfig(now = new Date(), { rumClientToken }) {
     },
     browserLogs: { enabled: true },
     sessionReplay: { enabled: false },
-    allowedRoutes: [],
-    allowedSelectors: [],
+    sensitiveRoutes: [],
   };
 }
 

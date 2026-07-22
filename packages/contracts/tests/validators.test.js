@@ -62,6 +62,28 @@ describe("validateRuntimeConfig", () => {
     expect(result.valid).toBe(false);
   });
 
+  it("accepts the canonical sensitiveRoutes field with no legacy aliases present", () => {
+    const result = validateRuntimeConfig(
+      loadFixture("runtime-config/valid-canonical-sensitive-routes.json"),
+    );
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
+  it("rejects a config sending both canonical sensitiveRoutes and legacy allowedRoutes (fail-closed)", () => {
+    const result = validateRuntimeConfig(
+      loadFixture("runtime-config/invalid-both-canonical-and-legacy-routes.json"),
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  it("rejects a config sending neither sensitiveRoutes nor allowedRoutes", () => {
+    const result = validateRuntimeConfig(
+      loadFixture("runtime-config/invalid-missing-routes-field.json"),
+    );
+    expect(result.valid).toBe(false);
+  });
+
   it.each([null, undefined, 42, "string", [], () => {}])(
     "never throws for malformed input: %p",
     (input) => {
