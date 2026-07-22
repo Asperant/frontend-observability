@@ -602,13 +602,28 @@ async function runRestartRecoveryMatrix() {
 async function runNetworkPartitionScenario() {
   const network = "chicek-lab_app-internal";
   const service = "chicek-lab-mock-api-1";
+  // Compose attaches two DNS records per container on a service network:
+  // the container name (always restored by a plain `docker network
+  // connect`) and the service name alias (`mock-api`), which Docker does
+  // NOT restore on its own — it must be passed explicitly via `--alias`.
+  // Without it, other containers (e.g. reverse-proxy) lose the ability to
+  // resolve "mock-api" by hostname even though mock-api's own health
+  // check (which doesn't depend on DNS) keeps reporting healthy.
+  const serviceAlias = "mock-api";
   const disconnectedAtMs = Date.now();
   const disconnect = spawnSync("docker", ["network", "disconnect", network, service]);
   if (disconnect.status !== 0) {
     return { pass: false, reason: `docker network disconnect failed (exit ${disconnect.status})` };
   }
   await new Promise((resolve) => setTimeout(resolve, 3000));
-  const reconnect = spawnSync("docker", ["network", "connect", network, service]);
+  const reconnect = spawnSync("docker", [
+    "network",
+    "connect",
+    "--alias",
+    serviceAlias,
+    network,
+    service,
+  ]);
   const reconnectedAtMs = Date.now();
   if (reconnect.status !== 0) {
     return {
@@ -617,10 +632,19 @@ async function runNetworkPartitionScenario() {
     };
   }
   const health = await waitForHealthy({ services: ["mock-api"], timeoutMs: 30_000 });
+  const dnsCheck = spawnSync("docker", [
+    "exec",
+    "chicek-lab-reverse-proxy-1",
+    "getent",
+    "hosts",
+    serviceAlias,
+  ]);
+  const dnsAliasResolves = dnsCheck.status === 0;
   return {
-    pass: health.healthy,
+    pass: health.healthy && dnsAliasResolves,
     unreadyDurationMs: reconnectedAtMs - disconnectedAtMs,
     recoveryTimeMs: Date.now() - reconnectedAtMs,
+    dnsAliasResolves,
   };
 }
 

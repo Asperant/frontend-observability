@@ -2,8 +2,8 @@
   "schemaVersion": 2,
   "stage": 20,
   "decision": "ACCEPTED",
-  "runId": "2026-07-22T15-58-50-673Z",
-  "capturedAt": "2026-07-22T15:58:50.674Z",
+  "runId": "2026-07-22T19-45-17-599Z",
+  "capturedAt": "2026-07-22T19:45:17.599Z",
   "sourceVersion": {
     "tag": "v0.91.0",
     "digest": "sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8",
@@ -36,8 +36,8 @@
   },
   "mainTargetBackup": {
     "logical": {
-      "path": ".runtime/stage20/2026-07-22T15-58-50-673Z/backups/target-logical-export.json",
-      "sha256": "1cd5abe7cb823e73757d6dd7445a44372c9ae8806f8ce843db80cf0e66af33a5",
+      "path": ".runtime/stage20/2026-07-22T19-45-17-599Z/backups/target-logical-export.json",
+      "sha256": "dea41b66e490a9180aad6083ff796d66fdc888bee0df08ca816c6dd787a6b33a",
       "overallHash": "6f28dc93fda1f7ef408838747aca7b6ac4023d0fd7ccc5862518c4ae3ca81856",
       "groupHashes": {
         "streams": "d62f38fae8ce49fc3ea21e0dbb6b1dfb856187a3c0c1de84365e416defe1d9e9",
@@ -59,10 +59,10 @@
       }
     },
     "coldVolume": {
-      "archive": ".runtime/stage20/2026-07-22T15-58-50-673Z/backups/target-openobserve-data.tar",
-      "sha256": "9da2e9c36ae0fd6e85a38763081f0696a860578b359dfed8028012285c1713e6",
-      "bytes": 1625481216,
-      "volumeSizeKiB": 16304,
+      "archive": ".runtime/stage20/2026-07-22T19-45-17-599Z/backups/target-openobserve-data.tar",
+      "sha256": "e4806ba180bea75f9692635af62b809d01541ef95aa2ff7da6a39aec05121718",
+      "bytes": 1630139904,
+      "volumeSizeKiB": 21376,
       "method": "live-clone (main lab service never stopped)"
     }
   },
@@ -89,7 +89,7 @@
     }
   },
   "restoreTarget": {
-    "newMarker": "target-restore-new-8d209f65-5e4c-4a53-99e3-9816ff12c682",
+    "newMarker": "target-restore-new-bbb9d74a-dbe7-462b-91e7-c6eec2c1d9ed",
     "newVisible": true,
     "controlPlane": {
       "overallHash": "6f28dc93fda1f7ef408838747aca7b6ac4023d0fd7ccc5862518c4ae3ca81856",
@@ -117,98 +117,80 @@
       "secretDropped": true
     },
     "alertSmoke": {
-      "alertId": "3GriELJUb1fHY07aZuX0aTaNhVo",
+      "alertId": "3Gs9mJDIISdHXJcfvus5dQ6yQJJ",
       "quietCycleObserved": true,
       "eventsAfterQuietWindow": 0,
-      "historyRowCountDuringQuiet": 2,
+      "historyRowCountDuringQuiet": 1,
       "firingObserved": true,
       "firingEventCount": 1,
-      "historyRowCountFinal": 4,
+      "historyRowCountFinal": 3,
       "historyHits": [
         {
-          "timestamp": 1784736066667198,
-          "alert_name": "real-eval-probe-1784735975482-etoowc",
+          "timestamp": 1784749627921968,
+          "alert_name": "real-eval-probe-1784749566701-lrbh41",
           "org": "default",
           "status": "completed",
           "is_realtime": false,
           "is_silenced": false,
-          "start_time": 1784736000000000,
-          "end_time": 1784736060000000,
+          "start_time": 1784749560000000,
+          "end_time": 1784749620000000,
           "retries": 0,
           "error": null,
           "success_response": null,
           "is_partial": null,
-          "delay_in_secs": 6,
-          "evaluation_took_in_secs": 0.014399828,
-          "source_node": "4dbacb66987a",
+          "delay_in_secs": 7,
+          "evaluation_took_in_secs": 0.014142679,
+          "source_node": "cc5f4decdff2",
           "query_took": 12
         },
         {
-          "timestamp": 1784736016667653,
-          "alert_name": "real-eval-probe-1784735975482-etoowc",
+          "timestamp": 1784749607921917,
+          "alert_name": "real-eval-probe-1784749566701-lrbh41",
           "org": "default",
           "status": "condition_not_satisfied",
           "is_realtime": false,
           "is_silenced": false,
-          "start_time": 1784735955811019,
-          "end_time": 1784736015811019,
+          "start_time": 1784749547027939,
+          "end_time": 1784749607027939,
           "retries": 0,
           "error": null,
           "success_response": null,
           "is_partial": null,
           "delay_in_secs": 0,
-          "evaluation_took_in_secs": 0.014498227,
-          "source_node": "4dbacb66987a",
+          "evaluation_took_in_secs": 0.014211377,
+          "source_node": "cc5f4decdff2",
           "query_took": 12
         },
         {
-          "timestamp": 1784736006666739,
-          "alert_name": "real-eval-probe-1784735975482-etoowc",
+          "timestamp": 1784749567922276,
+          "alert_name": "real-eval-probe-1784749566701-lrbh41",
           "org": "default",
           "status": "condition_not_satisfied",
           "is_realtime": false,
           "is_silenced": false,
-          "start_time": 1784735940000000,
-          "end_time": 1784736000000000,
-          "retries": 0,
-          "error": null,
-          "success_response": null,
-          "is_partial": null,
-          "delay_in_secs": 6,
-          "evaluation_took_in_secs": 0.012004426,
-          "source_node": "4dbacb66987a",
-          "query_took": 10
-        },
-        {
-          "timestamp": 1784735976667181,
-          "alert_name": "real-eval-probe-1784735975482-etoowc",
-          "org": "default",
-          "status": "condition_not_satisfied",
-          "is_realtime": false,
-          "is_silenced": false,
-          "start_time": 1784735915624452,
-          "end_time": 1784735975624452,
+          "start_time": 1784749506848068,
+          "end_time": 1784749566848068,
           "retries": 0,
           "error": null,
           "success_response": null,
           "is_partial": null,
           "delay_in_secs": 1,
-          "evaluation_took_in_secs": 0.006925391,
-          "source_node": "4dbacb66987a",
-          "query_took": 5
+          "evaluation_took_in_secs": 0.010423651,
+          "source_node": "cc5f4decdff2",
+          "query_took": 4
         }
       ]
     },
-    "startupMs": 6305,
-    "volumeSizeKiB": 16240
+    "startupMs": 6262,
+    "volumeSizeKiB": 21176
   },
   "upgrade": {
-    "startupMs": 6777,
-    "elapsedMs": 22906,
+    "startupMs": 6307,
+    "elapsedMs": 12108,
     "oldRumdata": true,
     "oldRumlog": true,
     "smoke": {
-      "newMarker": "upgrade-new-ca9fd871-2e2d-49d1-b074-aeb06e99b01e",
+      "newMarker": "upgrade-new-28b2dbae-957f-40d0-97c4-1fcf9b024fbf",
       "newVisible": true,
       "controlPlane": {
         "overallHash": "3fc30f4504c4bc055618adbad816766bb1a83a19b830360888f9383a2ea35d3e",
@@ -236,85 +218,67 @@
         "secretDropped": true
       },
       "alertSmoke": {
-        "alertId": "3GriiatRfRkuUZI5IlPYXmVFZSU",
+        "alertId": "3GsAAbdZ03IR320MwtailARCOl6",
         "quietCycleObserved": true,
         "eventsAfterQuietWindow": 0,
-        "historyRowCountDuringQuiet": 2,
+        "historyRowCountDuringQuiet": 1,
         "firingObserved": true,
         "firingEventCount": 1,
-        "historyRowCountFinal": 4,
+        "historyRowCountFinal": 3,
         "historyHits": [
           {
-            "timestamp": 1784736307681471,
-            "alert_name": "real-eval-probe-1784736216382-hvrqn9",
+            "timestamp": 1784749861951286,
+            "alert_name": "real-eval-probe-1784749760689-e7kqgz",
             "org": "default",
             "status": "completed",
             "is_realtime": false,
             "is_silenced": false,
-            "start_time": 1784736240000000,
-            "end_time": 1784736300000000,
-            "retries": 0,
-            "error": null,
-            "success_response": null,
-            "is_partial": null,
-            "delay_in_secs": 7,
-            "evaluation_took_in_secs": 0.012736397,
-            "source_node": "eb370c3a02b4",
-            "query_took": 11
-          },
-          {
-            "timestamp": 1784736257681350,
-            "alert_name": "real-eval-probe-1784736216382-hvrqn9",
-            "org": "default",
-            "status": "condition_not_satisfied",
-            "is_realtime": false,
-            "is_silenced": false,
-            "start_time": 1784736196829292,
-            "end_time": 1784736256829292,
-            "retries": 0,
-            "error": null,
-            "success_response": null,
-            "is_partial": null,
-            "delay_in_secs": 0,
-            "evaluation_took_in_secs": 0.01477341,
-            "source_node": "eb370c3a02b4",
-            "query_took": 13
-          },
-          {
-            "timestamp": 1784736247681546,
-            "alert_name": "real-eval-probe-1784736216382-hvrqn9",
-            "org": "default",
-            "status": "condition_not_satisfied",
-            "is_realtime": false,
-            "is_silenced": false,
-            "start_time": 1784736180000000,
-            "end_time": 1784736240000000,
-            "retries": 0,
-            "error": null,
-            "success_response": null,
-            "is_partial": null,
-            "delay_in_secs": 7,
-            "evaluation_took_in_secs": 0.008676243,
-            "source_node": "eb370c3a02b4",
-            "query_took": 7
-          },
-          {
-            "timestamp": 1784736217681368,
-            "alert_name": "real-eval-probe-1784736216382-hvrqn9",
-            "org": "default",
-            "status": "condition_not_satisfied",
-            "is_realtime": false,
-            "is_silenced": false,
-            "start_time": 1784736156586574,
-            "end_time": 1784736216586574,
+            "start_time": 1784749800000000,
+            "end_time": 1784749860000000,
             "retries": 0,
             "error": null,
             "success_response": null,
             "is_partial": null,
             "delay_in_secs": 1,
-            "evaluation_took_in_secs": 0.008033882,
-            "source_node": "eb370c3a02b4",
-            "query_took": 6
+            "evaluation_took_in_secs": 0.012037679,
+            "source_node": "ef061ebcc8ce",
+            "query_took": 10
+          },
+          {
+            "timestamp": 1784749801951074,
+            "alert_name": "real-eval-probe-1784749760689-e7kqgz",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784749741089911,
+            "end_time": 1784749801089911,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.010940326,
+            "source_node": "ef061ebcc8ce",
+            "query_took": 9
+          },
+          {
+            "timestamp": 1784749761950905,
+            "alert_name": "real-eval-probe-1784749760689-e7kqgz",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784749700856355,
+            "end_time": 1784749760856355,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.014182539,
+            "source_node": "ef061ebcc8ce",
+            "query_took": 12
           }
         ]
       }
@@ -322,12 +286,12 @@
     "volumeSizeKiB": 5168
   },
   "rollback": {
-    "startupMs": 6180,
-    "elapsedMs": 12878,
+    "startupMs": 6131,
+    "elapsedMs": 7812,
     "oldRumdata": true,
     "oldRumlog": true,
     "smoke": {
-      "newMarker": "rollback-new-13fc82ac-6019-46bb-9108-a69241ccca37",
+      "newMarker": "rollback-new-7db44314-7b2c-42fb-a518-278259ebb44e",
       "newVisible": true,
       "controlPlane": {
         "overallHash": "7ed4036d04df06c6274be9eb2465a4f2873d547b2642c5a52ffc488ce07b3eb6",
@@ -355,84 +319,48 @@
         "secretDropped": true
       },
       "alertSmoke": {
-        "alertId": "3Griwy0PtSOVcdWroP666cJhJmD",
+        "alertId": "3GsAPVYKJZk8X5Wy2XwAPIF5hpo",
         "quietCycleObserved": true,
         "eventsAfterQuietWindow": 0,
-        "historyRowCountDuringQuiet": 2,
+        "historyRowCountDuringQuiet": 1,
         "firingObserved": true,
         "firingEventCount": 1,
-        "historyRowCountFinal": 4,
+        "historyRowCountFinal": 2,
         "historyHits": [
           {
-            "timestamp": 1784736421202282,
-            "alert_name": "real-eval-probe-1784736329874-3zdyno",
-            "org": "default",
-            "status": "completed",
-            "is_realtime": false,
-            "is_silenced": false,
-            "start_time": 1784736360000000,
-            "end_time": 1784736420000000,
-            "retries": 0,
-            "error": null,
-            "success_response": null,
-            "is_partial": null,
-            "delay_in_secs": 1,
-            "evaluation_took_in_secs": 0.010843918,
-            "source_node": "da5a7f289763",
-            "query_took": 9
-          },
-          {
-            "timestamp": 1784736371202576,
-            "alert_name": "real-eval-probe-1784736329874-3zdyno",
+            "timestamp": 1784749919236585,
+            "alert_name": "real-eval-probe-1784749877913-19xx5i",
             "org": "default",
             "status": "condition_not_satisfied",
             "is_realtime": false,
             "is_silenced": false,
-            "start_time": 1784736310306658,
-            "end_time": 1784736370306658,
+            "start_time": 1784749858255845,
+            "end_time": 1784749918255845,
             "retries": 0,
             "error": null,
             "success_response": null,
             "is_partial": null,
             "delay_in_secs": 0,
-            "evaluation_took_in_secs": 0.012165706,
-            "source_node": "da5a7f289763",
-            "query_took": 10
-          },
-          {
-            "timestamp": 1784736361202764,
-            "alert_name": "real-eval-probe-1784736329874-3zdyno",
-            "org": "default",
-            "status": "condition_not_satisfied",
-            "is_realtime": false,
-            "is_silenced": false,
-            "start_time": 1784736300000000,
-            "end_time": 1784736360000000,
-            "retries": 0,
-            "error": null,
-            "success_response": null,
-            "is_partial": null,
-            "delay_in_secs": 1,
-            "evaluation_took_in_secs": 0.014106288,
-            "source_node": "da5a7f289763",
+            "evaluation_took_in_secs": 0.01363033,
+            "source_node": "6f12d37acd0d",
             "query_took": 12
           },
           {
-            "timestamp": 1784736331202602,
-            "alert_name": "real-eval-probe-1784736329874-3zdyno",
+            "timestamp": 1784749879236356,
+            "alert_name": "real-eval-probe-1784749877913-19xx5i",
             "org": "default",
             "status": "condition_not_satisfied",
             "is_realtime": false,
             "is_silenced": false,
-            "start_time": 1784736270068254,
-            "end_time": 1784736330068254,
+            "start_time": 1784749818077071,
+            "end_time": 1784749878077071,
             "retries": 0,
             "error": null,
             "success_response": null,
             "is_partial": null,
             "delay_in_secs": 1,
-            "evaluation_took_in_secs": 0.014104678,
-            "source_node": "da5a7f289763",
+            "evaluation_took_in_secs": 0.014074557,
+            "source_node": "6f12d37acd0d",
             "query_took": 12
           }
         ]
@@ -441,12 +369,12 @@
     "volumeSizeKiB": 5168
   },
   "reUpgrade": {
-    "startupMs": 6085,
-    "elapsedMs": 21055,
+    "startupMs": 6357,
+    "elapsedMs": 38641,
     "oldRumdata": true,
     "oldRumlog": true,
     "smoke": {
-      "newMarker": "reUpgrade-new-43047849-d77d-476a-9ae4-09528b12c3d7",
+      "newMarker": "reUpgrade-new-2e4b7cf2-03e9-49ed-8d19-657638843a01",
       "newVisible": true,
       "controlPlane": {
         "overallHash": "3fc30f4504c4bc055618adbad816766bb1a83a19b830360888f9383a2ea35d3e",
@@ -474,85 +402,67 @@
         "secretDropped": true
       },
       "alertSmoke": {
-        "alertId": "3GrjBzI1L3ZhzY2s7yEO9rOZIqh",
+        "alertId": "3GsAcBcN40hqVDTeSI2cmiLbADW",
         "quietCycleObserved": true,
         "eventsAfterQuietWindow": 0,
-        "historyRowCountDuringQuiet": 2,
+        "historyRowCountDuringQuiet": 1,
         "firingObserved": true,
         "firingEventCount": 1,
-        "historyRowCountFinal": 4,
+        "historyRowCountFinal": 3,
         "historyHits": [
           {
-            "timestamp": 1784736541794252,
-            "alert_name": "real-eval-probe-1784736450491-xrydpl",
+            "timestamp": 1784750040718879,
+            "alert_name": "real-eval-probe-1784749979397-4hs5z0",
             "org": "default",
             "status": "completed",
             "is_realtime": false,
             "is_silenced": false,
-            "start_time": 1784736480000000,
-            "end_time": 1784736540000000,
-            "retries": 0,
-            "error": null,
-            "success_response": null,
-            "is_partial": null,
-            "delay_in_secs": 1,
-            "evaluation_took_in_secs": 0.012438859,
-            "source_node": "724470382f70",
-            "query_took": 11
-          },
-          {
-            "timestamp": 1784736491794529,
-            "alert_name": "real-eval-probe-1784736450491-xrydpl",
-            "org": "default",
-            "status": "condition_not_satisfied",
-            "is_realtime": false,
-            "is_silenced": false,
-            "start_time": 1784736430838607,
-            "end_time": 1784736490838607,
+            "start_time": 1784749980000000,
+            "end_time": 1784750040000000,
             "retries": 0,
             "error": null,
             "success_response": null,
             "is_partial": null,
             "delay_in_secs": 0,
-            "evaluation_took_in_secs": 0.013258876,
-            "source_node": "724470382f70",
+            "evaluation_took_in_secs": 0.012990622,
+            "source_node": "f93640a605c7",
             "query_took": 11
           },
           {
-            "timestamp": 1784736481794389,
-            "alert_name": "real-eval-probe-1784736450491-xrydpl",
+            "timestamp": 1784750020718497,
+            "alert_name": "real-eval-probe-1784749979397-4hs5z0",
             "org": "default",
             "status": "condition_not_satisfied",
             "is_realtime": false,
             "is_silenced": false,
-            "start_time": 1784736420000000,
-            "end_time": 1784736480000000,
+            "start_time": 1784749959722122,
+            "end_time": 1784750019722122,
             "retries": 0,
             "error": null,
             "success_response": null,
             "is_partial": null,
-            "delay_in_secs": 1,
-            "evaluation_took_in_secs": 0.015175034,
-            "source_node": "724470382f70",
-            "query_took": 13
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.004958912,
+            "source_node": "f93640a605c7",
+            "query_took": 4
           },
           {
-            "timestamp": 1784736451794430,
-            "alert_name": "real-eval-probe-1784736450491-xrydpl",
+            "timestamp": 1784749980718196,
+            "alert_name": "real-eval-probe-1784749979397-4hs5z0",
             "org": "default",
             "status": "condition_not_satisfied",
             "is_realtime": false,
             "is_silenced": false,
-            "start_time": 1784736390632910,
-            "end_time": 1784736450632910,
+            "start_time": 1784749920000000,
+            "end_time": 1784749980000000,
             "retries": 0,
             "error": null,
             "success_response": null,
             "is_partial": null,
-            "delay_in_secs": 1,
-            "evaluation_took_in_secs": 0.012677062,
-            "source_node": "724470382f70",
-            "query_took": 11
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.0117197,
+            "source_node": "f93640a605c7",
+            "query_took": 10
           }
         ]
       }
@@ -560,7 +470,7 @@
     "volumeSizeKiB": 5220
   },
   "targetLogicalRestore": {
-    "startupMs": 7655,
+    "startupMs": 5996,
     "restoreResults": {
       "streams": [
         {
@@ -574,19 +484,19 @@
       ],
       "functions": [
         {
-          "id": "chicek_correlation_normalize_v1",
-          "action": "NO_CHANGE"
-        },
-        {
           "id": "chicek_rumlog_sanitize_v1",
           "action": "NO_CHANGE"
         },
         {
-          "id": "chicek_sanitization_cleanup_v1",
+          "id": "chicek_correlation_normalize_v1",
           "action": "NO_CHANGE"
         },
         {
           "id": "chicek_rum_sanitize_v1",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "chicek_sanitization_cleanup_v1",
           "action": "NO_CHANGE"
         }
       ],
@@ -704,18 +614,18 @@
     }
   },
   "sourceBackup": {
-    "archive": ".runtime/stage20/2026-07-22T15-58-50-673Z/backups/source-openobserve-data.tar",
-    "sha256": "e7e013d196324f32d49f12b0849bd929eb3c9b69aad279552cde363493956a42",
+    "archive": ".runtime/stage20/2026-07-22T19-45-17-599Z/backups/source-openobserve-data.tar",
+    "sha256": "2162d98cab8b2b6958435c6feffcf3f4bf75c4da1f6f366a6e89a07471fedb2e",
     "bytes": 1615644672,
     "volumeSizeKiB": 4968
   },
   "sourceRestore": {
-    "startupMs": 6144,
-    "elapsedMs": 8309,
+    "startupMs": 6332,
+    "elapsedMs": 18944,
     "oldRumdata": true,
     "oldRumlog": true,
     "smoke": {
-      "newMarker": "sourceRestore-new-996219bd-bda8-4c64-9f05-6dbd10c7f1d6",
+      "newMarker": "sourceRestore-new-d4b44960-f4b2-441e-a61a-47cdd8dbe22f",
       "newVisible": true,
       "controlPlane": {
         "overallHash": "7ed4036d04df06c6274be9eb2465a4f2873d547b2642c5a52ffc488ce07b3eb6",
@@ -743,7 +653,7 @@
         "secretDropped": true
       },
       "alertSmoke": {
-        "alertId": "3GriTGT5oeZc0HjXGHbzroMmJwV",
+        "alertId": "3Gs9zMGjUP5oBgIELaGrdIC34t2",
         "quietCycleObserved": true,
         "eventsAfterQuietWindow": 0,
         "historyRowCountDuringQuiet": 2,
@@ -752,76 +662,76 @@
         "historyRowCountFinal": 4,
         "historyHits": [
           {
-            "timestamp": 1784736185228661,
-            "alert_name": "real-eval-probe-1784736093903-74500w",
+            "timestamp": 1784749741443950,
+            "alert_name": "real-eval-probe-1784749670139-kexo3h",
             "org": "default",
             "status": "completed",
             "is_realtime": false,
             "is_silenced": false,
-            "start_time": 1784736120000000,
-            "end_time": 1784736180000000,
-            "retries": 0,
-            "error": null,
-            "success_response": null,
-            "is_partial": null,
-            "delay_in_secs": 5,
-            "evaluation_took_in_secs": 0.006417308,
-            "source_node": "2c3313599a04",
-            "query_took": 5
-          },
-          {
-            "timestamp": 1784736135229263,
-            "alert_name": "real-eval-probe-1784736093903-74500w",
-            "org": "default",
-            "status": "condition_not_satisfied",
-            "is_realtime": false,
-            "is_silenced": false,
-            "start_time": 1784736074342079,
-            "end_time": 1784736134342079,
-            "retries": 0,
-            "error": null,
-            "success_response": null,
-            "is_partial": null,
-            "delay_in_secs": 0,
-            "evaluation_took_in_secs": 0.01259422,
-            "source_node": "2c3313599a04",
-            "query_took": 11
-          },
-          {
-            "timestamp": 1784736125229515,
-            "alert_name": "real-eval-probe-1784736093903-74500w",
-            "org": "default",
-            "status": "condition_not_satisfied",
-            "is_realtime": false,
-            "is_silenced": false,
-            "start_time": 1784736060000000,
-            "end_time": 1784736120000000,
-            "retries": 0,
-            "error": null,
-            "success_response": null,
-            "is_partial": null,
-            "delay_in_secs": 5,
-            "evaluation_took_in_secs": 0.014730151,
-            "source_node": "2c3313599a04",
-            "query_took": 13
-          },
-          {
-            "timestamp": 1784736095229089,
-            "alert_name": "real-eval-probe-1784736093903-74500w",
-            "org": "default",
-            "status": "condition_not_satisfied",
-            "is_realtime": false,
-            "is_silenced": false,
-            "start_time": 1784736034102247,
-            "end_time": 1784736094102247,
+            "start_time": 1784749680000000,
+            "end_time": 1784749740000000,
             "retries": 0,
             "error": null,
             "success_response": null,
             "is_partial": null,
             "delay_in_secs": 1,
-            "evaluation_took_in_secs": 0.012045238,
-            "source_node": "2c3313599a04",
+            "evaluation_took_in_secs": 0.015880979,
+            "source_node": "7b9c1fd0d067",
+            "query_took": 14
+          },
+          {
+            "timestamp": 1784749711444068,
+            "alert_name": "real-eval-probe-1784749670139-kexo3h",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784749650521796,
+            "end_time": 1784749710521796,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.014193968,
+            "source_node": "7b9c1fd0d067",
+            "query_took": 12
+          },
+          {
+            "timestamp": 1784749681444474,
+            "alert_name": "real-eval-probe-1784749670139-kexo3h",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784749620000000,
+            "end_time": 1784749680000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.011976216,
+            "source_node": "7b9c1fd0d067",
             "query_took": 10
+          },
+          {
+            "timestamp": 1784749671444129,
+            "alert_name": "real-eval-probe-1784749670139-kexo3h",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784749610307045,
+            "end_time": 1784749670307045,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.0256312,
+            "source_node": "7b9c1fd0d067",
+            "query_took": 18
           }
         ]
       }
@@ -851,7 +761,7 @@
     }
   },
   "backupManifest": {
-    "generatedAt": "2026-07-22T16:09:19.766Z",
+    "generatedAt": "2026-07-22T19:54:28.287Z",
     "sourceVersion": {
       "tag": "v0.91.0",
       "digest": "sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8",
@@ -865,20 +775,20 @@
     "files": [
       {
         "role": "target-logical-control-plane-export",
-        "path": ".runtime/stage20/2026-07-22T15-58-50-673Z/backups/target-logical-export.json",
-        "sha256": "1cd5abe7cb823e73757d6dd7445a44372c9ae8806f8ce843db80cf0e66af33a5",
+        "path": ".runtime/stage20/2026-07-22T19-45-17-599Z/backups/target-logical-export.json",
+        "sha256": "dea41b66e490a9180aad6083ff796d66fdc888bee0df08ca816c6dd787a6b33a",
         "bytes": 199234
       },
       {
         "role": "target-cold-data-volume",
-        "path": ".runtime/stage20/2026-07-22T15-58-50-673Z/backups/target-openobserve-data.tar",
-        "sha256": "9da2e9c36ae0fd6e85a38763081f0696a860578b359dfed8028012285c1713e6",
-        "bytes": 1625481216
+        "path": ".runtime/stage20/2026-07-22T19-45-17-599Z/backups/target-openobserve-data.tar",
+        "sha256": "e4806ba180bea75f9692635af62b809d01541ef95aa2ff7da6a39aec05121718",
+        "bytes": 1630139904
       },
       {
         "role": "source-cold-data-volume",
-        "path": ".runtime/stage20/2026-07-22T15-58-50-673Z/backups/source-openobserve-data.tar",
-        "sha256": "e7e013d196324f32d49f12b0849bd929eb3c9b69aad279552cde363493956a42",
+        "path": ".runtime/stage20/2026-07-22T19-45-17-599Z/backups/source-openobserve-data.tar",
+        "sha256": "2162d98cab8b2b6958435c6feffcf3f4bf75c4da1f6f366a6e89a07471fedb2e",
         "bytes": 1615644672
       }
     ],
@@ -892,5 +802,5 @@
       "destinations": 1
     }
   },
-  "runtimeResultPath": ".runtime/stage20/2026-07-22T15-58-50-673Z/stage20-results.json"
+  "runtimeResultPath": ".runtime/stage20/2026-07-22T19-45-17-599Z/stage20-results.json"
 }
