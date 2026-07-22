@@ -118,6 +118,108 @@ describe("Stage 13 delivery doc makes no unimplemented-feature claims", () => {
   });
 });
 
+describe("README / roadmap stage-status consistency through Stage 20 (closeout)", () => {
+  const readme = readDoc("README.md");
+  const roadmap = readDoc("docs/roadmap.md");
+  const dockerfile = readDoc("infrastructure/docker/openobserve/Dockerfile");
+
+  it("has structured status rows for stages 17-20", () => {
+    const table = parseReadmeStatusTable(readme);
+    const rowFor = (needle) => Object.entries(table).find(([stage]) => stage.includes(needle))?.[1];
+
+    expect(rowFor("17")).toMatch(/ACCEPTED/);
+    expect(rowFor("18")).toMatch(/ACCEPTED/);
+    expect(rowFor("19")).toMatch(/ACCEPTED/);
+    expect(rowFor("19")).not.toMatch(/MEASURED LIMITATIONS/);
+    expect(rowFor("20")).toMatch(/ACCEPTED/);
+  });
+
+  it("the exact pinned target OpenObserve image/digest matches the Dockerfile", () => {
+    const targetLine = dockerfile
+      .split("\n")
+      .find((line) => line.includes("public.ecr.aws/zinclabs/openobserve:"));
+    const digestMatch = targetLine?.match(/sha256:[0-9a-f]{64}/);
+    expect(digestMatch).not.toBeNull();
+    const [digest] = digestMatch;
+    expect(digest).toBe("sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15");
+    // README must positively state v0.91.2 as the current pinned target
+    // (not just avoid mentioning v0.91.0 — that remains valid as
+    // historical/source context for Stage 11/15/16's original audits and
+    // Stage 20's upgrade fixture, as long as it's clearly dated as such).
+    expect(readme).toMatch(/v0\.91\.2/);
+    // Every remaining v0.91.0 mention must be explicitly dated to a past
+    // stage/audit, not stated as the current pinned version bare.
+    for (const match of readme.matchAll(/.{0,40}v0\.91\.0.{0,10}/gi)) {
+      expect(match[0]).toMatch(/Aşama \d+|Stage \d+|audit/i);
+    }
+  });
+
+  it("Stage 19 is described as accepted with a real, completed 60-minute soak — not deferred", () => {
+    expect(readme).toMatch(/60 dakikalık soak.*(gerçek koşuldu|geçti)/);
+    expect(readme).not.toMatch(/soak.*henüz canlı koşulmadı/);
+    expect(roadmap).not.toMatch(/60 dakikalık standart soak.*çalıştırılmadı/);
+  });
+
+  it("does not claim a Version Regression starter alert exists", () => {
+    for (const doc of [readme, roadmap]) {
+      expect(doc).not.toMatch(/Version Regression/);
+    }
+  });
+
+  it("Stage 17 documents exactly five starter alerts as the conscious final scope", () => {
+    expect(readme).toMatch(/[Bb]eş starter alert/);
+    const catalog = JSON.parse(
+      readDoc("infrastructure/openobserve/alerts/alert-policy-catalog.json"),
+    );
+    expect(catalog.starterPolicyIds).toHaveLength(5);
+    expect(catalog.starterPolicyIds).not.toContain("version-regression");
+  });
+
+  it("Session Replay is still described as closed by design everywhere it's mentioned", () => {
+    for (const doc of [readme, roadmap]) {
+      expect(doc).toMatch(/Session Replay.*(desteklenmiyor|Security Blocked)/i);
+    }
+  });
+});
+
+describe("local relative links in top-level docs resolve to real files", () => {
+  const files = ["README.md", "docs/roadmap.md"];
+  const linkPattern = /\]\((?!https?:\/\/)([^)#]+)(?:#[^)]*)?\)/g;
+
+  it.each(files)("every local link in %s points at a file that exists", (relPath) => {
+    const doc = readDoc(relPath);
+    const baseDir = join(repoRoot, relPath, "..");
+    const missing = [];
+    for (const match of doc.matchAll(linkPattern)) {
+      const target = match[1];
+      if (target.startsWith("`") || target.includes(" ")) continue;
+      const resolved = join(baseDir, target);
+      try {
+        readFileSync(resolved);
+      } catch {
+        missing.push(target);
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+});
+
+describe("Stage 20 evidence files referenced by docs actually exist", () => {
+  it("the committed Stage 20 recovery-results evidence file exists and is valid JSON", () => {
+    const raw = readDoc("infrastructure/performance/stage20-recovery-results.json");
+    const parsed = JSON.parse(raw);
+    expect(parsed.stage).toBe(20);
+    expect(["ACCEPTED", "BLOCKED"]).toContain(parsed.decision);
+  });
+
+  it("Stage 19 acceptance evidence files exist", () => {
+    expect(() =>
+      readDoc("infrastructure/performance/stage19-acceptance-results.json"),
+    ).not.toThrow();
+    expect(() => readDoc("docs/stage19-soak-report.md")).not.toThrow();
+  });
+});
+
 describe("sanitization backstop doc matches the deployed pipeline graph", () => {
   const backstopDoc = readDoc("docs/openobserve-sanitization-backstop.md");
   const provisionScript = readDoc("scripts/lab/provision-sanitization.mjs");

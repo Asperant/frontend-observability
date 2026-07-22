@@ -6,16 +6,19 @@ Mevcut web uygulamalarına minimum müdahaleyle bağlanacak şekilde tasarlanır
 
 ## Mevcut Durum
 
-| Aşama                              | Durum                               |
-| ---------------------------------- | ----------------------------------- |
-| 0–10                               | ACCEPTED                            |
-| 11 (Session Replay)                | SECURITY BLOCKED / CLOSED BY DESIGN |
-| 12 (Reverse Proxy Hardening)       | ACCEPTED                            |
-| 13 (Sampling/Queue/Retry)          | SECURITY BLOCKED / CLOSED BY DESIGN |
-| 14 (Runtime Control & Kill Switch) | ACCEPTED                            |
-| 15 (Stream & Data Lifecycle)       | ACCEPTED                            |
-| 16 (Dashboard & Sorgular)          | ACCEPTED                            |
-| 19 (Performance & Resilience)      | ACCEPTED WITH MEASURED LIMITATIONS  |
+| Aşama                              | Durum                                              |
+| ---------------------------------- | -------------------------------------------------- |
+| 0–10                               | ACCEPTED                                           |
+| 11 (Session Replay)                | SECURITY BLOCKED / CLOSED BY DESIGN                |
+| 12 (Reverse Proxy Hardening)       | ACCEPTED                                           |
+| 13 (Sampling/Queue/Retry)          | SECURITY BLOCKED / CLOSED BY DESIGN                |
+| 14 (Runtime Control & Kill Switch) | ACCEPTED                                           |
+| 15 (Stream & Data Lifecycle)       | ACCEPTED                                           |
+| 16 (Dashboard & Sorgular)          | ACCEPTED                                           |
+| 17 (Alert & Incident Governance)   | ACCEPTED — beş starter alert bilinçli nihai kapsam |
+| 18 (Security & Privacy)            | ACCEPTED WITH LOW RESIDUAL RISKS                   |
+| 19 (Performance & Resilience)      | ACCEPTED                                           |
+| 20 (Upgrade/Rollback/Backup)       | ACCEPTED                                           |
 
 - RUM Sessions ve Browser Logs destekleniyor.
 - Session Replay desteklenmiyor (bkz. [`docs/session-replay-security-decision.md`](docs/session-replay-security-decision.md)).
@@ -24,7 +27,8 @@ Mevcut web uygulamalarına minimum müdahaleyle bağlanacak şekilde tasarlanır
 - Fail-closed runtime kill switch tamamlandı (bkz. [`docs/runtime-control-and-kill-switch.md`](docs/runtime-control-and-kill-switch.md)).
 - OpenObserve stream/schema/veri yaşam döngüsü governance'ı tamamlandı (bkz. [`docs/openobserve-stream-schema-lifecycle.md`](docs/openobserve-stream-schema-lifecycle.md)).
 - OpenObserve query/dashboard governance'ı (metric/query catalog, starter dashboardlar, audit/export/import/backup) tamamlandı (bkz. [`docs/openobserve-query-dashboard-governance.md`](docs/openobserve-query-dashboard-governance.md)).
-- Performans/dayanıklılık ölçülmüş güvenli zarf (measured safe envelope on reference lab): `pnpm test:stage19:resilience` referans lab'da geçiyor. **Ölçülmüş sınırlar**: standart 60 dakikalık soak (`pnpm lab:stage19:soak --duration=60m`) ve tam gate zinciri henüz canlı koşulmadı; production capacity guarantee, zero telemetry loss veya guaranteed notification delivery iddiası yok.
+- Performans/dayanıklılık: `pnpm test:stage19:resilience` referans lab'da geçiyor; standart 60 dakikalık soak (`pnpm lab:stage19:soak --duration=60m`) gerçek koşuldu ve geçti (bkz. [`docs/stage19-performance-resilience-acceptance.md`](docs/stage19-performance-resilience-acceptance.md), [`docs/stage19-soak-report.md`](docs/stage19-soak-report.md)) — production capacity guarantee, zero telemetry loss veya guaranteed notification delivery iddiası hâlâ yok.
+- Upgrade/rollback/backup-restore (Aşama 20): gerçek logical control-plane export/restore (SHA-256 semantic hash equality ile), live-clone cold data backup ve gerçek scheduler tabanlı alert recovery kanıtı (bkz. [`docs/runbooks/backup-restore.md`](docs/runbooks/backup-restore.md), [`docs/runbooks/upgrade-openobserve.md`](docs/runbooks/upgrade-openobserve.md), [`docs/runbooks/rollback-openobserve.md`](docs/runbooks/rollback-openobserve.md)).
 
 ## Frontend Bootstrap (Aşama 7)
 
@@ -71,7 +75,7 @@ Lifecycle durumları `idle`, `initializing`, `active`, `disabled`, `degraded`, `
 
 Session Replay is disabled and unsupported with the pinned OpenObserve OSS version.
 
-OpenObserve OSS v0.91.0 replay masking client-side'dır ve sunucu tarafında herhangi bir segment içeriği doğrulaması yapılmaz. Gerçek RUM client token'ıyla browser'ı atlayarak gönderilen, şema açısından geçerli ve doğru şekilde deflate ile sıkıştırılmış kötücül bir replay payload'ı doğrudan kabul edilip `_sessionreplay` stream'ine olduğu gibi yazılabiliyor. RUM token browser-visible bir capability olduğundan (zaten `/rum` ve `/logs` için kabul edilmiş model), client-side masking bir güvenlik sınırı değildir. Bu proje kapsamında custom gateway/Lua/njs sanitizer eklenmesi kabul edilmez. Bu nedenle replay ingestion path allowlist'te açık değildir, replay sampling her zaman `0`'dır ve runtime config şeması replay'i etkinleştirecek hiçbir alan sunmaz. Ayrıntılar için bkz. [`docs/session-replay-security-decision.md`](docs/session-replay-security-decision.md).
+OpenObserve OSS v0.91.0 (Aşama 11 karar zamanında pinned sürüm; şu an pinned hedef `v0.91.2`'dir, bkz. Aşama 20) replay masking client-side'dır ve sunucu tarafında herhangi bir segment içeriği doğrulaması yapılmaz. Gerçek RUM client token'ıyla browser'ı atlayarak gönderilen, şema açısından geçerli ve doğru şekilde deflate ile sıkıştırılmış kötücül bir replay payload'ı doğrudan kabul edilip `_sessionreplay` stream'ine olduğu gibi yazılabiliyor. RUM token browser-visible bir capability olduğundan (zaten `/rum` ve `/logs` için kabul edilmiş model), client-side masking bir güvenlik sınırı değildir. Bu proje kapsamında custom gateway/Lua/njs sanitizer eklenmesi kabul edilmez. Bu nedenle replay ingestion path allowlist'te açık değildir, replay sampling her zaman `0`'dır ve runtime config şeması replay'i etkinleştirecek hiçbir alan sunmaz. Ayrıntılar için bkz. [`docs/session-replay-security-decision.md`](docs/session-replay-security-decision.md).
 
 ## Sampling, Queue, Retry ve Kesinti Davranışı — Aşama 13 — Security Blocked
 
@@ -95,7 +99,7 @@ Doğrulama fail-closed'dır: duplicate key, bilinmeyen key, gelecekteki `issuedA
 
 Yalnız iki canonical stream yönetilir: `_rumdata` (RUM) ve `_rumlog` (browser logs). `_sessionreplay` veya başka bir replay stream'i, servis/environment başına ayrı stream, veya genel amaçlı custom telemetry stream'i yoktur; Stage 9 sanitization pipeline'ının hedefi (`chicek_rumdata_sanitize_pipeline_v1`/`chicek_rumlog_sanitize_pipeline_v1`) her `lab:streams:verify` çalışmasında bu iki canonical stream'le uyumlu olduğu yeniden doğrulanır.
 
-Her capability iddiası, pinned `v0.91.0` container'ına karşı gerçek API çağrılarıyla doğrulandı — bkz. [`docs/openobserve-v0.91-stream-capabilities.md`](docs/openobserve-v0.91-stream-capabilities.md). Lab desired state: retention 7 gün, max query range 168 saat, UDS/`store_original_data` kapalı, tüm full-text/index/bloom/partition/distinct-value alanları kapalı — production retention `REQUIRED_COMPANY_DECISION`'dır ve hiçbir yerde production default'u gibi davranılmaz. Şema contract'ı native RUM/browser-logs alanlarını katı bir allow-list ile dondurmaz (OpenObserve'un kendi şeması additive-only'dir); required/conditional/controlled/forbidden alan sınıfları ve drift sınıfları (`NO_DRIFT`…`PIPELINE_DESTINATION_DRIFT`) için bkz. [`docs/openobserve-stream-schema-lifecycle.md`](docs/openobserve-stream-schema-lifecycle.md).
+Her capability iddiası, Aşama 15 audit zamanında pinned `v0.91.0` container'ına karşı gerçek API çağrılarıyla doğrulandı (şu an pinned hedef `v0.91.2`'dir, bkz. Aşama 20) — bkz. [`docs/openobserve-v0.91-stream-capabilities.md`](docs/openobserve-v0.91-stream-capabilities.md). Lab desired state: retention 7 gün, max query range 168 saat, UDS/`store_original_data` kapalı, tüm full-text/index/bloom/partition/distinct-value alanları kapalı — production retention `REQUIRED_COMPANY_DECISION`'dır ve hiçbir yerde production default'u gibi davranılmaz. Şema contract'ı native RUM/browser-logs alanlarını katı bir allow-list ile dondurmaz (OpenObserve'un kendi şeması additive-only'dir); required/conditional/controlled/forbidden alan sınıfları ve drift sınıfları (`NO_DRIFT`…`PIPELINE_DESTINATION_DRIFT`) için bkz. [`docs/openobserve-stream-schema-lifecycle.md`](docs/openobserve-stream-schema-lifecycle.md).
 
 ```bash
 pnpm lab:streams:status     # read-only özet
@@ -109,7 +113,7 @@ Canonical streamler destructive işlemlere karşı hard-block'ludur; generic des
 
 ## OpenObserve Query ve Dashboard Governance (Aşama 16)
 
-12 metrik (`infrastructure/openobserve/analytics/metric-catalog.json`) ve 26 query manifesti (`infrastructure/openobserve/analytics/queries/`) her biri gerçek pinned `v0.91.0` API'sine karşı doğrulandı — bkz. [`docs/openobserve-v0.91-dashboard-capabilities.md`](docs/openobserve-v0.91-dashboard-capabilities.md). Dört starter dashboard (`Frontend Operations`, `Error Analysis`, `Performance and Resources`, `Session Investigation`) ilk kurulum şablonudur; şirket bunları OpenObserve UI'den özgürce değiştirebilir/silebilir — sistem bunları geri yazmaz. Detaylı model, empty-data semantiği, marker tabanlı stable-identity yaklaşımı ve audit kuralları için bkz. [`docs/openobserve-query-dashboard-governance.md`](docs/openobserve-query-dashboard-governance.md).
+12 metrik (`infrastructure/openobserve/analytics/metric-catalog.json`) ve 26 query manifesti (`infrastructure/openobserve/analytics/queries/`) her biri Aşama 16 audit zamanında gerçek pinned `v0.91.0` API'sine karşı doğrulandı; Aşama 20 closeout, `line`/`bar` panel render düzeltmesini şu an pinned hedef `v0.91.2`'ye karşı yeniden doğruladı — bkz. [`docs/openobserve-v0.91-dashboard-capabilities.md`](docs/openobserve-v0.91-dashboard-capabilities.md). Dört starter dashboard (`Frontend Operations`, `Error Analysis`, `Performance and Resources`, `Session Investigation`) ilk kurulum şablonudur; şirket bunları OpenObserve UI'den özgürce değiştirebilir/silebilir — sistem bunları geri yazmaz. Detaylı model, empty-data semantiği, marker tabanlı stable-identity yaklaşımı ve audit kuralları için bkz. [`docs/openobserve-query-dashboard-governance.md`](docs/openobserve-query-dashboard-governance.md).
 
 ```bash
 pnpm lab:dashboards:install-starters     # eksik starter dashboardları oluşturur, overwrite/delete yapmaz
