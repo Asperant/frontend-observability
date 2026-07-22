@@ -70,7 +70,7 @@ No assertion was weakened, no threshold lowered, no test skipped.
 - **F-01, F-02** — `packages/browser-observability/src/sanitization/detectors/keys.js` (new `isReservedObjectKey`, reused by `sanitizers/attributes.js`'s `forbiddenKeyReason` and by `src/correlation/reserved-fields.js`), `scripts/lab/streams/manifest.js` (same guard, independent copy per the existing "pure function of its own arguments" convention in that file), `packages/browser-observability/src/sanitization/limits/limits.js` (new `maxSanitizerScanLength: 4096`) + `sanitizers/string.js` (clamp before regex scanning, truncate-to-`maxLength` order unchanged so realistic-length secrets are still fully redacted). Regression: `pnpm test:unit` (453 tests), `tests/security/stage18/browser-package-adversarial.test.js` (50 tests, including two dedicated bounded-time regression guards).
 - **F-03** — `scripts/lab/dashboards/audit.js` (guard non-object dashboard/tab/panel, coerce `query.query` by type instead of by nullishness, flag rather than crash on any of these), `scripts/lab/alerts/audit.js` (guard non-object alert root, `safeStringify` wrapping both `JSON.stringify` call sites, type-guard `hasRawSensitiveSqlProjection`'s `sql.match`). Regression: `tests/lab/dashboards/audit.test.js`, `tests/lab/alerts/audit.test.js` (all pre-existing PASS/RISK-class assertions unchanged), `tests/security/stage18/governance-audit-adversarial.test.js` (40 tests).
 - **F-04** — `scripts/lab/common.mjs` (new `withExclusiveLock`, a cross-process exclusive-create lock file — chosen over an in-process mutex specifically because the real-world race is two separate CLI process invocations, which an in-process JS lock cannot protect against), wired into both `killSwitchOn`/`killSwitchOff` in `scripts/lab/kill-switch.mjs`. Regression: `pnpm test:lab` (329 tests), `tests/security/stage18/lab-adversarial.mjs:checkKillSwitchConcurrentRace` re-run — now consistently `PASS`.
-- **F-05** — Documented in place: `infrastructure/docker/compose.yaml`'s `alert-sink` service comment. Not fixed with a code/architecture change: the loopback-only shared-netns design is a deliberate decision from an earlier stage (OpenObserve v0.91.0 blocks private-IP destinations by default), and restructuring it is outside Stage 18's minimal-fix mandate. No security or privacy boundary is affected — this is a pure availability/operational note for whoever restarts `openobserve` next.
+- **F-05** — Documented in place: `infrastructure/docker/compose.yaml`'s `alert-sink` service comment. Not fixed with a code/architecture change: the loopback-only shared-netns design is a deliberate decision from an earlier stage (OpenObserve v0.91.0 blocks private-IP destinations by default), and restructuring it is outside Stage 18's minimal-fix mandate. No security or privacy boundary is affected — this is a pure availability/operational note for whoever restarts `openobserve` next. **Resolution note (Stage 19/20 closeout):** `docs/stage19-performance-resilience-acceptance.md`'s "Resolved During Closeout" section confirms `pnpm run lab:up` before alert evidence keeps the shared-netns path healthy; Stage 20's disposable recovery environments (`scripts/recovery/disposable-environment.mjs`) always start `openobserve` and `alert-sink` together in one `docker compose up`, so this operational trap cannot occur there by construction — the residual risk stays real only for an operator who restarts the canonical main lab's `openobserve` service alone without also recreating `alert-sink`.
 
 ## Residual risks (accepted, not blocking)
 
@@ -80,9 +80,18 @@ No assertion was weakened, no threshold lowered, no test skipped.
   empirically in both Chromium and Firefox. Not owned by this project's own
   code; this is standard RUM-SDK behavior.
 - **Alert-sink notification privacy is verified via the local test-sink's
-  allowlist end-to-end, not a full live-alert-fires-from-real-data path** —
-  waiting out real alert evaluation timing was judged unnecessary given the
-  static `auditAlertDefinition` `SENSITIVE_OUTPUT`/row-template check (Stage 17) already covers the template-content risk directly and exhaustively.
+  allowlist end-to-end**; the static `auditAlertDefinition`
+  `SENSITIVE_OUTPUT`/row-template check (Stage 17) covers the
+  template-content risk directly and exhaustively. **Closed during Stage 20
+  closeout:** waiting out real alert evaluation timing was judged
+  unnecessary at Stage 18 acceptance time, but Stage 20 later needed a
+  genuinely real, scheduler-evaluated alert firing/quiet proof for its own
+  recovery-chain gate anyway (`scripts/lab/alerts/real-evaluation-probe.mjs`
+  — live-verified that neither the `/alerts/destinations/test` endpoint nor
+  a manual `PATCH .../trigger` actually check the alert's condition before
+  notifying, so this real path did not already exist). The privacy
+  allowlist itself is therefore now also exercised end-to-end through a
+  genuinely fired real alert, not only the local test-sink shortcut.
 - **F-05** above (openobserve-restart / alert-sink netns operational note).
 - Standing, previously-accepted risks unchanged by Stage 18: Session Replay
   closed by design (`docs/session-replay-security-decision.md`); native SDK

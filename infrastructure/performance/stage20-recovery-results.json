@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "stage": 20,
   "decision": "ACCEPTED",
-  "runId": "2026-07-21T22-59-29-194Z",
-  "capturedAt": "2026-07-21T22:59:29.195Z",
+  "runId": "2026-07-22T15-58-50-673Z",
+  "capturedAt": "2026-07-22T15:58:50.674Z",
   "sourceVersion": {
     "tag": "v0.91.0",
     "digest": "sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8",
@@ -30,459 +30,807 @@
       "templates",
       "destinations",
       "ingest",
-      "search"
+      "search",
+      "alerts/history"
     ]
   },
   "mainTargetBackup": {
     "logical": {
-      "path": ".runtime/stage20/2026-07-21T22-59-29-194Z/backups/target-logical-export.json",
-      "sha256": "2397ee30137e942c5f983964b6c85a56f74afdcdc8586b32e65d9c95b857311f",
-      "controlPlane": {
-        "streamCount": 6,
-        "pipelines": 2,
+      "path": ".runtime/stage20/2026-07-22T15-58-50-673Z/backups/target-logical-export.json",
+      "sha256": "1cd5abe7cb823e73757d6dd7445a44372c9ae8806f8ce843db80cf0e66af33a5",
+      "overallHash": "6f28dc93fda1f7ef408838747aca7b6ac4023d0fd7ccc5862518c4ae3ca81856",
+      "groupHashes": {
+        "streams": "d62f38fae8ce49fc3ea21e0dbb6b1dfb856187a3c0c1de84365e416defe1d9e9",
+        "functions": "c5900748956a2a6f1eba22300d39003116e150b49f4044f2f254bba88bbe4329",
+        "pipelines": "676f5cd2466812ca49dbc27a4e2daa09f3a7ded17b0009c77ccb5ef66a7756c0",
+        "dashboards": "46189552a024e542d9e8a34d7a9f0485f1690f29515179e284a11015e0111208",
+        "alerts": "e260127ba2570cd437123184505ade0d4cea67adb8201ddc09697556ca661937",
+        "templates": "950473689b3fc8d91faca993170eaa85414ab16749e793b17ae55e1d393721f0",
+        "destinations": "bbb8867c6877d27191a25873d097c8587ccdf3136dbb2e823b60ddc2bd1843ae"
+      },
+      "objectCounts": {
+        "streams": 2,
         "functions": 4,
-        "folders": 2,
-        "dashboards": 4,
-        "alerts": 6,
+        "pipelines": 2,
+        "dashboards": 5,
+        "alerts": 5,
         "templates": 9,
         "destinations": 1
       }
     },
     "coldVolume": {
-      "archive": ".runtime/stage20/2026-07-21T22-59-29-194Z/backups/target-openobserve-data.tar",
-      "sha256": "f62def7cd64e258f3303829905e11ee0bc21cedc4b03f04021bcbafea5ef710e",
-      "bytes": 14716928,
-      "volumeSizeKiB": 16012,
-      "checksum": {
-        "verified": true,
-        "sha256": "f62def7cd64e258f3303829905e11ee0bc21cedc4b03f04021bcbafea5ef710e"
-      }
+      "archive": ".runtime/stage20/2026-07-22T15-58-50-673Z/backups/target-openobserve-data.tar",
+      "sha256": "9da2e9c36ae0fd6e85a38763081f0696a860578b359dfed8028012285c1713e6",
+      "bytes": 1625481216,
+      "volumeSizeKiB": 16304,
+      "method": "live-clone (main lab service never stopped)"
+    }
+  },
+  "logicalRoundTrip": {
+    "semanticHashEquality": true,
+    "secondApplyAllNoChange": true,
+    "groupHashesSource": {
+      "streams": "d62f38fae8ce49fc3ea21e0dbb6b1dfb856187a3c0c1de84365e416defe1d9e9",
+      "functions": "c5900748956a2a6f1eba22300d39003116e150b49f4044f2f254bba88bbe4329",
+      "pipelines": "676f5cd2466812ca49dbc27a4e2daa09f3a7ded17b0009c77ccb5ef66a7756c0",
+      "dashboards": "46189552a024e542d9e8a34d7a9f0485f1690f29515179e284a11015e0111208",
+      "alerts": "e260127ba2570cd437123184505ade0d4cea67adb8201ddc09697556ca661937",
+      "templates": "950473689b3fc8d91faca993170eaa85414ab16749e793b17ae55e1d393721f0",
+      "destinations": "bbb8867c6877d27191a25873d097c8587ccdf3136dbb2e823b60ddc2bd1843ae"
+    },
+    "groupHashesReExported": {
+      "streams": "d62f38fae8ce49fc3ea21e0dbb6b1dfb856187a3c0c1de84365e416defe1d9e9",
+      "functions": "c5900748956a2a6f1eba22300d39003116e150b49f4044f2f254bba88bbe4329",
+      "pipelines": "676f5cd2466812ca49dbc27a4e2daa09f3a7ded17b0009c77ccb5ef66a7756c0",
+      "dashboards": "46189552a024e542d9e8a34d7a9f0485f1690f29515179e284a11015e0111208",
+      "alerts": "e260127ba2570cd437123184505ade0d4cea67adb8201ddc09697556ca661937",
+      "templates": "950473689b3fc8d91faca993170eaa85414ab16749e793b17ae55e1d393721f0",
+      "destinations": "bbb8867c6877d27191a25873d097c8587ccdf3136dbb2e823b60ddc2bd1843ae"
     }
   },
   "restoreTarget": {
-    "newMarker": "target-restore-new-45bb9789-9e2a-4ab0-b776-65061ac5ab73",
+    "newMarker": "target-restore-new-8d209f65-5e4c-4a53-99e3-9816ff12c682",
     "newVisible": true,
     "controlPlane": {
-      "streamCount": 6,
-      "pipelines": 2,
-      "functions": 4,
-      "folders": 2,
-      "dashboards": 4,
-      "alerts": 6,
-      "templates": 9,
-      "destinations": 1
+      "overallHash": "6f28dc93fda1f7ef408838747aca7b6ac4023d0fd7ccc5862518c4ae3ca81856",
+      "groupHashes": {
+        "streams": "d62f38fae8ce49fc3ea21e0dbb6b1dfb856187a3c0c1de84365e416defe1d9e9",
+        "functions": "c5900748956a2a6f1eba22300d39003116e150b49f4044f2f254bba88bbe4329",
+        "pipelines": "676f5cd2466812ca49dbc27a4e2daa09f3a7ded17b0009c77ccb5ef66a7756c0",
+        "dashboards": "46189552a024e542d9e8a34d7a9f0485f1690f29515179e284a11015e0111208",
+        "alerts": "e260127ba2570cd437123184505ade0d4cea67adb8201ddc09697556ca661937",
+        "templates": "950473689b3fc8d91faca993170eaa85414ab16749e793b17ae55e1d393721f0",
+        "destinations": "bbb8867c6877d27191a25873d097c8587ccdf3136dbb2e823b60ddc2bd1843ae"
+      },
+      "objectCounts": {
+        "streams": 2,
+        "functions": 4,
+        "pipelines": 2,
+        "dashboards": 5,
+        "alerts": 5,
+        "templates": 9,
+        "destinations": 1
+      }
     },
     "sanitization": {
       "redacted": true,
       "secretDropped": true
     },
     "alertSmoke": {
-      "firingOk": true,
-      "resolvedOk": true
+      "alertId": "3GriELJUb1fHY07aZuX0aTaNhVo",
+      "quietCycleObserved": true,
+      "eventsAfterQuietWindow": 0,
+      "historyRowCountDuringQuiet": 2,
+      "firingObserved": true,
+      "firingEventCount": 1,
+      "historyRowCountFinal": 4,
+      "historyHits": [
+        {
+          "timestamp": 1784736066667198,
+          "alert_name": "real-eval-probe-1784735975482-etoowc",
+          "org": "default",
+          "status": "completed",
+          "is_realtime": false,
+          "is_silenced": false,
+          "start_time": 1784736000000000,
+          "end_time": 1784736060000000,
+          "retries": 0,
+          "error": null,
+          "success_response": null,
+          "is_partial": null,
+          "delay_in_secs": 6,
+          "evaluation_took_in_secs": 0.014399828,
+          "source_node": "4dbacb66987a",
+          "query_took": 12
+        },
+        {
+          "timestamp": 1784736016667653,
+          "alert_name": "real-eval-probe-1784735975482-etoowc",
+          "org": "default",
+          "status": "condition_not_satisfied",
+          "is_realtime": false,
+          "is_silenced": false,
+          "start_time": 1784735955811019,
+          "end_time": 1784736015811019,
+          "retries": 0,
+          "error": null,
+          "success_response": null,
+          "is_partial": null,
+          "delay_in_secs": 0,
+          "evaluation_took_in_secs": 0.014498227,
+          "source_node": "4dbacb66987a",
+          "query_took": 12
+        },
+        {
+          "timestamp": 1784736006666739,
+          "alert_name": "real-eval-probe-1784735975482-etoowc",
+          "org": "default",
+          "status": "condition_not_satisfied",
+          "is_realtime": false,
+          "is_silenced": false,
+          "start_time": 1784735940000000,
+          "end_time": 1784736000000000,
+          "retries": 0,
+          "error": null,
+          "success_response": null,
+          "is_partial": null,
+          "delay_in_secs": 6,
+          "evaluation_took_in_secs": 0.012004426,
+          "source_node": "4dbacb66987a",
+          "query_took": 10
+        },
+        {
+          "timestamp": 1784735976667181,
+          "alert_name": "real-eval-probe-1784735975482-etoowc",
+          "org": "default",
+          "status": "condition_not_satisfied",
+          "is_realtime": false,
+          "is_silenced": false,
+          "start_time": 1784735915624452,
+          "end_time": 1784735975624452,
+          "retries": 0,
+          "error": null,
+          "success_response": null,
+          "is_partial": null,
+          "delay_in_secs": 1,
+          "evaluation_took_in_secs": 0.006925391,
+          "source_node": "4dbacb66987a",
+          "query_took": 5
+        }
+      ]
     },
-    "startupMs": 6024,
-    "volumeSizeKiB": 16012
+    "startupMs": 6305,
+    "volumeSizeKiB": 16240
   },
   "upgrade": {
-    "startupMs": 6083,
-    "elapsedMs": 7490,
+    "startupMs": 6777,
+    "elapsedMs": 22906,
     "oldRumdata": true,
     "oldRumlog": true,
     "smoke": {
-      "newMarker": "upgrade-new-0ca2fd58-bc3d-4a6d-ac0a-5fe85a478cbf",
+      "newMarker": "upgrade-new-ca9fd871-2e2d-49d1-b074-aeb06e99b01e",
       "newVisible": true,
       "controlPlane": {
-        "streamCount": 2,
-        "pipelines": 2,
-        "functions": 4,
-        "folders": 1,
-        "dashboards": 1,
-        "alerts": 1,
-        "templates": 9,
-        "destinations": 1
+        "overallHash": "3fc30f4504c4bc055618adbad816766bb1a83a19b830360888f9383a2ea35d3e",
+        "groupHashes": {
+          "streams": "d62f38fae8ce49fc3ea21e0dbb6b1dfb856187a3c0c1de84365e416defe1d9e9",
+          "functions": "c5900748956a2a6f1eba22300d39003116e150b49f4044f2f254bba88bbe4329",
+          "pipelines": "7c44f82520df12f5a89a3d3de98e702f900c0e5938cdeb716647a3396cadd403",
+          "dashboards": "4589e395b03c5ebc9435db4d0225e7bb431d16ca1b032acfb720a88feadb5658",
+          "alerts": "3806242d7f97083661218dc5e2eedff42d3e6c2ba5b2682f96574269caa09b61",
+          "templates": "950473689b3fc8d91faca993170eaa85414ab16749e793b17ae55e1d393721f0",
+          "destinations": "cd49fdf1709fcb7a61cf70da0d65b1f742bc4a0f217839b0893b64683dbb75b0"
+        },
+        "objectCounts": {
+          "streams": 2,
+          "functions": 4,
+          "pipelines": 2,
+          "dashboards": 2,
+          "alerts": 1,
+          "templates": 9,
+          "destinations": 1
+        }
       },
       "sanitization": {
         "redacted": true,
         "secretDropped": true
       },
       "alertSmoke": {
-        "firingOk": true,
-        "resolvedOk": true
+        "alertId": "3GriiatRfRkuUZI5IlPYXmVFZSU",
+        "quietCycleObserved": true,
+        "eventsAfterQuietWindow": 0,
+        "historyRowCountDuringQuiet": 2,
+        "firingObserved": true,
+        "firingEventCount": 1,
+        "historyRowCountFinal": 4,
+        "historyHits": [
+          {
+            "timestamp": 1784736307681471,
+            "alert_name": "real-eval-probe-1784736216382-hvrqn9",
+            "org": "default",
+            "status": "completed",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736240000000,
+            "end_time": 1784736300000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 7,
+            "evaluation_took_in_secs": 0.012736397,
+            "source_node": "eb370c3a02b4",
+            "query_took": 11
+          },
+          {
+            "timestamp": 1784736257681350,
+            "alert_name": "real-eval-probe-1784736216382-hvrqn9",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736196829292,
+            "end_time": 1784736256829292,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.01477341,
+            "source_node": "eb370c3a02b4",
+            "query_took": 13
+          },
+          {
+            "timestamp": 1784736247681546,
+            "alert_name": "real-eval-probe-1784736216382-hvrqn9",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736180000000,
+            "end_time": 1784736240000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 7,
+            "evaluation_took_in_secs": 0.008676243,
+            "source_node": "eb370c3a02b4",
+            "query_took": 7
+          },
+          {
+            "timestamp": 1784736217681368,
+            "alert_name": "real-eval-probe-1784736216382-hvrqn9",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736156586574,
+            "end_time": 1784736216586574,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.008033882,
+            "source_node": "eb370c3a02b4",
+            "query_took": 6
+          }
+        ]
       }
     },
-    "volumeSizeKiB": 5104,
-    "logSummary": {
-      "warningCount": 4,
-      "errorCount": 0,
-      "tail": "openobserve-1  | 2026-07-21T23:00:37.497333567+00:00 INFO openobserve::job::compactor: [compactor_clean_done_jobs] pausable job started\nopenobserve-1  | 2026-07-21T23:00:37.497337477+00:00 INFO openobserve::job::compactor: [run_compactor_pending_jobs_metric] pausable job started\nopenobserve-1  | 2026-07-21T23:00:37.497340587+00:00 INFO openobserve::job::compactor: [compactor_sync_to_db] pausable job started\nopenobserve-1  | 2026-07-21T23:00:37.497741845+00:00 INFO openobserve::service::enrichment::storage::remote: [ENRICHMENT::STORAGE] Running enrichment table merge job\nopenobserve-1  | 2026-07-21T23:00:37.497753964+00:00 INFO openobserve::service::enrichment::storage::remote: [enchrichment_table_merge_job] pausable job started\nopenobserve-1  | 2026-07-21T23:00:37.497867387+00:00 INFO openobserve::service::runtime_metrics: Registered runtime 'grpc' for metrics collection\nopenobserve-1  | 2026-07-21T23:00:37.497877691+00:00 INFO openobserve: starting gRPC server  at [redacted-ip]:5081\nopenobserve-1  | 2026-07-21T23:00:37.497887152+00:00 INFO openobserve::service::runtime_metrics: Registered runtime 'http' for metrics collection\nopenobserve-1  | 2026-07-21T23:00:37.497889909+00:00 INFO openobserve::service::runtime_metrics: Starting runtime metrics collector (basic mode - compile with --cfg tokio_unstable for detail)\nopenobserve-1  | 2026-07-21T23:00:37.497910724+00:00 INFO openobserve::service::db::schema: EnrichmentTables Cached\nopenobserve-1  | 2026-07-21T23:00:37.498093272+00:00 INFO openobserve::service::db::pipeline: [Pipeline] Cached id->org mapping for 2 pipelines\nopenobserve-1  | 2026-07-21T23:00:37.549729990+00:00 WARN ingester::wal: replay wal file: \"/data/wal/logs/0/_meta/logs/1784674808660562.wal\" starting...\nopenobserve-1  | 2026-07-21T23:00:37.551641475+00:00 WARN ingester::wal: replay wal file: \"/data/wal/logs/0/_meta/logs/1784674808660562.wal\" done, json_size: 3805, arrow_size: 79579, file_num: 2 batch_num: 6, took: 1 ms\nopenobserve-1  | 2026-07-21T23:00:37.554429443+00:00 INFO openobserve::service::db::pipeline: [Pipeline] Cached realtime pipelines: 2, scheduled pipelines: 0\nopenobserve-1  | 2026-07-21T23:00:37.555060739+00:00 INFO openobserve::service::db::dashboards: [Dashboard] Cached id->org mapping for 1 dashboards\nopenobserve-1  | 2026-07-21T23:00:37.555233155+00:00 INFO openobserve: Starting HTTP server at: [redacted-ip]:5080\nopenobserve-1  | 2026-07-21T23:00:37.555249805+00:00 INFO openobserve: HTTP client IP sources (in order, implicit ConnectInfo fallback): XEnvoyExternalAddress,XRealIp,RightmostXForwardedFor\nopenobserve-1  | 2026-07-21T23:00:37.602267306+00:00 INFO ingester: Replay wal files done\nopenobserve-1  | 2026-07-21T23:00:40.507092171+00:00 INFO config::axum::middlewares::access_log: [redacted-ip] \"GET /healthz HTTP/1.1\" 200 - \"-\" \"-\" \"Wget\" 0.000\nopenobserve-1  | 2026-07-21T23:00:41.052162902+00:00 INFO config::axum::middlewares::access_log: [redacted-ip] \"GET /health HTTP/1.1\" 401 - \"-\" \"-\" \"node\" 0.000"
-    }
+    "volumeSizeKiB": 5168
   },
   "rollback": {
-    "startupMs": 6147,
-    "elapsedMs": 7322,
+    "startupMs": 6180,
+    "elapsedMs": 12878,
     "oldRumdata": true,
     "oldRumlog": true,
     "smoke": {
-      "newMarker": "rollback-new-9c7175ce-1f58-4f1a-b292-ab11d193544e",
+      "newMarker": "rollback-new-13fc82ac-6019-46bb-9108-a69241ccca37",
       "newVisible": true,
       "controlPlane": {
-        "streamCount": 2,
-        "pipelines": 2,
-        "functions": 4,
-        "folders": 1,
-        "dashboards": 1,
-        "alerts": 1,
-        "templates": 9,
-        "destinations": 1
+        "overallHash": "7ed4036d04df06c6274be9eb2465a4f2873d547b2642c5a52ffc488ce07b3eb6",
+        "groupHashes": {
+          "streams": "d62f38fae8ce49fc3ea21e0dbb6b1dfb856187a3c0c1de84365e416defe1d9e9",
+          "functions": "c5900748956a2a6f1eba22300d39003116e150b49f4044f2f254bba88bbe4329",
+          "pipelines": "7c44f82520df12f5a89a3d3de98e702f900c0e5938cdeb716647a3396cadd403",
+          "dashboards": "4589e395b03c5ebc9435db4d0225e7bb431d16ca1b032acfb720a88feadb5658",
+          "alerts": "3806242d7f97083661218dc5e2eedff42d3e6c2ba5b2682f96574269caa09b61",
+          "templates": "0c2488a55403040267ccececd3b4a1b092924cd470ef7a2ee9559d2f66ec6381",
+          "destinations": "cd49fdf1709fcb7a61cf70da0d65b1f742bc4a0f217839b0893b64683dbb75b0"
+        },
+        "objectCounts": {
+          "streams": 2,
+          "functions": 4,
+          "pipelines": 2,
+          "dashboards": 2,
+          "alerts": 1,
+          "templates": 9,
+          "destinations": 1
+        }
       },
       "sanitization": {
         "redacted": true,
         "secretDropped": true
       },
       "alertSmoke": {
-        "firingOk": true,
-        "resolvedOk": true
+        "alertId": "3Griwy0PtSOVcdWroP666cJhJmD",
+        "quietCycleObserved": true,
+        "eventsAfterQuietWindow": 0,
+        "historyRowCountDuringQuiet": 2,
+        "firingObserved": true,
+        "firingEventCount": 1,
+        "historyRowCountFinal": 4,
+        "historyHits": [
+          {
+            "timestamp": 1784736421202282,
+            "alert_name": "real-eval-probe-1784736329874-3zdyno",
+            "org": "default",
+            "status": "completed",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736360000000,
+            "end_time": 1784736420000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.010843918,
+            "source_node": "da5a7f289763",
+            "query_took": 9
+          },
+          {
+            "timestamp": 1784736371202576,
+            "alert_name": "real-eval-probe-1784736329874-3zdyno",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736310306658,
+            "end_time": 1784736370306658,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.012165706,
+            "source_node": "da5a7f289763",
+            "query_took": 10
+          },
+          {
+            "timestamp": 1784736361202764,
+            "alert_name": "real-eval-probe-1784736329874-3zdyno",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736300000000,
+            "end_time": 1784736360000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.014106288,
+            "source_node": "da5a7f289763",
+            "query_took": 12
+          },
+          {
+            "timestamp": 1784736331202602,
+            "alert_name": "real-eval-probe-1784736329874-3zdyno",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736270068254,
+            "end_time": 1784736330068254,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.014104678,
+            "source_node": "da5a7f289763",
+            "query_took": 12
+          }
+        ]
       }
     },
-    "volumeSizeKiB": 5104
+    "volumeSizeKiB": 5168
   },
   "reUpgrade": {
-    "startupMs": 6068,
-    "elapsedMs": 7309,
+    "startupMs": 6085,
+    "elapsedMs": 21055,
     "oldRumdata": true,
     "oldRumlog": true,
     "smoke": {
-      "newMarker": "reupgrade-new-721d51ca-87a5-4f77-950e-c244321ed858",
+      "newMarker": "reUpgrade-new-43047849-d77d-476a-9ae4-09528b12c3d7",
       "newVisible": true,
       "controlPlane": {
-        "streamCount": 2,
-        "pipelines": 2,
-        "functions": 4,
-        "folders": 1,
-        "dashboards": 1,
-        "alerts": 1,
-        "templates": 9,
-        "destinations": 1
+        "overallHash": "3fc30f4504c4bc055618adbad816766bb1a83a19b830360888f9383a2ea35d3e",
+        "groupHashes": {
+          "streams": "d62f38fae8ce49fc3ea21e0dbb6b1dfb856187a3c0c1de84365e416defe1d9e9",
+          "functions": "c5900748956a2a6f1eba22300d39003116e150b49f4044f2f254bba88bbe4329",
+          "pipelines": "7c44f82520df12f5a89a3d3de98e702f900c0e5938cdeb716647a3396cadd403",
+          "dashboards": "4589e395b03c5ebc9435db4d0225e7bb431d16ca1b032acfb720a88feadb5658",
+          "alerts": "3806242d7f97083661218dc5e2eedff42d3e6c2ba5b2682f96574269caa09b61",
+          "templates": "950473689b3fc8d91faca993170eaa85414ab16749e793b17ae55e1d393721f0",
+          "destinations": "cd49fdf1709fcb7a61cf70da0d65b1f742bc4a0f217839b0893b64683dbb75b0"
+        },
+        "objectCounts": {
+          "streams": 2,
+          "functions": 4,
+          "pipelines": 2,
+          "dashboards": 2,
+          "alerts": 1,
+          "templates": 9,
+          "destinations": 1
+        }
       },
       "sanitization": {
         "redacted": true,
         "secretDropped": true
       },
       "alertSmoke": {
-        "firingOk": true,
-        "resolvedOk": true
+        "alertId": "3GrjBzI1L3ZhzY2s7yEO9rOZIqh",
+        "quietCycleObserved": true,
+        "eventsAfterQuietWindow": 0,
+        "historyRowCountDuringQuiet": 2,
+        "firingObserved": true,
+        "firingEventCount": 1,
+        "historyRowCountFinal": 4,
+        "historyHits": [
+          {
+            "timestamp": 1784736541794252,
+            "alert_name": "real-eval-probe-1784736450491-xrydpl",
+            "org": "default",
+            "status": "completed",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736480000000,
+            "end_time": 1784736540000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.012438859,
+            "source_node": "724470382f70",
+            "query_took": 11
+          },
+          {
+            "timestamp": 1784736491794529,
+            "alert_name": "real-eval-probe-1784736450491-xrydpl",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736430838607,
+            "end_time": 1784736490838607,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.013258876,
+            "source_node": "724470382f70",
+            "query_took": 11
+          },
+          {
+            "timestamp": 1784736481794389,
+            "alert_name": "real-eval-probe-1784736450491-xrydpl",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736420000000,
+            "end_time": 1784736480000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.015175034,
+            "source_node": "724470382f70",
+            "query_took": 13
+          },
+          {
+            "timestamp": 1784736451794430,
+            "alert_name": "real-eval-probe-1784736450491-xrydpl",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736390632910,
+            "end_time": 1784736450632910,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.012677062,
+            "source_node": "724470382f70",
+            "query_took": 11
+          }
+        ]
       }
     },
-    "volumeSizeKiB": 5104
+    "volumeSizeKiB": 5220
+  },
+  "targetLogicalRestore": {
+    "startupMs": 7655,
+    "restoreResults": {
+      "streams": [
+        {
+          "id": "_rumdata",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "_rumlog",
+          "action": "NO_CHANGE"
+        }
+      ],
+      "functions": [
+        {
+          "id": "chicek_correlation_normalize_v1",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "chicek_rumlog_sanitize_v1",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "chicek_sanitization_cleanup_v1",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "chicek_rum_sanitize_v1",
+          "action": "NO_CHANGE"
+        }
+      ],
+      "pipelines": [
+        {
+          "id": "chicek_rumdata_sanitize_pipeline_v1",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "chicek_rumlog_sanitize_pipeline_v1",
+          "action": "NO_CHANGE"
+        }
+      ],
+      "dashboards": [
+        {
+          "id": "CHICEK Starters::Error Analysis",
+          "action": "CREATED"
+        },
+        {
+          "id": "CHICEK Starters::Frontend Operations",
+          "action": "CREATED"
+        },
+        {
+          "id": "CHICEK Starters::Performance and Resources",
+          "action": "CREATED"
+        },
+        {
+          "id": "CHICEK Starters::Session Investigation",
+          "action": "CREATED"
+        }
+      ],
+      "templates": [
+        {
+          "id": "chicek-stage17-local-aggregate",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_discord",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_email",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_msteams",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_opsgenie",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_pagerduty",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_servicenow",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_slack",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_webhook",
+          "action": "NO_CHANGE"
+        }
+      ],
+      "destinations": [
+        {
+          "id": "chicek-stage17-local-alert-sink",
+          "action": "CREATED",
+          "status": 200
+        }
+      ],
+      "alerts": [
+        {
+          "id": "error-session-rate",
+          "action": "CREATED"
+        },
+        {
+          "id": "errors-per-thousand-views",
+          "action": "CREATED"
+        },
+        {
+          "id": "resource-failure-rate",
+          "action": "CREATED"
+        },
+        {
+          "id": "telemetry-freshness",
+          "action": "CREATED"
+        },
+        {
+          "id": "web-vital-degradation",
+          "action": "CREATED"
+        }
+      ]
+    },
+    "finalOverallHash": "3e19620d4fd7ede1a2b3680d630d98920e00e6df95e0e59641ea386314ee4421",
+    "oldRumdata": true,
+    "oldRumlog": true,
+    "replayStreamAbsent": true
   },
   "sourceFixture": {
-    "capturedAt": "2026-07-21T23:00:08.597Z",
-    "controlPlane": {
-      "streamCount": 2,
-      "pipelines": 2,
+    "overallHash": "7ed4036d04df06c6274be9eb2465a4f2873d547b2642c5a52ffc488ce07b3eb6",
+    "objectCounts": {
+      "streams": 2,
       "functions": 4,
-      "folders": 1,
-      "dashboards": 1,
+      "pipelines": 2,
+      "dashboards": 2,
       "alerts": 1,
       "templates": 9,
       "destinations": 1
-    },
-    "streamSchemas": {
-      "_rumdata": {
-        "name": "_rumdata",
-        "storage_type": "disk",
-        "stream_type": "logs",
-        "stats": {
-          "created_at": 1784674808481000,
-          "doc_time_min": 0,
-          "doc_time_max": 0,
-          "doc_num": 0,
-          "file_num": 0,
-          "storage_size": 0,
-          "compressed_size": 0,
-          "index_size": 0
-        },
-        "schema": [
-          {
-            "name": "_timestamp",
-            "type": "Int64"
-          },
-          {
-            "name": "action_target_name",
-            "type": "Utf8"
-          },
-          {
-            "name": "chicek_policy_version",
-            "type": "Utf8"
-          },
-          {
-            "name": "env",
-            "type": "Utf8"
-          },
-          {
-            "name": "error_source_type",
-            "type": "Utf8"
-          },
-          {
-            "name": "error_type",
-            "type": "Utf8"
-          },
-          {
-            "name": "level",
-            "type": "Utf8"
-          },
-          {
-            "name": "marker",
-            "type": "Utf8"
-          },
-          {
-            "name": "message",
-            "type": "Utf8"
-          },
-          {
-            "name": "resource_duration",
-            "type": "Int64"
-          },
-          {
-            "name": "resource_status_code",
-            "type": "Int64"
-          },
-          {
-            "name": "resource_type",
-            "type": "Utf8"
-          },
-          {
-            "name": "resource_url",
-            "type": "Utf8"
-          },
-          {
-            "name": "service",
-            "type": "Utf8"
-          },
-          {
-            "name": "session_id",
-            "type": "Utf8"
-          },
-          {
-            "name": "version",
-            "type": "Utf8"
-          },
-          {
-            "name": "view_cumulative_layout_shift",
-            "type": "Float64"
-          },
-          {
-            "name": "view_id",
-            "type": "Utf8"
-          },
-          {
-            "name": "view_interaction_to_next_paint",
-            "type": "Int64"
-          },
-          {
-            "name": "view_largest_contentful_paint",
-            "type": "Int64"
-          },
-          {
-            "name": "view_loading_time",
-            "type": "Int64"
-          }
-        ],
-        "settings": {
-          "partition_keys": {},
-          "full_text_search_keys": [],
-          "index_fields": [],
-          "bloom_filter_fields": [],
-          "distinct_value_fields": [
-            {
-              "name": "service",
-              "added_ts": 1784674808536396
-            },
-            {
-              "name": "env",
-              "added_ts": 1784674808536668
-            }
-          ],
-          "data_retention": 0,
-          "max_query_range": 0,
-          "store_original_data": false,
-          "approx_partition": false,
-          "index_updated_at": 0,
-          "extended_retention_days": [],
-          "index_original_data": false,
-          "index_all_values": false,
-          "enable_distinct_fields": true,
-          "enable_log_patterns_extraction": false,
-          "is_llm_stream": false,
-          "storage_type": "normal"
-        },
-        "total_fields": 21,
-        "is_derived": true
-      },
-      "_rumlog": {
-        "name": "_rumlog",
-        "storage_type": "disk",
-        "stream_type": "logs",
-        "stats": {
-          "created_at": 1784674808501000,
-          "doc_time_min": 0,
-          "doc_time_max": 0,
-          "doc_num": 0,
-          "file_num": 0,
-          "storage_size": 0,
-          "compressed_size": 0,
-          "index_size": 0
-        },
-        "schema": [
-          {
-            "name": "_timestamp",
-            "type": "Int64"
-          },
-          {
-            "name": "action_target_name",
-            "type": "Utf8"
-          },
-          {
-            "name": "chicek_policy_version",
-            "type": "Utf8"
-          },
-          {
-            "name": "env",
-            "type": "Utf8"
-          },
-          {
-            "name": "error_source_type",
-            "type": "Utf8"
-          },
-          {
-            "name": "error_type",
-            "type": "Utf8"
-          },
-          {
-            "name": "level",
-            "type": "Utf8"
-          },
-          {
-            "name": "marker",
-            "type": "Utf8"
-          },
-          {
-            "name": "message",
-            "type": "Utf8"
-          },
-          {
-            "name": "resource_duration",
-            "type": "Int64"
-          },
-          {
-            "name": "resource_status_code",
-            "type": "Int64"
-          },
-          {
-            "name": "resource_type",
-            "type": "Utf8"
-          },
-          {
-            "name": "resource_url",
-            "type": "Utf8"
-          },
-          {
-            "name": "service",
-            "type": "Utf8"
-          },
-          {
-            "name": "session_id",
-            "type": "Utf8"
-          },
-          {
-            "name": "version",
-            "type": "Utf8"
-          },
-          {
-            "name": "view_cumulative_layout_shift",
-            "type": "Float64"
-          },
-          {
-            "name": "view_id",
-            "type": "Utf8"
-          },
-          {
-            "name": "view_interaction_to_next_paint",
-            "type": "Int64"
-          },
-          {
-            "name": "view_largest_contentful_paint",
-            "type": "Int64"
-          },
-          {
-            "name": "view_loading_time",
-            "type": "Int64"
-          }
-        ],
-        "settings": {
-          "partition_keys": {},
-          "full_text_search_keys": [],
-          "index_fields": [],
-          "bloom_filter_fields": [],
-          "distinct_value_fields": [],
-          "data_retention": 0,
-          "max_query_range": 0,
-          "store_original_data": false,
-          "approx_partition": false,
-          "index_updated_at": 0,
-          "extended_retention_days": [],
-          "index_original_data": false,
-          "index_all_values": false,
-          "enable_distinct_fields": true,
-          "enable_log_patterns_extraction": false,
-          "is_llm_stream": false,
-          "storage_type": "normal"
-        },
-        "total_fields": 21,
-        "is_derived": true
-      }
     }
   },
   "sourceBackup": {
-    "archive": ".runtime/stage20/2026-07-21T22-59-29-194Z/backups/source-openobserve-data.tar",
-    "sha256": "c2360bbf1e377d7e9e0d1e3c1cb83fcb08c8f1ff4a01f6aaaec862a8eb767d0e",
-    "bytes": 1078772736,
-    "volumeSizeKiB": 4960,
-    "checksum": {
-      "verified": true,
-      "sha256": "c2360bbf1e377d7e9e0d1e3c1cb83fcb08c8f1ff4a01f6aaaec862a8eb767d0e"
-    }
+    "archive": ".runtime/stage20/2026-07-22T15-58-50-673Z/backups/source-openobserve-data.tar",
+    "sha256": "e7e013d196324f32d49f12b0849bd929eb3c9b69aad279552cde363493956a42",
+    "bytes": 1615644672,
+    "volumeSizeKiB": 4968
   },
   "sourceRestore": {
-    "startupMs": 6170,
+    "startupMs": 6144,
+    "elapsedMs": 8309,
     "oldRumdata": true,
     "oldRumlog": true,
     "smoke": {
-      "newMarker": "source-restore-new-1ad442c7-7c8d-431c-9988-43063f0c8fcd",
+      "newMarker": "sourceRestore-new-996219bd-bda8-4c64-9f05-6dbd10c7f1d6",
       "newVisible": true,
       "controlPlane": {
-        "streamCount": 2,
-        "pipelines": 2,
-        "functions": 4,
-        "folders": 1,
-        "dashboards": 1,
-        "alerts": 1,
-        "templates": 9,
-        "destinations": 1
+        "overallHash": "7ed4036d04df06c6274be9eb2465a4f2873d547b2642c5a52ffc488ce07b3eb6",
+        "groupHashes": {
+          "streams": "d62f38fae8ce49fc3ea21e0dbb6b1dfb856187a3c0c1de84365e416defe1d9e9",
+          "functions": "c5900748956a2a6f1eba22300d39003116e150b49f4044f2f254bba88bbe4329",
+          "pipelines": "7c44f82520df12f5a89a3d3de98e702f900c0e5938cdeb716647a3396cadd403",
+          "dashboards": "4589e395b03c5ebc9435db4d0225e7bb431d16ca1b032acfb720a88feadb5658",
+          "alerts": "3806242d7f97083661218dc5e2eedff42d3e6c2ba5b2682f96574269caa09b61",
+          "templates": "0c2488a55403040267ccececd3b4a1b092924cd470ef7a2ee9559d2f66ec6381",
+          "destinations": "cd49fdf1709fcb7a61cf70da0d65b1f742bc4a0f217839b0893b64683dbb75b0"
+        },
+        "objectCounts": {
+          "streams": 2,
+          "functions": 4,
+          "pipelines": 2,
+          "dashboards": 2,
+          "alerts": 1,
+          "templates": 9,
+          "destinations": 1
+        }
       },
       "sanitization": {
         "redacted": true,
         "secretDropped": true
       },
       "alertSmoke": {
-        "firingOk": true,
-        "resolvedOk": true
+        "alertId": "3GriTGT5oeZc0HjXGHbzroMmJwV",
+        "quietCycleObserved": true,
+        "eventsAfterQuietWindow": 0,
+        "historyRowCountDuringQuiet": 2,
+        "firingObserved": true,
+        "firingEventCount": 1,
+        "historyRowCountFinal": 4,
+        "historyHits": [
+          {
+            "timestamp": 1784736185228661,
+            "alert_name": "real-eval-probe-1784736093903-74500w",
+            "org": "default",
+            "status": "completed",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736120000000,
+            "end_time": 1784736180000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 5,
+            "evaluation_took_in_secs": 0.006417308,
+            "source_node": "2c3313599a04",
+            "query_took": 5
+          },
+          {
+            "timestamp": 1784736135229263,
+            "alert_name": "real-eval-probe-1784736093903-74500w",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736074342079,
+            "end_time": 1784736134342079,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.01259422,
+            "source_node": "2c3313599a04",
+            "query_took": 11
+          },
+          {
+            "timestamp": 1784736125229515,
+            "alert_name": "real-eval-probe-1784736093903-74500w",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736060000000,
+            "end_time": 1784736120000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 5,
+            "evaluation_took_in_secs": 0.014730151,
+            "source_node": "2c3313599a04",
+            "query_took": 13
+          },
+          {
+            "timestamp": 1784736095229089,
+            "alert_name": "real-eval-probe-1784736093903-74500w",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784736034102247,
+            "end_time": 1784736094102247,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.012045238,
+            "source_node": "2c3313599a04",
+            "query_took": 10
+          }
+        ]
       }
-    }
+    },
+    "volumeSizeKiB": 5168
   },
   "rpo": {
     "labColdSnapshot": "0",
-    "rationale": "Cold tar snapshot is taken while the source OpenObserve process is stopped."
+    "rationale": "Cold tar snapshot is taken from a live clone of the volume; the main service is never stopped."
   },
   "sessionReplay": {
     "closedByStage19Regression": true,
@@ -503,7 +851,7 @@
     }
   },
   "backupManifest": {
-    "generatedAt": "2026-07-21T23:01:18.710Z",
+    "generatedAt": "2026-07-22T16:09:19.766Z",
     "sourceVersion": {
       "tag": "v0.91.0",
       "digest": "sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8",
@@ -517,33 +865,32 @@
     "files": [
       {
         "role": "target-logical-control-plane-export",
-        "path": ".runtime/stage20/2026-07-21T22-59-29-194Z/backups/target-logical-export.json",
-        "sha256": "2397ee30137e942c5f983964b6c85a56f74afdcdc8586b32e65d9c95b857311f",
-        "bytes": 18131
+        "path": ".runtime/stage20/2026-07-22T15-58-50-673Z/backups/target-logical-export.json",
+        "sha256": "1cd5abe7cb823e73757d6dd7445a44372c9ae8806f8ce843db80cf0e66af33a5",
+        "bytes": 199234
       },
       {
         "role": "target-cold-data-volume",
-        "path": ".runtime/stage20/2026-07-21T22-59-29-194Z/backups/target-openobserve-data.tar",
-        "sha256": "f62def7cd64e258f3303829905e11ee0bc21cedc4b03f04021bcbafea5ef710e",
-        "bytes": 14716928
+        "path": ".runtime/stage20/2026-07-22T15-58-50-673Z/backups/target-openobserve-data.tar",
+        "sha256": "9da2e9c36ae0fd6e85a38763081f0696a860578b359dfed8028012285c1713e6",
+        "bytes": 1625481216
       },
       {
         "role": "source-cold-data-volume",
-        "path": ".runtime/stage20/2026-07-21T22-59-29-194Z/backups/source-openobserve-data.tar",
-        "sha256": "c2360bbf1e377d7e9e0d1e3c1cb83fcb08c8f1ff4a01f6aaaec862a8eb767d0e",
-        "bytes": 1078772736
+        "path": ".runtime/stage20/2026-07-22T15-58-50-673Z/backups/source-openobserve-data.tar",
+        "sha256": "e7e013d196324f32d49f12b0849bd929eb3c9b69aad279552cde363493956a42",
+        "bytes": 1615644672
       }
     ],
     "objectCounts": {
-      "streamCount": 6,
-      "pipelines": 2,
+      "streams": 2,
       "functions": 4,
-      "folders": 2,
-      "dashboards": 4,
-      "alerts": 6,
+      "pipelines": 2,
+      "dashboards": 5,
+      "alerts": 5,
       "templates": 9,
       "destinations": 1
     }
   },
-  "runtimeResultPath": ".runtime/stage20/2026-07-21T22-59-29-194Z/stage20-results.json"
+  "runtimeResultPath": ".runtime/stage20/2026-07-22T15-58-50-673Z/stage20-results.json"
 }

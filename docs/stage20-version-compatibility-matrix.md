@@ -23,14 +23,15 @@ No `latest` tag is used.
 
 ## API Surfaces Exercised
 
-| API Surface                   | Validation                                                                                 |
-| ----------------------------- | ------------------------------------------------------------------------------------------ |
-| Streams/settings/schema       | Source fixture, target restore, stream provision second run `NO_CHANGE`, verify `NO_DRIFT` |
-| Functions/pipelines           | Existing sanitization provisioner applied and read back                                    |
-| Dashboards/folders            | Fixture dashboard created and preserved                                                    |
-| Alerts/templates/destinations | Fixture alert stack created and destination smoke passed                                   |
-| Ingest/search                 | Old markers preserved and new markers visible after every restore/upgrade path             |
-| Sanitization                  | Redaction and secret-drop smoke passed after restore, upgrade, rollback, and re-upgrade    |
+| API Surface                                      | Validation                                                                                                                                                                                                                                  |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Streams/settings/schema                          | Source fixture, target restore, stream provision second run `NO_CHANGE`, verify `NO_DRIFT`                                                                                                                                                  |
+| Functions/pipelines                              | Full logical export/restore round trip, existence-check idempotent (second apply `NO_CHANGE`)                                                                                                                                               |
+| Dashboards/folders/templates/destinations/alerts | Full logical control-plane export (real object definitions, not counts) with per-object and per-group SHA-256 semantic hashes; export -> disposable restore -> re-export proven hash-equal                                                  |
+| Alerts (real evaluation)                         | Real per-minute-scheduler-driven quiet-then-firing probe via Alert History, not the `/alerts/destinations/test` endpoint or manual `PATCH .../trigger` (both live-proven to notify unconditionally regardless of the alert's own condition) |
+| Ingest/search                                    | Old markers preserved and new markers visible after every restore/upgrade/rollback/re-upgrade path, plus a final full logical restore on the re-upgraded target                                                                             |
+| Sanitization                                     | Redaction and secret-drop smoke passed after restore, upgrade, rollback, and re-upgrade                                                                                                                                                     |
+| Session Replay                                   | `_sessionreplay` stream confirmed absent on the live target and after the final logical restore                                                                                                                                             |
 
 ## Latest Stage 20 Evidence
 

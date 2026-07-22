@@ -1,91 +1,55 @@
-// Stage 20 backup/restore/upgrade/rollback proof for the local lab.
-// Runtime archives, compose files, logs, and raw exports are written only
-// under .runtime/stage20/ and are never committed. The committed output is a
-// secret-free summary JSON plus the runbooks/docs created from it.
-
-import { createHash, randomUUID } from "node:crypto";
-import { cpSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
-import { spawnSync } from "node:child_process";
+// Stage 20 backup/restore/upgrade/rollback/logical-restore proof for the
+// local lab. Runtime archives, compose files, logs, and raw exports are
+// written only under .runtime/stage20/ and are never committed. The
+// committed output is a secret-free summary JSON plus the runbooks/docs
+// created from it.
+//
+// Closeout rewrite: the prior version of this script only backed up
+// control-plane object *counts* (not real definitions), took the cold
+// target backup by stopping the canonical main lab service directly
+// (instead of cloning its volume), and "proved" alert recovery with the
+// `/alerts/destinations/test` endpoint — live-verified during this
+// closeout to send a real webhook notification unconditionally, regardless
+// of whether the alert's own condition is met. All three are fixed here:
+// real full logical export/restore with SHA-256 semantic hashes
+// (scripts/lab/control-plane/logical-{export,restore}.mjs), a live-clone
+// cold backup that never touches the running main service, and
+// scheduler-driven real alert evaluation
+// (scripts/lab/alerts/real-evaluation-probe.mjs).
+import { randomUUID } from "node:crypto";
+import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 import { DEMO_IDENTITY } from "../../apps/demo-frontend/src/identity.js";
 import {
   assertExactLabToolchain,
-  dockerEnv,
   emailSecretPath,
   passwordSecretPath,
   repoRoot,
-  runDockerCompose,
-  runtimeDir,
 } from "../lab/common.mjs";
 import { provisionSanitization } from "../lab/provision-sanitization.mjs";
+import { runRealAlertEvaluationProbe } from "../lab/alerts/real-evaluation-probe.mjs";
 import { buildOpenObserveAlert } from "../lab/alerts/alert-builder.js";
 import { loadAllAlertPolicies, loadAlertTemplates } from "../lab/alerts/catalog.mjs";
 import { loadAllQueryManifests, loadAllStarterDashboards } from "../lab/dashboards/catalog.mjs";
 import { buildStarterDashboardBody } from "../lab/dashboards/panel-builder.js";
 import { loadAllStreamDefinitions } from "../lab/streams/load-manifests.mjs";
+import { canonicalJson, exportLogicalControlPlane } from "../lab/control-plane/logical-export.mjs";
+import { restoreLogicalControlPlane } from "../lab/control-plane/logical-restore.mjs";
+import {
+  SOURCE,
+  TARGET,
+  cloneVolumeLive,
+  repoPath,
+  run,
+  sha256File,
+  startProject,
+  stopProject,
+  tarVolume,
+  volumeSizeKiB,
+} from "./disposable-environment.mjs";
 
 const ORG_ID = "default";
-const SOURCE = {
-  tag: "v0.91.0",
-  digest: "sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8",
-  image:
-    "public.ecr.aws/zinclabs/openobserve:v0.91.0@sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8",
-};
-const TARGET = {
-  tag: "v0.91.2",
-  digest: "sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15",
-  image:
-    "public.ecr.aws/zinclabs/openobserve:v0.91.2@sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15",
-};
-const BUSYBOX =
-  "docker.io/library/busybox:1.38.0-musl@sha256:ffcc8d72c1b3749dd2240e27f79b987eb227538835a2675b1d5849b053a39195";
-
-function run(command, args, { cwd = repoRoot, capture = false, allowFailure = false } = {}) {
-  const result = spawnSync(command, args, {
-    cwd,
-    env: dockerEnv(),
-    encoding: "utf8",
-    stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit",
-  });
-  if (!allowFailure && result.status !== 0) {
-    const detail = capture ? `\n${result.stdout ?? ""}\n${result.stderr ?? ""}` : "";
-    throw new Error(`${command} ${args.join(" ")} failed with exit ${result.status}.${detail}`);
-  }
-  return result;
-}
-
-function sha256File(path) {
-  const hash = createHash("sha256");
-  hash.update(readFileSync(path));
-  return hash.digest("hex");
-}
-
-function repoPath(path) {
-  return relative(repoRoot, path);
-}
-
-function assertChecksum(path, expected, label) {
-  const actual = sha256File(path);
-  if (actual !== expected) {
-    throw new Error(`${label} checksum mismatch: expected ${expected}, got ${actual}`);
-  }
-  return { verified: true, sha256: actual };
-}
-
-function summarizeOpenObserveLogs(logText) {
-  const lines = logText
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => line.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[redacted-ip]"));
-  const warningLines = lines.filter((line) => /\bwarn(ing)?\b/i.test(line));
-  const errorLines = lines.filter((line) => /\berror\b/i.test(line));
-  return {
-    warningCount: warningLines.length,
-    errorCount: errorLines.length,
-    tail: lines.slice(-20).join("\n"),
-  };
-}
 
 function readAuthHeader() {
   const email = readFileSync(emailSecretPath, "utf8").trim();
@@ -114,7 +78,9 @@ async function apiFetch(baseUrl, auth, path, options = {}) {
 
 async function assertOk(response, action) {
   if (![200, 201, 204].includes(response.status)) {
-    throw new Error(`${action} failed with status ${response.status}`);
+    throw new Error(
+      `${action} failed with status ${response.status}: ${JSON.stringify(response.body)}`,
+    );
   }
   return response.body;
 }
@@ -140,6 +106,7 @@ async function ingest(baseUrl, auth, stream, marker) {
     session_id: `stage20-session-${marker}`,
     view_id: `stage20-view-${marker}`,
     marker,
+    type: "view",
     message: `stage20 marker ${marker}`,
     level: "info",
     error_type: "None",
@@ -175,53 +142,6 @@ async function markerVisible(baseUrl, auth, stream, marker) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   return false;
-}
-
-async function listControlPlane(baseUrl, auth) {
-  const [streams, pipelines, functions, folders, alerts, templates, destinations] =
-    await Promise.all([
-      apiFetch(baseUrl, auth, `/api/${ORG_ID}/streams`),
-      apiFetch(baseUrl, auth, `/api/${ORG_ID}/pipelines`),
-      apiFetch(baseUrl, auth, `/api/${ORG_ID}/functions`),
-      apiFetch(baseUrl, auth, `/api/v2/${ORG_ID}/folders/dashboards`),
-      apiFetch(baseUrl, auth, `/api/v2/${ORG_ID}/alerts?folder=default`),
-      apiFetch(baseUrl, auth, `/api/${ORG_ID}/alerts/templates`),
-      apiFetch(
-        baseUrl,
-        auth,
-        `/api/${ORG_ID}/alerts/destinations?page_num=1&page_size=100&module=alert`,
-      ),
-    ]);
-  const folderList = Array.isArray(folders.body?.list) ? folders.body.list : [];
-  let dashboardCount = 0;
-  for (const folder of folderList) {
-    const dashboards = await apiFetch(
-      baseUrl,
-      auth,
-      `/api/${ORG_ID}/dashboards?folder=${encodeURIComponent(folder.folderId)}`,
-    );
-    dashboardCount += Array.isArray(dashboards.body?.dashboards)
-      ? dashboards.body.dashboards.length
-      : 0;
-  }
-  return {
-    streamCount: streams.body?.list?.length ?? 0,
-    pipelines: Array.isArray(pipelines.body?.list)
-      ? pipelines.body.list.length
-      : Array.isArray(pipelines.body)
-        ? pipelines.body.length
-        : 0,
-    functions: Array.isArray(functions.body)
-      ? functions.body.length
-      : Array.isArray(functions.body?.list)
-        ? functions.body.list.length
-        : 0,
-    folders: folderList.length,
-    dashboards: dashboardCount,
-    alerts: Array.isArray(alerts.body?.list) ? alerts.body.list.length : 0,
-    templates: Array.isArray(templates.body) ? templates.body.length : 0,
-    destinations: Array.isArray(destinations.body) ? destinations.body.length : 0,
-  };
 }
 
 async function listStreamNames(baseUrl, auth) {
@@ -266,193 +186,57 @@ function runStage20StreamGovernance() {
   return result;
 }
 
-async function exportLogical(baseUrl, auth) {
-  const controlPlane = await listControlPlane(baseUrl, auth);
-  const streamSchemas = {};
-  for (const stream of ["_rumdata", "_rumlog"]) {
-    const schema = await apiFetch(
-      baseUrl,
-      auth,
-      `/api/${ORG_ID}/streams/${stream}/schema?type=logs`,
-    );
-    streamSchemas[stream] = schema.body;
-  }
-  return { capturedAt: new Date().toISOString(), controlPlane, streamSchemas };
-}
-
-function copyOpenObserveWrapper(contextDir, imageRef) {
-  mkdirSync(contextDir, { recursive: true });
-  cpSync(
-    join(repoRoot, "infrastructure/docker/openobserve/entrypoint.sh"),
-    join(contextDir, "entrypoint.sh"),
-  );
-  cpSync(
-    join(repoRoot, "infrastructure/docker/openobserve/healthcheck.sh"),
-    join(contextDir, "healthcheck.sh"),
-  );
-  writeFileSync(
-    join(contextDir, "Dockerfile"),
-    `FROM ${BUSYBOX} AS shell
-FROM ${imageRef}
-COPY --from=shell /bin/busybox /bin/busybox
-RUN ["/bin/busybox", "sh", "-c", "/bin/busybox --install -s /bin && addgroup -g 10001 openobserve && adduser -D -H -u 10001 -G openobserve openobserve && mkdir -p /data && chown -R openobserve:openobserve /data"]
-COPY --chmod=0755 entrypoint.sh /entrypoint.sh
-COPY --chmod=0755 healthcheck.sh /healthcheck.sh
-ENV ZO_DATA_DIR=/data
-USER openobserve:openobserve
-ENTRYPOINT ["/entrypoint.sh"]
-HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=6 CMD ["/healthcheck.sh"]
-`,
-  );
-}
-
-function writeCompose(runDir, name, version, port) {
-  const imageRef = version === "source" ? SOURCE.image : TARGET.image;
-  const contextDir = join(runDir, `${name}-openobserve`);
-  copyOpenObserveWrapper(contextDir, imageRef);
-  const composePath = join(runDir, `${name}.compose.yaml`);
-  writeFileSync(
-    composePath,
-    `services:
-  openobserve:
-    build:
-      context: ${JSON.stringify(contextDir)}
-      dockerfile: Dockerfile
-    image: chicek-stage20/${name}-openobserve:${version === "source" ? SOURCE.tag : TARGET.tag}
-    user: "${process.getuid?.() ?? 10001}:${process.getgid?.() ?? 10001}"
-    read_only: true
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    tmpfs:
-      - /tmp:size=256m,mode=1777
-    volumes:
-      - openobserve-data:/data
-      - ${JSON.stringify(`${emailSecretPath}:/run/secrets/openobserve_root_email:ro`)}
-      - ${JSON.stringify(`${passwordSecretPath}:/run/secrets/openobserve_root_password:ro`)}
-      - ${JSON.stringify(`${join(runtimeDir, "secrets/openobserve-rum-client-token")}:/run/secrets/openobserve_rum_client_token:ro`)}
-    ports:
-      - "127.0.0.1:${port}:5080"
-    environment:
-      ZO_DATA_DIR: /data
-      ZO_TELEMETRY: "false"
-      ZO_MMDB_DISABLE_DOWNLOAD: "true"
-      ZO_HTTP_PORT: "5080"
-      ZO_SSRF_ALLOW_LOOPBACK: "true"
-      ZO_USAGE_REPORTING_ENABLED: "true"
-      ZO_USAGE_REPORT_TO_OWN_ORG: "true"
-      ZO_USAGE_PUBLISH_INTERVAL: "15"
-    healthcheck:
-      test: ["CMD", "/healthcheck.sh"]
-      interval: 10s
-      timeout: 5s
-      start_period: 30s
-      retries: 6
-  alert-sink:
-    image: chicek-lab/mock-api:6.0.0
-    read_only: true
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    tmpfs:
-      - /tmp:size=16m,mode=1777
-    network_mode: "service:openobserve"
-    environment:
-      PORT: "4312"
-    depends_on:
-      openobserve:
-        condition: service_healthy
-        restart: true
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4312/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 10s
-      timeout: 5s
-      start_period: 10s
-      retries: 6
-volumes:
-  openobserve-data:
-`,
-  );
-  return composePath;
-}
-
-function compose(project, composePath, args, options = {}) {
-  return run("docker", ["compose", "-f", composePath, "--project-name", project, ...args], options);
-}
-
-async function waitForUrlHealthy(port, timeoutMs = 120000) {
-  const started = Date.now();
-  while (Date.now() - started < timeoutMs) {
-    try {
-      const response = await fetch(`http://127.0.0.1:${port}/health`);
-      if (response.ok || response.status === 401) return Date.now() - started;
-    } catch {
-      // keep polling
-    }
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  }
-  throw new Error(`OpenObserve on port ${port} did not become healthy`);
-}
-
-function dockerVolume(project) {
-  return `${project}_openobserve-data`;
-}
-
-function tarVolume(volume, archivePath) {
-  mkdirSync(dirname(archivePath), { recursive: true });
-  run("docker", [
-    "run",
-    "--rm",
-    "-v",
-    `${volume}:/data:ro`,
-    "-v",
-    `${dirname(archivePath)}:/backup`,
-    BUSYBOX,
-    "sh",
-    "-c",
-    `cd /data && tar cf /backup/${archivePath.split("/").at(-1)} .`,
-  ]);
-}
-
-function restoreVolume(volume, archivePath) {
-  run("docker", ["volume", "create", volume], { capture: true });
-  run("docker", [
-    "run",
-    "--rm",
-    "-v",
-    `${volume}:/data`,
-    "-v",
-    `${dirname(archivePath)}:/backup:ro`,
-    BUSYBOX,
-    "sh",
-    "-c",
-    `cd /data && tar xf /backup/${archivePath.split("/").at(-1)}`,
-  ]);
-}
-
-function volumeSizeKiB(volume) {
-  const result = run(
-    "docker",
-    ["run", "--rm", "-v", `${volume}:/data:ro`, BUSYBOX, "du", "-sk", "/data"],
-    { capture: true },
-  );
-  return Number.parseInt(result.stdout.trim().split(/\s+/)[0], 10);
-}
-
-async function ensureStreams(baseUrl, auth) {
+// Every settings-shaping API call in this fixture is asserted, not
+// fire-and-forgotten — a failed PUT here must fail the whole proof, not
+// pass silently (this stage's own audit finding against the prior version).
+async function ensureCanonicalSettings(baseUrl, auth) {
   for (const { manifest } of loadAllStreamDefinitions()) {
-    await apiFetch(
+    // distinct_value_fields is additive-only and a single PUT only ever
+    // registers the first name in the array (docs/openobserve-v0.91-stream-
+    // capabilities.md capability #11a) — it cannot share the generic
+    // single-PUT patch every other field uses (matches
+    // scripts/lab/streams-provision.mjs's applyDistinctValueFieldsDiff).
+    const { distinct_value_fields: distinctValueFields, ...rest } = manifest.desiredSettings;
+    await assertOk(
+      await apiFetch(
+        baseUrl,
+        auth,
+        `/api/${ORG_ID}/streams/${manifest.streamName}/settings?type=logs`,
+        { method: "PUT", body: JSON.stringify(rest) },
+      ),
+      `ensureCanonicalSettings PUT ${manifest.streamName}`,
+    );
+    for (const name of distinctValueFields ?? []) {
+      await assertOk(
+        await apiFetch(
+          baseUrl,
+          auth,
+          `/api/${ORG_ID}/streams/${manifest.streamName}/settings?type=logs`,
+          { method: "PUT", body: JSON.stringify({ distinct_value_fields: [[name]] }) },
+        ),
+        `ensureCanonicalSettings distinct_value_fields PUT ${manifest.streamName}/${name}`,
+      );
+    }
+  }
+}
+
+async function readBackCanonicalSettings(baseUrl, auth) {
+  const findings = [];
+  for (const { manifest } of loadAllStreamDefinitions()) {
+    const response = await apiFetch(
       baseUrl,
       auth,
-      `/api/${ORG_ID}/streams/${manifest.streamName}/settings?type=logs`,
-      {
-        method: "PUT",
-        body: JSON.stringify(manifest.desiredSettings),
-      },
+      `/api/${ORG_ID}/streams/${manifest.streamName}/schema?type=logs`,
     );
+    const settings = response.body?.settings ?? {};
+    if (settings.data_retention !== manifest.desiredSettings.data_retention) {
+      findings.push(`${manifest.streamName}: data_retention mismatch`);
+    }
+    if (settings.max_query_range !== manifest.desiredSettings.max_query_range) {
+      findings.push(`${manifest.streamName}: max_query_range mismatch`);
+    }
   }
+  return { pass: findings.length === 0, findings };
 }
 
 async function createDashboardFixture(baseUrl, auth) {
@@ -536,39 +320,6 @@ async function createAlertFixture(baseUrl, auth) {
   );
 }
 
-async function alertDestinationSmoke(baseUrl, auth, markerPrefix) {
-  const probeBody = {
-    alert: `stage20-${markerPrefix}`,
-    severity: "low",
-    status: "firing",
-    service: DEMO_IDENTITY.service,
-    environment: DEMO_IDENTITY.environment,
-    dedupKey: `stage20-${markerPrefix}`,
-  };
-  const firing = await apiFetch(baseUrl, auth, `/api/${ORG_ID}/alerts/destinations/test`, {
-    method: "POST",
-    body: JSON.stringify({
-      url: "http://127.0.0.1:4312/alert-sink",
-      method: "post",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(probeBody),
-    }),
-  });
-  const resolved = await apiFetch(baseUrl, auth, `/api/${ORG_ID}/alerts/destinations/test`, {
-    method: "POST",
-    body: JSON.stringify({
-      url: "http://127.0.0.1:4312/alert-sink",
-      method: "post",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...probeBody, status: "resolved" }),
-    }),
-  });
-  return {
-    firingOk: firing.body?.success === true,
-    resolvedOk: resolved.body?.success === true,
-  };
-}
-
 async function sanitizationSmoke(baseUrl, auth, markerPrefix) {
   const redactionMarker = `${markerPrefix}-sanitize-redact-${randomUUID()}`;
   const dropMarker = `${markerPrefix}-sanitize-drop-${randomUUID()}`;
@@ -640,8 +391,28 @@ async function sanitizationSmoke(baseUrl, auth, markerPrefix) {
   return { redacted, secretDropped };
 }
 
+// Streams are lazily created by OpenObserve on first ingest — a fresh
+// disposable environment has no `_rumdata`/`_rumlog` at all yet, and a
+// settings PUT against a stream that has never been ingested into 404s
+// ("stream not found"), live-verified during this closeout.
+async function bootstrapCanonicalStreams(baseUrl, auth) {
+  for (const stream of ["_rumdata", "_rumlog"]) {
+    await apiFetch(baseUrl, auth, `/api/${ORG_ID}/${stream}/_json`, {
+      method: "POST",
+      body: JSON.stringify([
+        { _timestamp: Date.now() * 1000, _bootstrap: "stage20-lazy-stream-create" },
+      ]),
+    });
+  }
+}
+
 async function createFixtureEnvironment(baseUrl, auth, marker) {
-  await ensureStreams(baseUrl, auth);
+  await bootstrapCanonicalStreams(baseUrl, auth);
+  await ensureCanonicalSettings(baseUrl, auth);
+  const readBack = await readBackCanonicalSettings(baseUrl, auth);
+  if (!readBack.pass) {
+    throw new Error(`stage20 source settings read-back failed: ${readBack.findings.join("; ")}`);
+  }
   const sanitization = await provisionSanitization({ baseUrl, auth });
   if (!sanitization.pass) {
     throw new Error(`stage20 sanitization provision failed: ${sanitization.findings.join("; ")}`);
@@ -655,56 +426,41 @@ async function createFixtureEnvironment(baseUrl, auth, marker) {
   if (!rumdataVisible || !rumlogVisible) throw new Error("stage20 fixture markers not visible");
 }
 
-async function smokeEnvironment(baseUrl, auth, markerPrefix) {
+// Real, scheduler-driven alert recovery smoke (Section 1.5 closeout fix):
+// never the `/alerts/destinations/test` shortcut, which this closeout
+// live-verified sends a real notification unconditionally regardless of
+// the alert's own condition. Bounded and shorter than the standalone native
+// UI test's probe (this runs once per recovery-chain point) but still
+// exercises the real per-minute scheduler in both directions (quiet, then
+// firing). `alertSink` is a per-project docker-compose-exec callback
+// (composeAlertSinkControl below) — alert-sink is not published on any
+// host port, only reachable via `docker compose exec`.
+async function smokeEnvironment(baseUrl, auth, markerPrefix, alertSink) {
   const newMarker = `${markerPrefix}-new-${randomUUID()}`;
   await ingest(baseUrl, auth, "_rumdata", newMarker);
   const newVisible = await markerVisible(baseUrl, auth, "_rumdata", newMarker);
-  const controlPlane = await listControlPlane(baseUrl, auth);
+  // Summary only (hash/counts), not the full raw export: the full object
+  // would be duplicated once per recovery-chain step in the committed
+  // evidence file, bloating it with no evidence value beyond the hash.
+  const controlPlane = await exportLogicalControlPlane(auth, baseUrl).then(
+    (exported) => ({
+      overallHash: exported.overallHash,
+      groupHashes: exported.groupHashes,
+      objectCounts: Object.fromEntries(
+        Object.entries(exported.groups).map(([name, objects]) => [name, objects.length]),
+      ),
+    }),
+    (error) => ({ error: error.message }),
+  );
   const sanitization = await sanitizationSmoke(baseUrl, auth, markerPrefix);
-  const alertSmoke = await alertDestinationSmoke(baseUrl, auth, markerPrefix);
+  const alertSmoke = await runRealAlertEvaluationProbe({
+    auth,
+    baseUrl,
+    alertSinkControl: alertSink,
+    quietWindowMs: 40_000,
+    firingTimeoutMs: 100_000,
+  });
   return { newMarker, newVisible, controlPlane, sanitization, alertSmoke };
-}
-
-async function startProject({ runDir, project, version, port, archivePath }) {
-  const composePath = writeCompose(runDir, project, version, port);
-  const existingContainers = run(
-    "docker",
-    ["ps", "-aq", "--filter", `label=com.docker.compose.project=${project}`],
-    {
-      capture: true,
-      allowFailure: true,
-    },
-  )
-    .stdout.trim()
-    .split("\n")
-    .filter(Boolean);
-  if (existingContainers.length > 0) {
-    run("docker", ["rm", "-f", ...existingContainers], { capture: true, allowFailure: true });
-  }
-  run("docker", ["volume", "rm", "-f", dockerVolume(project)], {
-    capture: true,
-    allowFailure: true,
-  });
-  if (archivePath) {
-    restoreVolume(dockerVolume(project), archivePath);
-  }
-  const started = Date.now();
-  compose(project, composePath, ["up", "-d", "--build"]);
-  const healthyMs = await waitForUrlHealthy(port);
-  return {
-    project,
-    composePath,
-    baseUrl: `http://127.0.0.1:${port}`,
-    healthyMs,
-    startupMs: Date.now() - started,
-    volume: dockerVolume(project),
-  };
-}
-
-function stopProject(project, composePath, removeVolumes = true) {
-  compose(project, composePath, ["down", removeVolumes ? "-v" : ""].filter(Boolean), {
-    allowFailure: true,
-  });
 }
 
 async function runStage20Proof() {
@@ -716,7 +472,7 @@ async function runStage20Proof() {
   const auth = readAuthHeader();
   const mainBaseUrl = "http://127.0.0.1:5080";
   const result = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     stage: 20,
     decision: "ACCEPTED",
     runId,
@@ -740,43 +496,122 @@ async function runStage20Proof() {
         "destinations",
         "ingest",
         "search",
+        "alerts/history",
       ],
     },
     mainTargetBackup: {},
+    logicalRoundTrip: {},
     restoreTarget: {},
     upgrade: {},
     rollback: {},
     reUpgrade: {},
+    targetLogicalRestore: {},
   };
 
-  const logical = await exportLogical(mainBaseUrl, auth);
+  // ---- Section 1.1: real logical control-plane export of the live main
+  // lab, plus a full disposable export -> restore -> re-export round trip
+  // proving semantic hash equality (not counts).
+  const mainLogical = await exportLogicalControlPlane(auth);
   const logicalPath = join(backupDir, "target-logical-export.json");
-  writeFileSync(logicalPath, `${JSON.stringify(logical, null, 2)}\n`, { mode: 0o600 });
+  writeFileSync(logicalPath, `${JSON.stringify(mainLogical, null, 2)}\n`, { mode: 0o600 });
   result.mainTargetBackup.logical = {
     path: repoPath(logicalPath),
     sha256: sha256File(logicalPath),
-    controlPlane: logical.controlPlane,
+    overallHash: mainLogical.overallHash,
+    groupHashes: mainLogical.groupHashes,
+    objectCounts: Object.fromEntries(
+      Object.entries(mainLogical.groups).map(([name, objects]) => [name, objects.length]),
+    ),
   };
 
-  runDockerCompose(["stop", "openobserve"]);
+  // ---- Section 1.2: cold backup of the TARGET data volume via a live
+  // clone — the canonical main lab service is never stopped or touched.
+  const cloneVolume = `chicek-stage20-target-clone-${runId}`;
+  cloneVolumeLive("chicek-lab_openobserve-data", cloneVolume);
   const mainArchive = join(backupDir, "target-openobserve-data.tar");
-  try {
-    tarVolume("chicek-lab_openobserve-data", mainArchive);
-  } finally {
-    run("pnpm", ["run", "lab:up"]);
-  }
+  tarVolume(cloneVolume, mainArchive);
+  run("docker", ["volume", "rm", "-f", cloneVolume], { capture: true, allowFailure: true });
   result.mainTargetBackup.coldVolume = {
     archive: repoPath(mainArchive),
     sha256: sha256File(mainArchive),
     bytes: statSync(mainArchive).size,
     volumeSizeKiB: volumeSizeKiB("chicek-lab_openobserve-data"),
+    method: "live-clone (main lab service never stopped)",
   };
-  result.mainTargetBackup.coldVolume.checksum = assertChecksum(
-    mainArchive,
-    result.mainTargetBackup.coldVolume.sha256,
-    "target cold backup",
-  );
 
+  // ---- Logical round trip on a disposable target ----
+  const roundTripProject = await startProject({
+    runDir,
+    project: "chicek-stage20-roundtrip",
+    version: "target",
+    port: 15090,
+  });
+  try {
+    const owner = readFileSync(emailSecretPath, "utf8").trim();
+    const [template] = loadAlertTemplates();
+    const destinationSecrets = Object.fromEntries(
+      mainLogical.groups.destinations.map((destination) => [
+        destination.id,
+        { url: "http://127.0.0.1:4312/alert-sink", templateName: template.openObserveTemplateName },
+      ]),
+    );
+    const restore1 = await restoreLogicalControlPlane(auth, mainLogical, {
+      owner,
+      destinationSecrets,
+      baseUrl: roundTripProject.baseUrl,
+    });
+    void restore1;
+    const reExported = await exportLogicalControlPlane(auth, roundTripProject.baseUrl);
+    const hashesMatch = Object.keys(mainLogical.groupHashes).every(
+      (key) => mainLogical.groupHashes[key] === reExported.groupHashes[key],
+    );
+    if (!hashesMatch) {
+      for (const key of Object.keys(mainLogical.groupHashes)) {
+        if (mainLogical.groupHashes[key] !== reExported.groupHashes[key]) {
+          console.error(`MISMATCH group=${key}`);
+          const sourceById = new Map(mainLogical.groups[key].map((o) => [o.id, o]));
+          const reById = new Map(reExported.groups[key].map((o) => [o.id, o]));
+          const allIds = new Set([...sourceById.keys(), ...reById.keys()]);
+          for (const objId of allIds) {
+            const s = sourceById.get(objId);
+            const r = reById.get(objId);
+            if (!s) {
+              console.error(`  ONLY IN RE-EXPORT: ${objId}`);
+              continue;
+            }
+            if (!r) {
+              console.error(`  ONLY IN SOURCE: ${objId}`);
+              continue;
+            }
+            if (s.sha256 !== r.sha256) {
+              console.error(`  OBJECT DIFFERS: ${objId}`);
+              console.error("    source canonical:", canonicalJson(s.normalized).slice(0, 3000));
+              console.error("    reexport canonical:", canonicalJson(r.normalized).slice(0, 3000));
+            }
+          }
+        }
+      }
+    }
+    const restore2 = await restoreLogicalControlPlane(auth, mainLogical, {
+      owner,
+      destinationSecrets,
+      baseUrl: roundTripProject.baseUrl,
+    });
+    result.logicalRoundTrip = {
+      semanticHashEquality: hashesMatch,
+      secondApplyAllNoChange: restore2.allNoChange,
+      groupHashesSource: mainLogical.groupHashes,
+      groupHashesReExported: reExported.groupHashes,
+    };
+    if (!hashesMatch) {
+      result.decision = "BLOCKED";
+      throw new Error("logical export/restore round trip did not produce semantic hash equality");
+    }
+  } finally {
+    stopProject(roundTripProject.project, roundTripProject.composePath);
+  }
+
+  // ---- Restore validation: disposable target from the cold cloned backup
   const targetRestore = await startProject({
     runDir,
     project: "chicek-stage20-target-restore",
@@ -785,13 +620,20 @@ async function runStage20Proof() {
     archivePath: mainArchive,
   });
   try {
-    result.restoreTarget = await smokeEnvironment(targetRestore.baseUrl, auth, "target-restore");
+    result.restoreTarget = await smokeEnvironment(
+      targetRestore.baseUrl,
+      auth,
+      "target-restore",
+      (path) => composeAlertSinkControl(targetRestore.project, targetRestore.composePath, path),
+    );
     result.restoreTarget.startupMs = targetRestore.startupMs;
     result.restoreTarget.volumeSizeKiB = volumeSizeKiB(targetRestore.volume);
   } finally {
     stopProject(targetRestore.project, targetRestore.composePath);
   }
 
+  // ---- Source (v0.91.0) fixture: real canonical desired state via the
+  // real provisioner, with asserted read-back (Section 1.3).
   const sourceProject = await startProject({
     runDir,
     project: "chicek-stage20-source",
@@ -802,8 +644,15 @@ async function runStage20Proof() {
   const sourceArchive = join(backupDir, "source-openobserve-data.tar");
   try {
     await createFixtureEnvironment(sourceProject.baseUrl, auth, sourceMarker);
-    result.sourceFixture = await exportLogical(sourceProject.baseUrl, auth);
-    compose(sourceProject.project, sourceProject.composePath, ["stop", "openobserve"]);
+    result.sourceFixture = await exportLogicalControlPlane(auth, sourceProject.baseUrl).then(
+      (exported) => ({
+        overallHash: exported.overallHash,
+        objectCounts: Object.fromEntries(
+          Object.entries(exported.groups).map(([name, objects]) => [name, objects.length]),
+        ),
+      }),
+    );
+    compose_stop_openobserve(sourceProject);
     tarVolume(sourceProject.volume, sourceArchive);
     result.sourceBackup = {
       archive: repoPath(sourceArchive),
@@ -811,151 +660,117 @@ async function runStage20Proof() {
       bytes: statSync(sourceArchive).size,
       volumeSizeKiB: volumeSizeKiB(sourceProject.volume),
     };
-    result.sourceBackup.checksum = assertChecksum(
-      sourceArchive,
-      result.sourceBackup.sha256,
-      "source cold backup",
-    );
   } finally {
     stopProject(sourceProject.project, sourceProject.composePath);
   }
 
-  const sourceRestore = await startProject({
-    runDir,
-    project: "chicek-stage20-source-restore",
-    version: "source",
-    port: 15082,
-    archivePath: sourceArchive,
-  });
-  try {
-    const oldRumdata = await markerVisible(
-      sourceRestore.baseUrl,
-      auth,
-      "_rumdata",
-      `${sourceMarker}-rumdata`,
-    );
-    const oldRumlog = await markerVisible(
-      sourceRestore.baseUrl,
-      auth,
-      "_rumlog",
-      `${sourceMarker}-rumlog`,
-    );
-    result.sourceRestore = {
-      startupMs: sourceRestore.startupMs,
-      oldRumdata,
-      oldRumlog,
-      smoke: await smokeEnvironment(sourceRestore.baseUrl, auth, "source-restore"),
-    };
-  } finally {
-    stopProject(sourceRestore.project, sourceRestore.composePath);
+  // ---- Recovery chain: source restore -> upgrade -> rollback -> re-upgrade
+  const chainSteps = [
+    {
+      key: "sourceRestore",
+      project: "chicek-stage20-source-restore",
+      version: "source",
+      port: 15082,
+    },
+    { key: "upgrade", project: "chicek-stage20-upgrade", version: "target", port: 15083 },
+    { key: "rollback", project: "chicek-stage20-rollback", version: "source", port: 15084 },
+    { key: "reUpgrade", project: "chicek-stage20-reupgrade", version: "target", port: 15085 },
+  ];
+
+  for (const step of chainSteps) {
+    const started = Date.now();
+    const project = await startProject({
+      runDir,
+      project: step.project,
+      version: step.version,
+      port: step.port,
+      archivePath: sourceArchive,
+    });
+    try {
+      const oldRumdata = await markerVisible(
+        project.baseUrl,
+        auth,
+        "_rumdata",
+        `${sourceMarker}-rumdata`,
+      );
+      const oldRumlog = await markerVisible(
+        project.baseUrl,
+        auth,
+        "_rumlog",
+        `${sourceMarker}-rumlog`,
+      );
+      result[step.key] = {
+        startupMs: project.startupMs,
+        elapsedMs: Date.now() - started,
+        oldRumdata,
+        oldRumlog,
+        smoke: await smokeEnvironment(project.baseUrl, auth, step.key, (path) =>
+          composeAlertSinkControl(project.project, project.composePath, path),
+        ),
+        volumeSizeKiB: volumeSizeKiB(project.volume),
+      };
+    } finally {
+      stopProject(project.project, project.composePath);
+    }
   }
 
-  const upgradeStarted = Date.now();
-  const upgradeProject = await startProject({
+  // ---- Explicit final recovery point: target logical restore on top of
+  // the re-upgraded (v0.91.2) source data — proves the full logical
+  // control-plane (dashboards/alerts/templates/destinations/streams/
+  // functions/pipelines) can be re-established after upgrade+rollback+
+  // re-upgrade, not just that raw data survived.
+  const finalProject = await startProject({
     runDir,
-    project: "chicek-stage20-upgrade",
+    project: "chicek-stage20-target-logical-restore",
     version: "target",
-    port: 15083,
+    port: 15086,
     archivePath: sourceArchive,
   });
   try {
-    const logs = compose(
-      upgradeProject.project,
-      upgradeProject.composePath,
-      ["logs", "--tail=120", "openobserve"],
-      {
-        capture: true,
-      },
-    ).stdout;
-    const logSummary = summarizeOpenObserveLogs(logs);
-    result.upgrade = {
-      startupMs: upgradeProject.startupMs,
-      elapsedMs: Date.now() - upgradeStarted,
+    const owner = readFileSync(emailSecretPath, "utf8").trim();
+    const [template] = loadAlertTemplates();
+    const restoreResult = await restoreLogicalControlPlane(auth, mainLogical, {
+      owner,
+      destinationSecrets: Object.fromEntries(
+        mainLogical.groups.destinations.map((destination) => [
+          destination.id,
+          {
+            url: "http://127.0.0.1:4312/alert-sink",
+            templateName: template.openObserveTemplateName,
+          },
+        ]),
+      ),
+      baseUrl: finalProject.baseUrl,
+    });
+    const finalExport = await exportLogicalControlPlane(auth, finalProject.baseUrl);
+    result.targetLogicalRestore = {
+      startupMs: finalProject.startupMs,
+      restoreResults: restoreResult.results,
+      finalOverallHash: finalExport.overallHash,
       oldRumdata: await markerVisible(
-        upgradeProject.baseUrl,
+        finalProject.baseUrl,
         auth,
         "_rumdata",
         `${sourceMarker}-rumdata`,
       ),
       oldRumlog: await markerVisible(
-        upgradeProject.baseUrl,
+        finalProject.baseUrl,
         auth,
         "_rumlog",
         `${sourceMarker}-rumlog`,
       ),
-      smoke: await smokeEnvironment(upgradeProject.baseUrl, auth, "upgrade"),
-      volumeSizeKiB: volumeSizeKiB(upgradeProject.volume),
-      logSummary,
+      replayStreamAbsent: !(await listStreamNames(finalProject.baseUrl, auth)).includes(
+        "_sessionreplay",
+      ),
     };
   } finally {
-    stopProject(upgradeProject.project, upgradeProject.composePath);
-  }
-
-  const rollbackStarted = Date.now();
-  const rollbackProject = await startProject({
-    runDir,
-    project: "chicek-stage20-rollback",
-    version: "source",
-    port: 15084,
-    archivePath: sourceArchive,
-  });
-  try {
-    result.rollback = {
-      startupMs: rollbackProject.startupMs,
-      elapsedMs: Date.now() - rollbackStarted,
-      oldRumdata: await markerVisible(
-        rollbackProject.baseUrl,
-        auth,
-        "_rumdata",
-        `${sourceMarker}-rumdata`,
-      ),
-      oldRumlog: await markerVisible(
-        rollbackProject.baseUrl,
-        auth,
-        "_rumlog",
-        `${sourceMarker}-rumlog`,
-      ),
-      smoke: await smokeEnvironment(rollbackProject.baseUrl, auth, "rollback"),
-      volumeSizeKiB: volumeSizeKiB(rollbackProject.volume),
-    };
-  } finally {
-    stopProject(rollbackProject.project, rollbackProject.composePath);
-  }
-
-  const reUpgradeStarted = Date.now();
-  const reUpgradeProject = await startProject({
-    runDir,
-    project: "chicek-stage20-reupgrade",
-    version: "target",
-    port: 15085,
-    archivePath: sourceArchive,
-  });
-  try {
-    result.reUpgrade = {
-      startupMs: reUpgradeProject.startupMs,
-      elapsedMs: Date.now() - reUpgradeStarted,
-      oldRumdata: await markerVisible(
-        reUpgradeProject.baseUrl,
-        auth,
-        "_rumdata",
-        `${sourceMarker}-rumdata`,
-      ),
-      oldRumlog: await markerVisible(
-        reUpgradeProject.baseUrl,
-        auth,
-        "_rumlog",
-        `${sourceMarker}-rumlog`,
-      ),
-      smoke: await smokeEnvironment(reUpgradeProject.baseUrl, auth, "reupgrade"),
-      volumeSizeKiB: volumeSizeKiB(reUpgradeProject.volume),
-    };
-  } finally {
-    stopProject(reUpgradeProject.project, reUpgradeProject.composePath);
+    stopProject(finalProject.project, finalProject.composePath);
   }
 
   result.rpo = {
     labColdSnapshot: "0",
-    rationale: "Cold tar snapshot is taken while the source OpenObserve process is stopped.",
+    rationale:
+      "Cold tar snapshot is taken from a live clone of the volume; the main service is never stopped.",
   };
   result.sessionReplay = {
     closedByStage19Regression: true,
@@ -988,7 +803,7 @@ async function runStage20Proof() {
         bytes: result.sourceBackup.bytes,
       },
     ],
-    objectCounts: result.mainTargetBackup.logical.controlPlane,
+    objectCounts: result.mainTargetBackup.logical.objectCounts,
   };
 
   for (const section of ["restoreTarget", "sourceRestore", "upgrade", "rollback", "reUpgrade"]) {
@@ -1010,12 +825,23 @@ async function runStage20Proof() {
       }
     }
     if (smoke?.alertSmoke) {
-      const { firingOk, resolvedOk } = smoke.alertSmoke;
-      if (!firingOk || !resolvedOk) {
+      const { quietCycleObserved, firingObserved } = smoke.alertSmoke;
+      if (!quietCycleObserved || !firingObserved) {
         result.decision = "BLOCKED";
-        throw new Error(`${section} alert destination smoke failed`);
+        throw new Error(`${section} real alert evaluation smoke failed`);
       }
     }
+  }
+  if (
+    result.targetLogicalRestore.oldRumdata === false ||
+    result.targetLogicalRestore.oldRumlog === false
+  ) {
+    result.decision = "BLOCKED";
+    throw new Error("targetLogicalRestore did not preserve source markers");
+  }
+  if (!result.targetLogicalRestore.replayStreamAbsent) {
+    result.decision = "BLOCKED";
+    throw new Error("targetLogicalRestore: _sessionreplay stream must stay absent");
   }
 
   const resultPath = join(runDir, "stage20-results.json");
@@ -1026,6 +852,45 @@ async function runStage20Proof() {
     `${JSON.stringify({ ...result, runtimeResultPath: repoPath(resultPath) }, null, 2)}\n`,
   );
   return { resultPath, committedPath, result };
+}
+
+function compose_stop_openobserve(project) {
+  run(
+    "docker",
+    [
+      "compose",
+      "-f",
+      project.composePath,
+      "--project-name",
+      project.project,
+      "stop",
+      "openobserve",
+    ],
+    {
+      allowFailure: true,
+    },
+  );
+}
+
+function composeAlertSinkControl(project, composePath, path) {
+  const result = run(
+    "docker",
+    [
+      "compose",
+      "-f",
+      composePath,
+      "--project-name",
+      project,
+      "exec",
+      "-T",
+      "alert-sink",
+      "node",
+      "-e",
+      `fetch('http://127.0.0.1:4312/alert-sink/${path}', { method: '${path === "events" ? "GET" : "POST"}' }).then(async r => { console.log(await r.text()); process.exit(r.ok ? 0 : 1); }).catch(error => { console.error(error.message); process.exit(1); })`,
+    ],
+    { capture: true },
+  );
+  return JSON.parse(result.stdout.trim());
 }
 
 const isMainModule = process.argv[1] === new URL(import.meta.url).pathname;
