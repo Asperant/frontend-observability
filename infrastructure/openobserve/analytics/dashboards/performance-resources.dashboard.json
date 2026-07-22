@@ -80,7 +80,7 @@
         },
         {
           "id": "long-task-trend",
-          "type": "table",
+          "type": "line",
           "title": "Long task trend (hourly), ms",
           "description": "Native long_task capture is best-effort \u2014 an empty trend is expected, not an error.",
           "config": {

@@ -34,8 +34,18 @@ export const passwordSecretPath = join(secretsDir, "openobserve-root-password");
 export const rumClientTokenSecretPath = join(secretsDir, "openobserve-rum-client-token");
 export const caCertPath = join(certsDir, "lab-ca.crt");
 export const caKeyPath = join(certsDir, "lab-ca.key");
-export const leafCertPath = join(certsDir, "localhost.crt");
-export const leafKeyPath = join(certsDir, "localhost.key");
+// The leaf cert/key live in their own directory under generatedDir (not
+// certsDir) for two independent reasons: (1) a directory bind mount, not a
+// single-file one — see proxyDynamicDir below for the general inode-pinning
+// hazard this avoids, which applies here identically: reverse-proxy must be
+// able to pick up a rotated cert on `nginx -s reload` alone, without a
+// container recreate; (2) it keeps the CA private key (caKeyPath, which
+// never needs to be mounted into any container) out of anything that is
+// ever bind-mounted, so a compose file that mounts "the certs dir" can never
+// accidentally hand a container the CA key.
+export const tlsLeafDir = join(generatedDir, "tls-leaf");
+export const leafCertPath = join(tlsLeafDir, "localhost.crt");
+export const leafKeyPath = join(tlsLeafDir, "localhost.key");
 export const runtimeConfigPath = join(generatedDir, "runtime-config.json");
 // A single-file bind mount pins an already-running container to the inode
 // it saw at mount time: an atomic-rename rewrite of the host file (as

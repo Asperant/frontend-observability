@@ -31,13 +31,13 @@ const FIELD_COLORS = Object.freeze([
   "#bb6bd9",
 ]);
 
-function buildFieldDescriptor(column, index) {
+function buildFieldDescriptor(column, index, functionName = "count") {
   return {
     label: column.name,
     alias: column.name,
     color: FIELD_COLORS[index % FIELD_COLORS.length],
     type: "build",
-    functionName: "count",
+    functionName,
     args: [{ type: "field", value: { field: column.name } }],
     isDerived: false,
     havingConditions: [],
@@ -46,11 +46,25 @@ function buildFieldDescriptor(column, index) {
   };
 }
 
+// v0.91.2 re-verification (live Chromium + Firefox, this stage's closeout):
+// unlike v0.91.0 (capability #11b: stat/line drew nothing at all), "line"
+// and "bar" panels now genuinely paint real axes/legend/data — confirmed by
+// creating an equivalent probe panel by hand and reading back what actually
+// rendered. "stat" is still confirmed blank on this pinned build, which is
+// moot here since no starter panel uses "stat" (KPI panels already use
+// "metric", never broken). A "line"/"bar" panel additionally needs
+// fields.x populated with the query's own bucket column — table/metric/stat
+// panels never populate fields.x at all (still `[]`, unchanged below).
+const X_AXIS_PANEL_TYPES = new Set(["line", "bar"]);
+
 export function buildPanel(panelManifest, queryManifest, variables) {
   const sql = renderQueryTemplate(queryManifest, variables);
-  const yFields = (queryManifest.expectedColumns ?? []).map((column, index) =>
-    buildFieldDescriptor(column, index),
-  );
+  const columns = queryManifest.expectedColumns ?? [];
+  const usesXAxis = X_AXIS_PANEL_TYPES.has(panelManifest.type);
+  const xColumns = usesXAxis ? columns.slice(0, 1) : [];
+  const yColumns = usesXAxis ? columns.slice(1) : columns;
+  const xFields = xColumns.map((column, index) => buildFieldDescriptor(column, index, "histogram"));
+  const yFields = yColumns.map((column, index) => buildFieldDescriptor(column, index));
   return {
     id: panelManifest.id,
     type: panelManifest.type,
@@ -65,7 +79,7 @@ export function buildPanel(panelManifest, queryManifest, variables) {
         fields: {
           stream: queryManifest.stream,
           stream_type: "logs",
-          x: [],
+          x: xFields,
           y: yFields,
           z: [],
           // A version-8 body (see buildStarterDashboardBody) requires this

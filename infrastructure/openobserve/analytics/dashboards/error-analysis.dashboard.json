@@ -63,7 +63,7 @@
         },
         {
           "id": "error-trend",
-          "type": "table",
+          "type": "line",
           "title": "Error trend (hourly)",
           "description": "",
           "config": {

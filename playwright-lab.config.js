@@ -10,6 +10,12 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "tests/e2e",
   testMatch: /lab\.spec\.js/,
+  // native-ui-lab.spec.js has its own dedicated config
+  // (playwright-native-ui.config.js): it drives OpenObserve's own web UI
+  // and its real-scheduler alert-evaluation probe takes minutes per run —
+  // heavy enough that it belongs only in the manual release-acceptance
+  // workflow, not every standard PR's `pnpm test:e2e:lab`.
+  testIgnore: /native-ui-lab\.spec\.js/,
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
@@ -20,5 +26,8 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
     trace: "retain-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+  ],
 });

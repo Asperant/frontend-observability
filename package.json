@@ -19,6 +19,7 @@
     "test:e2e": "playwright test",
     "test:lab": "vitest run --project lab",
     "test:e2e:lab": "playwright test --config playwright-lab.config.js",
+    "test:e2e:native-ui": "playwright test --config playwright-native-ui.config.js",
     "test:e2e:stage8": "playwright test --config playwright-stage8.config.js",
     "test:e2e:stage9": "playwright test --config playwright-stage9.config.js",
     "test:stage8:openobserve": "node scripts/lab/verify-stage8-openobserve.mjs",
@@ -74,7 +75,8 @@
     "test:stage19:resilience": "node scripts/performance/verify-stage19-resilience.mjs",
     "lab:stage19:benchmark": "node scripts/performance/run-stage19-benchmark.mjs",
     "lab:stage19:soak": "node scripts/performance/run-stage19-soak.mjs",
-    "lab:stage20:proof": "node scripts/recovery/run-stage20-proof.mjs"
+    "lab:stage20:proof": "node scripts/recovery/run-stage20-proof.mjs",
+    "test:tls:rotation": "node scripts/lab/verify-tls-rotation.mjs"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",

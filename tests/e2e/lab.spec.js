@@ -36,6 +36,23 @@ test.describe("Stage 6 Docker reference lab (requires `pnpm lab:up` already runn
     expect(observabilityResponse.status()).toBe(404);
   });
 
+  // Section 3.1 closeout fix: /observability/timeout.json is a real,
+  // narrowly-scoped lab fixture endpoint (infrastructure/docker/
+  // reverse-proxy/conf.d/app.conf, proxied to mock-api's pre-existing
+  // /timeout route) that never sends a response — unlike the non-lab
+  // demo-frontend.spec.js suite, which fakes this with a Playwright route
+  // mock, this exercises the real Docker reverse-proxy and a real client
+  // AbortController timeout end to end.
+  test("config timeout state is shown against a real never-completing lab endpoint", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.getByTestId("scenario-config-timeout").click();
+    await expect(page.getByTestId("status-panel")).toContainText("CONFIG_TIMEOUT", {
+      timeout: 5000,
+    });
+  });
+
   test("the demo page still loads while OpenObserve is stopped", async ({ page }) => {
     test.setTimeout(120_000);
     runDockerCompose(["stop", "openobserve"]);

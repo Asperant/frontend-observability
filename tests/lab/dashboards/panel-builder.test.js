@@ -110,6 +110,61 @@ describe("buildPanel", () => {
       },
     ]);
   });
+
+  it("v0.91.2 re-verification: a line/bar panel routes the first expectedColumns entry to fields.x (histogram bucket) and the rest to fields.y, unlike table/metric/stat which keep fields.x empty", () => {
+    const trendQueryManifest = {
+      ...QUERY_MANIFEST,
+      expectedColumns: [
+        { name: "bucket", type: "Utf8" },
+        { name: "error_count", type: "Int64" },
+      ],
+    };
+    const linePanel = buildPanel({ ...PANEL_MANIFEST, type: "line" }, trendQueryManifest, {
+      service: "demo-frontend",
+      environment: "lab",
+    });
+    expect(linePanel.queries[0].fields.x).toEqual([
+      {
+        label: "bucket",
+        alias: "bucket",
+        color: "#5960b2",
+        type: "build",
+        functionName: "histogram",
+        args: [{ type: "field", value: { field: "bucket" } }],
+        isDerived: false,
+        havingConditions: [],
+        treatAsNonTimestamp: true,
+        showFieldAsJson: false,
+      },
+    ]);
+    expect(linePanel.queries[0].fields.y.map((field) => field.label)).toEqual(["error_count"]);
+
+    const tablePanel = buildPanel({ ...PANEL_MANIFEST, type: "table" }, trendQueryManifest, {
+      service: "demo-frontend",
+      environment: "lab",
+    });
+    expect(tablePanel.queries[0].fields.x).toEqual([]);
+    expect(tablePanel.queries[0].fields.y.map((field) => field.label)).toEqual([
+      "bucket",
+      "error_count",
+    ]);
+  });
+
+  it("routes fields.x for a bar panel the same way as line", () => {
+    const trendQueryManifest = {
+      ...QUERY_MANIFEST,
+      expectedColumns: [
+        { name: "bucket", type: "Utf8" },
+        { name: "failed_resources", type: "Int64" },
+      ],
+    };
+    const barPanel = buildPanel({ ...PANEL_MANIFEST, type: "bar" }, trendQueryManifest, {
+      service: "demo-frontend",
+      environment: "lab",
+    });
+    expect(barPanel.queries[0].fields.x.map((field) => field.label)).toEqual(["bucket"]);
+    expect(barPanel.queries[0].fields.y.map((field) => field.label)).toEqual(["failed_resources"]);
+  });
 });
 
 describe("buildTab", () => {

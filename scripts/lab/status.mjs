@@ -2,12 +2,15 @@ import { spawnSync } from "node:child_process";
 import { existsSync, statSync } from "node:fs";
 
 import {
-  certsDir,
+  caCertPath,
+  caKeyPath,
   composeArgs,
   dockerEnv,
   dockerDir,
   generatedDir,
   assertExactLabToolchain,
+  leafCertPath,
+  leafKeyPath,
   log,
   secretsDir,
   SERVICES,
@@ -47,10 +50,10 @@ export function summarizeStatus() {
   const runtimeFiles = [
     `${secretsDir}/openobserve-root-email`,
     `${secretsDir}/openobserve-root-password`,
-    `${certsDir}/lab-ca.key`,
-    `${certsDir}/localhost.key`,
-    `${certsDir}/lab-ca.crt`,
-    `${certsDir}/localhost.crt`,
+    caKeyPath,
+    leafKeyPath,
+    caCertPath,
+    leafCertPath,
     `${generatedDir}/runtime-config.json`,
   ].map((path) => ({
     path,

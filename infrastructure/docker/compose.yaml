@@ -25,8 +25,14 @@ services:
       - /var/cache/nginx:size=16m,mode=1777
       - /var/run:size=8m,mode=1777
     volumes:
-      - ../../.runtime/certs/localhost.crt:/etc/chicek/tls/localhost.crt:ro
-      - ../../.runtime/certs/localhost.key:/etc/chicek/tls/localhost.key:ro
+      # A directory bind mount, not two single-file mounts: a rotated TLS
+      # cert/key must take effect on an `nginx -s reload` alone, and
+      # single-file binds pin an already-running container to the inode
+      # they saw at mount time (see scripts/lab/common.mjs's tlsLeafDir
+      # comment — same underlying hazard as proxy-dynamic below). Only the
+      # leaf cert/key live here; the CA private key stays in .runtime/certs,
+      # which is never mounted into any container.
+      - ../../.runtime/generated/tls-leaf:/etc/chicek/tls:ro
       - ../../.runtime/generated/runtime-config.json:/etc/chicek/runtime-config.json:ro
       # A directory bind mount, not two single-file mounts: the kill switch
       # must take effect on an `nginx -s reload` alone, and single-file

@@ -1,0 +1,108 @@
+name: Release Acceptance
+
+# Manual, heavy full-acceptance run — deliberately NOT on push/pull_request
+# (standard PR CI stays in ci.yml/lab.yml and must not grow to include a
+# real 60-minute soak or the full Stage 20 recovery chain, both of which
+# take real wall-clock time by design and cannot be shortened without
+# weakening what they actually prove). Run manually before cutting a
+# release or accepting a closeout branch.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  release-acceptance:
+    runs-on: ubuntu-latest
+    # Real 60-minute soak + full Stage 20 recovery chain (five disposable
+    # environments, each with a real scheduler-driven alert evaluation) is
+    # multiple hours of genuine wall-clock work by design — not padding.
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers (chromium + firefox)
+        run: pnpm exec playwright install --with-deps chromium firefox
+
+      - name: git diff --check (no whitespace-corrupt diffs against main)
+        run: git diff --check "origin/main...HEAD"
+
+      - name: pnpm verify (format, lint, unit, contract, coverage, build, consumer, e2e, SBOM, local secret/bundle scan)
+        run: pnpm run verify
+
+      - name: pnpm security:local (offline secret + bundle scan)
+        run: pnpm run security:local
+
+      - name: pnpm security:online (registry-backed dependency vulnerability audit)
+        run: pnpm run security:online
+
+      - name: Stage 15 — stream/data lifecycle gate
+        run: |
+          pnpm run lab:init
+          pnpm run lab:up
+          pnpm run lab:verify
+          pnpm run test:stage15:streams
+
+      - name: Stage 16 — dashboard/query governance gate
+        run: pnpm run test:stage16:dashboards
+
+      - name: Stage 17 — alert/incident governance gate
+        run: pnpm run test:stage17:alerts
+
+      - name: Stage 18 — security/privacy acceptance gate
+        run: pnpm run test:stage18:security-acceptance
+
+      - name: Native OpenObserve UI E2E (Chromium + Firefox)
+        run: pnpm run test:e2e:native-ui
+
+      - name: TLS certificate rotation
+        run: pnpm run test:tls:rotation
+
+      - name: Stage 19 — performance/resilience gate
+        run: pnpm run test:stage19:resilience
+
+      - name: Stage 19 — real 60-minute soak
+        run: pnpm run lab:stage19:soak -- --duration=60m
+
+      - name: Stage 20 — full backup/restore/upgrade/rollback recovery proof
+        run: pnpm run lab:stage20:proof
+
+      - name: lab:e2e (full Chromium + Firefox lab suite)
+        run: pnpm run test:e2e:lab
+
+      - name: Collect redacted evidence artifacts
+        if: always()
+        run: |
+          mkdir -p release-acceptance-evidence
+          cp infrastructure/performance/stage19-acceptance-results.json release-acceptance-evidence/ 2>/dev/null || true
+          cp infrastructure/performance/stage20-recovery-results.json release-acceptance-evidence/ 2>/dev/null || true
+          cp docs/stage19-soak-report.md release-acceptance-evidence/ 2>/dev/null || true
+          pnpm run lab:status > release-acceptance-evidence/lab-status.txt 2>&1 || true
+
+      # Runtime backup/secret artifacts (.runtime/**) must never be
+      # uploaded — only the already-secret-free, already-redacted,
+      # already-committed-shape evidence files collected above.
+      - name: Upload redacted evidence artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-acceptance-evidence
+          path: release-acceptance-evidence/
+          retention-days: 30
+
+      - name: pnpm lab:down (always, tears down this project's containers/networks only)
+        if: always()
+        run: pnpm run lab:down

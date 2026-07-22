@@ -13,6 +13,7 @@ import {
   leafKeyPath,
   rejectSymlink,
   run,
+  tlsLeafDir,
 } from "./common.mjs";
 
 const CA_DAYS = 3650;
@@ -61,12 +62,19 @@ function moveIntoPlace(tempPath, finalPath, mode) {
  * soon) is left untouched. Generates a fresh local-only CA and a
  * localhost/127.0.0.1 leaf certificate signed by it, with no sudo and no
  * system trust store changes.
+ *
+ * `force: true` (used by the TLS rotation test/tool) skips the "still
+ * valid, leave it alone" short-circuit for the leaf cert specifically —
+ * real periodic rotation only ever replaces the short-lived leaf, signed by
+ * the existing long-lived CA, so `force` never touches the CA.
  */
-export function ensureCertificates() {
+export function ensureCertificates({ force = false } = {}) {
   mkdirSync(certsDir, { recursive: true, mode: 0o700 });
+  mkdirSync(tlsLeafDir, { recursive: true, mode: 0o700 });
 
   const caValid = existsSync(caCertPath) && existsSync(caKeyPath) && !certExpiresSoon(caCertPath);
   const leafValid =
+    !force &&
     existsSync(leafCertPath) &&
     existsSync(leafKeyPath) &&
     !certExpiresSoon(leafCertPath) &&
