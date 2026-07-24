@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "delivery-ops-freshness",
+  "name": "Durable delivery ops stream stale",
+  "description": "The internal delivery-worker has not emitted aggregate operational data recently.",
+  "metricId": "delivery_ops_freshness",
+  "queryId": "delivery-worker-state",
+  "stream": "_chicek_delivery_ops",
+  "severity": "medium",
+  "enabledByDefault": false,
+  "requiredScope": {
+    "service": "NOT_APPLICABLE",
+    "environment": "NOT_APPLICABLE",
+    "version": "NOT_APPLICABLE"
+  },
+  "evaluation": { "intervalMinutes": 1, "lookbackMinutes": 10 },
+  "threshold": {
+    "direction": "above",
+    "starterValue": 300,
+    "productionValue": "REQUIRED_COMPANY_DECISION"
+  },
+  "sample": { "field": "delivery_ops_events", "minimum": 1 },
+  "breach": { "requiredConsecutiveBreaches": 1 },
+  "cooldown": { "minutes": 10 },
+  "deduplicationKey": "frontend-delivery:ops-freshness",
+  "recoveryCondition": {
+    "direction": "below_or_equal",
+    "value": 120,
+    "requiredConsecutiveHealthy": 1
+  },
+  "noDataPolicy": "NOT_HEALTHY",
+  "queryErrorPolicy": "NOT_HEALTHY",
+  "destinationRef": "local-alert-sink",
+  "dashboardRef": "delivery-operations",
+  "runbookRef": "docs/runbooks/alerts/delivery-ops-freshness.md",
+  "owner": "REQUIRED_COMPANY_OWNER",
+  "productionDecision": {
+    "enabled": "REQUIRED_COMPANY_DECISION",
+    "threshold": "REQUIRED_COMPANY_DECISION",
+    "destination": "REQUIRED_COMPANY_DECISION"
+  },
+  "openObserve": { "nativeComparison": "single_query_threshold", "createsIncident": false }
+}

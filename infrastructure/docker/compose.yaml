@@ -39,8 +39,6 @@ services:
       # binds pin an already-running container to the inode they saw at
       # mount time (see scripts/lab/common.mjs's proxyDynamicDir comment).
       - ../../.runtime/generated/proxy-dynamic:/etc/chicek/dynamic:ro
-    secrets:
-      - openobserve_rum_client_token
     networks:
       - app-internal
       - observability-internal
@@ -71,6 +69,8 @@ services:
       demo-frontend:
         condition: service_healthy
       mock-api:
+        condition: service_healthy
+      durable-ingest:
         condition: service_healthy
     deploy:
       resources:
@@ -152,6 +152,171 @@ services:
           pids: 128
         reservations:
           memory: 32M
+    logging: *default-logging
+    restart: *default-restart
+
+  durable-ingest:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/durable-node/Dockerfile
+    image: chicek-lab/durable-ingest:6.0.0
+    user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
+    command: ["node", "apps/durable-ingest/src/server.js"]
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    secrets:
+      - rabbitmq_ingest_username
+      - rabbitmq_ingest_password
+    networks:
+      - observability-internal
+    environment:
+      PORT: "4313"
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_INGEST_USERNAME_FILE: "/run/secrets/rabbitmq_ingest_username"
+      RABBITMQ_INGEST_PASSWORD_FILE: "/run/secrets/rabbitmq_ingest_password"
+      RUM_MAX_BYTES: "65536"
+      LOGS_MAX_BYTES: "32768"
+      PUBLISH_CONFIRM_TIMEOUT_MS: "5000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4313/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 12
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 192M
+          pids: 128
+        reservations:
+          memory: 64M
+    logging: *default-logging
+    restart: *default-restart
+
+  rabbitmq:
+    build:
+      context: ./rabbitmq
+      dockerfile: Dockerfile
+    image: chicek-lab/rabbitmq:6.0.0
+    hostname: rabbitmq
+    user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /run:size=16m,mode=1777
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    secrets:
+      - rabbitmq_admin_username
+      - rabbitmq_admin_password
+      - rabbitmq_ingest_username
+      - rabbitmq_ingest_password
+      - rabbitmq_worker_username
+      - rabbitmq_worker_password
+      - rabbitmq_monitoring_username
+      - rabbitmq_monitoring_password
+    networks:
+      - observability-internal
+      - edge-publish
+    environment:
+      HOME: "/var/lib/rabbitmq"
+    ports:
+      - "127.0.0.1:15672:15672"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "for i in $(seq 1 45); do test -f /tmp/chicek-rabbitmq-ready && rabbitmq-diagnostics -q ping && exit 0; sleep 1; done; exit 1",
+        ]
+      interval: 10s
+      timeout: 50s
+      start_period: 40s
+      retries: 12
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 768M
+          pids: 512
+        reservations:
+          memory: 256M
+    logging: *default-logging
+    restart: *default-restart
+
+  delivery-worker:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/durable-node/Dockerfile
+    image: chicek-lab/delivery-worker:6.0.0
+    user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
+    command: ["node", "apps/delivery-worker/src/worker.js"]
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    volumes:
+      - ../../.runtime/generated/proxy-dynamic:/etc/chicek/dynamic:ro
+    secrets:
+      - rabbitmq_worker_username
+      - rabbitmq_worker_password
+      - openobserve_rum_ingest_token
+      - openobserve_delivery_ops_ingest_token
+    networks:
+      - observability-internal
+    environment:
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_WORKER_USERNAME_FILE: "/run/secrets/rabbitmq_worker_username"
+      RABBITMQ_WORKER_PASSWORD_FILE: "/run/secrets/rabbitmq_worker_password"
+      OPENOBSERVE_INTERNAL_URL: "http://openobserve:5080"
+      OPENOBSERVE_RUM_TOKEN_FILE: "/run/secrets/openobserve_rum_ingest_token"
+      OPENOBSERVE_DELIVERY_OPS_TOKEN_FILE: "/run/secrets/openobserve_delivery_ops_ingest_token"
+      DELIVERY_CONTROL_FILE: "/etc/chicek/dynamic/delivery-control.json"
+      WORKER_TEST_FAULT_FILE: "/etc/chicek/dynamic/worker-fault.json"
+      CHICEK_ENABLE_WORKER_TEST_FAULTS: "stage20_5_lab_only"
+      WORKER_PREFETCH: "16"
+      OPENOBSERVE_DELIVERY_TIMEOUT_MS: "10000"
+      OPS_EMIT_INTERVAL_MS: "30000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 6
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      openobserve:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 256M
+          pids: 160
+        reservations:
+          memory: 96M
     logging: *default-logging
     restart: *default-restart
 
@@ -239,7 +404,7 @@ services:
     secrets:
       - openobserve_root_email
       - openobserve_root_password
-      - openobserve_rum_client_token
+      - openobserve_rum_ingest_token
     networks:
       - observability-internal
       - edge-publish
@@ -311,6 +476,7 @@ networks:
 
 volumes:
   openobserve-data:
+  rabbitmq-data:
 
 secrets:
   openobserve_root_email:
@@ -319,3 +485,23 @@ secrets:
     file: ../../.runtime/secrets/openobserve-root-password
   openobserve_rum_client_token:
     file: ../../.runtime/secrets/openobserve-rum-client-token
+  openobserve_rum_ingest_token:
+    file: ../../.runtime/secrets/openobserve-rum-ingest-token
+  openobserve_delivery_ops_ingest_token:
+    file: ../../.runtime/secrets/openobserve-delivery-ops-ingest-token
+  rabbitmq_admin_username:
+    file: ../../.runtime/secrets/rabbitmq-admin-username
+  rabbitmq_admin_password:
+    file: ../../.runtime/secrets/rabbitmq-admin-password
+  rabbitmq_ingest_username:
+    file: ../../.runtime/secrets/rabbitmq-ingest-username
+  rabbitmq_ingest_password:
+    file: ../../.runtime/secrets/rabbitmq-ingest-password
+  rabbitmq_worker_username:
+    file: ../../.runtime/secrets/rabbitmq-worker-username
+  rabbitmq_worker_password:
+    file: ../../.runtime/secrets/rabbitmq-worker-password
+  rabbitmq_monitoring_username:
+    file: ../../.runtime/secrets/rabbitmq-monitoring-username
+  rabbitmq_monitoring_password:
+    file: ../../.runtime/secrets/rabbitmq-monitoring-password

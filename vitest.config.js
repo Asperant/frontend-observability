@@ -10,6 +10,7 @@ export default defineConfig({
           include: [
             "packages/browser-observability/tests/**/*.test.js",
             "packages/contracts/tests/**/*.test.js",
+            "packages/durable-telemetry/tests/**/*.test.js",
             "apps/mock-api/tests/**/*.test.js",
           ],
           exclude: ["**/node_modules/**", "**/dist/**"],

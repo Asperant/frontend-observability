@@ -32,7 +32,7 @@ catalog documents the metric's _meaning and safety contract_; the query manifest
 that computes it. `scripts/lab/dashboards/metric-catalog.js` validates the catalog's shape and
 cross-references every `queryId` against the real query catalog.
 
-Each of the 26 query manifests declares: `queryClass` (`OVERVIEW` — single-row aggregate,
+Each of the 27 query manifests declares: `queryClass` (`OVERVIEW` — single-row aggregate,
 `TABLE` — grouped/bounded, `LIST` — bounded raw rows, or `DRILLDOWN` — exact-id scoped),
 `requiredVariables`/`optionalVariables`/`drilldownVariables`, `timeRangeCeilingHours` (always
 ≤168), `rowLimit`, `timeoutBudgetMs`, `expectedColumns`, `emptyDataSemantics`, `cardinalityClass`,
@@ -90,10 +90,20 @@ not managed/immutable artifacts:
   into the Session Investigation dashboard.
 - **Performance and Resources** — LCP/CLS/INP percentiles with sample counts, LCP by browser
   family, a long-task trend, and resource failure/latency breakdowns by `resource_type`.
-- **Session Investigation** — session summary, views/actions, errors, resources, and browser logs,
-  all scoped to exactly one `session_id` (a dashboard `constant` variable). No overview/group-by
-  ever uses a session/view/action ID. **No Session Replay panel or replay link exists anywhere** —
-  Session Replay is Security Blocked (Stage 11).
+- **Session Investigation** — a **Recent sessions** tab (a bounded `LIMIT 50`, most-recent-first
+  `recent-sessions-list` table of real `view` events — `session_id`/`view_url` shown only as list
+  columns, never grouped on, exactly like Error Analysis's own `recent-errors-detail`) for finding
+  a session to look at, plus a **Session records** tab with session summary, views/actions, errors,
+  resources, and browser logs, all scoped to exactly one `session_id` (a dashboard `constant`
+  variable) once you've copied one in. No overview/group-by ever uses a session/view/action ID.
+  **No Session Replay panel or replay link exists anywhere, and no panel here ever queries
+  `_sessionreplay`** — Session Replay is Security Blocked (Stage 11). This dashboard was added
+  before OpenObserve's own native RUM → Sessions page could list anything at all (it needs
+  `_sessionreplay` populated too — see `docs/openobserve-v0.91-dashboard-capabilities.md`
+  finding #21 and `docs/session-replay-security-decision.md`, now resolved by a separate
+  metadata-only sync daemon); it remains a `_rumdata`-only alternative with zero
+  `_sessionreplay` dependency, useful on its own merits even now that the native page also
+  works.
 
 Every starter panel's SQL is the query catalog's own template, rendered once at install time with
 this lab's real `service`/`environment` values (capability doc #12: a panel's stored SQL is exactly
@@ -226,10 +236,12 @@ Low-cardinality overview fields (safe to `GROUP BY`/filter on in an overview/tab
 `environment`, `version`, `user_agent_user_agent_family` (browser family), `user_agent_os_family`,
 `type` (event type), `status`/`level` (log level), `resource_type`. High-cardinality fields (bounded
 drill-down only, `LIMIT`ed, never grouped on): `session_id`, `view_id`, `action_id`, `resource_id`,
-`error_id`, `resource_url`, `view_url`, `error_message`, `error_stack`, `_timestamp`. The one
-exception is the Error Analysis dashboard's `recent-errors-detail` list query, which shows
-`session_id`/`error_message` as bounded (`LIMIT 20`, most-recent-first) **list columns** — never
-grouped/aggregated on, and exactly the "bounded drill-down" use the roadmap describes.
+`error_id`, `resource_url`, `view_url`, `error_message`, `error_stack`, `_timestamp`. The two
+exceptions are the Error Analysis dashboard's `recent-errors-detail` list query and the Session
+Investigation dashboard's `recent-sessions-list` list query, which show `session_id`/`error_message`
+and `session_id`/`view_url` (respectively) as bounded (`LIMIT 20`/`LIMIT 50`, most-recent-first)
+**list columns** — never grouped/aggregated on, and exactly the "bounded drill-down" use the
+roadmap describes.
 
 ## 35-second SDK flush behavior
 

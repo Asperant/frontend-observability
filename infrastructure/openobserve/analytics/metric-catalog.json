@@ -393,6 +393,72 @@
         "ownerPlaceholder": "STAGE_17_TBD",
         "runbookPlaceholder": "STAGE_17_TBD"
       }
+    },
+    {
+      "id": "delivery_queue_pressure",
+      "queryId": "delivery-queue-depth",
+      "displayName": "Durable delivery queue pressure",
+      "description": "Aggregate durable RUM/log queue and DLQ depth emitted by the delivery-worker into _chicek_delivery_ops.",
+      "stream": "_chicek_delivery_ops",
+      "eventScope": "aggregate operational summaries only",
+      "numerator": "max queue and DLQ depth fields",
+      "denominator": null,
+      "unit": "count",
+      "aggregation": "max",
+      "requiredFilters": ["service", "environment"],
+      "emptyDataSemantics": "No aggregate events in range renders NO_DATA; do not coerce to zero.",
+      "timeRangeCeilingHours": 168,
+      "cardinalityRisk": "LOW — scalar aggregate, no group-by.",
+      "schemaDependencies": [
+        "_chicek_delivery_ops.queues_rum_queuedepth",
+        "_chicek_delivery_ops.queues_logs_queuedepth",
+        "_chicek_delivery_ops.queues_rum_deadletterdepth",
+        "_chicek_delivery_ops.queues_logs_deadletterdepth"
+      ],
+      "alertReady": {
+        "alertReady": true,
+        "measurement": "delivery_queue_pressure",
+        "windowPlaceholder": "10m",
+        "minimumSampleSize": 1,
+        "thresholdDirection": "above",
+        "recoveryConditionPlaceholder": "below_or_equal",
+        "grouping": [],
+        "ownerPlaceholder": "REQUIRED_COMPANY_OWNER",
+        "runbookPlaceholder": "docs/runbooks/alerts/delivery-queue-pressure.md"
+      }
+    },
+    {
+      "id": "delivery_ops_freshness",
+      "queryId": "delivery-worker-state",
+      "displayName": "Durable delivery ops freshness",
+      "description": "Freshness/state evidence from internal delivery-worker aggregate operational summaries.",
+      "stream": "_chicek_delivery_ops",
+      "eventScope": "aggregate operational summaries only",
+      "numerator": "latest aggregate operational event",
+      "denominator": null,
+      "unit": "state",
+      "aggregation": "latest",
+      "requiredFilters": ["service", "environment"],
+      "emptyDataSemantics": "No rows means the delivery-worker has not emitted aggregate operational data in range.",
+      "timeRangeCeilingHours": 168,
+      "cardinalityRisk": "LOW — bounded latest-state table.",
+      "schemaDependencies": [
+        "_chicek_delivery_ops._timestamp",
+        "_chicek_delivery_ops.held",
+        "_chicek_delivery_ops.draining",
+        "_chicek_delivery_ops.lastsuccessfuldeliveryat"
+      ],
+      "alertReady": {
+        "alertReady": true,
+        "measurement": "delivery_ops_freshness",
+        "windowPlaceholder": "10m",
+        "minimumSampleSize": 1,
+        "thresholdDirection": "above",
+        "recoveryConditionPlaceholder": "below_or_equal",
+        "grouping": [],
+        "ownerPlaceholder": "REQUIRED_COMPANY_OWNER",
+        "runbookPlaceholder": "docs/runbooks/alerts/delivery-ops-freshness.md"
+      }
     }
   ]
 }

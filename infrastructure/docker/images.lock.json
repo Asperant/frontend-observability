@@ -37,6 +37,15 @@
       "digest": "sha256:ffcc8d72c1b3749dd2240e27f79b987eb227538835a2675b1d5849b053a39195",
       "platform": "linux/amd64",
       "prerelease": false
+    },
+    {
+      "purpose": "rabbitmq",
+      "registry": "docker.io",
+      "repository": "library/rabbitmq",
+      "tag": "4.1.4-management-alpine",
+      "digest": "sha256:55c83be05396805ae6e3e5bcbfd7f55f4ddad09f833fec0c0d565ccf58ddf028",
+      "platform": "linux/amd64",
+      "prerelease": false
     }
   ]
 }

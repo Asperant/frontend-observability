@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "starterId": "delivery-operations",
+  "starterVersion": 1,
+  "folderName": "CHICEK Starters",
+  "title": "CHICEK Delivery Operations",
+  "description": "Aggregate durable telemetry delivery operations. This dashboard reads only _chicek_delivery_ops summaries emitted by internal services; it never displays queued RUM/log payloads.",
+  "tabs": [
+    {
+      "tabId": "delivery",
+      "name": "Delivery",
+      "panels": [
+        {
+          "id": "queue-depth",
+          "type": "table",
+          "title": "Queue depth and DLQ",
+          "description": "",
+          "config": { "show_legends": false },
+          "queryRef": "delivery-queue-depth",
+          "layout": { "x": 0, "y": 0, "w": 48, "h": 8, "i": 1 }
+        },
+        {
+          "id": "rates-retries",
+          "type": "table",
+          "title": "Delivered, retries, DLQ and duplicates",
+          "description": "",
+          "config": { "show_legends": false },
+          "queryRef": "delivery-rates-and-retries",
+          "layout": { "x": 0, "y": 8, "w": 48, "h": 8, "i": 2 }
+        },
+        {
+          "id": "worker-state",
+          "type": "table",
+          "title": "Worker state",
+          "description": "",
+          "config": { "show_legends": false },
+          "queryRef": "delivery-worker-state",
+          "layout": { "x": 0, "y": 16, "w": 48, "h": 10, "i": 3 }
+        }
+      ]
+    }
+  ],
+  "variables": []
+}

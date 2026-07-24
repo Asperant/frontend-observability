@@ -7,7 +7,7 @@ set -eu
 
 email_file="${OPENOBSERVE_ROOT_EMAIL_FILE:-/run/secrets/openobserve_root_email}"
 password_file="${OPENOBSERVE_ROOT_PASSWORD_FILE:-/run/secrets/openobserve_root_password}"
-rum_client_token_file="${OPENOBSERVE_RUM_CLIENT_TOKEN_FILE:-/run/secrets/openobserve_rum_client_token}"
+rum_client_token_file="${OPENOBSERVE_RUM_CLIENT_TOKEN_FILE:-/run/secrets/openobserve_rum_ingest_token}"
 
 for secret_file in "$email_file" "$password_file" "$rum_client_token_file"; do
   if [ -L "$secret_file" ]; then

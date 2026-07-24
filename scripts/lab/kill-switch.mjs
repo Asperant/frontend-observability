@@ -7,6 +7,7 @@ import {
   withExclusiveLock,
 } from "./common.mjs";
 import { generateRuntimeControl, readCurrentRuntimeControl } from "./generate-runtime-control.mjs";
+import { writeDeliveryControl } from "./delivery-ops.mjs";
 import {
   readProxyGateActive,
   reloadReverseProxy,
@@ -34,6 +35,7 @@ export async function killSwitchOn({ reason }) {
     reloadReverseProxy();
     await waitForReloadSettle();
     const document = generateRuntimeControl({ killSwitch: { active: true, reasonCode: reason } });
+    writeDeliveryControl({ hold: true, reason: `kill_switch_${reason}` });
     return { document, proxyGateActive: true };
   });
 }
@@ -49,6 +51,7 @@ export async function killSwitchOn({ reason }) {
 export async function killSwitchOff() {
   return withExclusiveLock(killSwitchLockPath, async () => {
     const document = generateRuntimeControl({ killSwitch: { active: false, reasonCode: "none" } });
+    writeDeliveryControl({ hold: false, reason: "kill_switch_off" });
     writeProxyGate(false);
     reloadReverseProxy();
     await waitForReloadSettle();

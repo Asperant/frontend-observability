@@ -3,6 +3,7 @@ import {
   log,
   runDockerCompose,
   runtimeControlDaemonPidPath,
+  sessionMetadataDaemonPidPath,
   stopDetachedProcess,
 } from "./common.mjs";
 
@@ -14,6 +15,8 @@ import {
 export function labDown() {
   log("lab:down — stopping the runtime-control refresh daemon...");
   stopDetachedProcess(runtimeControlDaemonPidPath);
+  log("lab:down — stopping the session metadata sync daemon...");
+  stopDetachedProcess(sessionMetadataDaemonPidPath);
   log("lab:down — stopping and removing containers/networks (volume and .runtime/ preserved)...");
   runDockerCompose(["down"]);
   log("lab:down complete.");

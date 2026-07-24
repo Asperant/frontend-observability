@@ -2,8 +2,9 @@ import { certPermissionsOk, ensureCertificates } from "./generate-certs.mjs";
 import { ensureSecrets } from "./generate-secrets.mjs";
 import { generateRuntimeConfig } from "./generate-runtime-config.mjs";
 import { generateRuntimeControl } from "./generate-runtime-control.mjs";
+import { writeDeliveryControl } from "./delivery-ops.mjs";
 import { writeProxyGate } from "./proxy-gate.mjs";
-import { assertExactLabToolchain, log } from "./common.mjs";
+import { assertExactLabToolchain, atomicWriteFile, log, workerFaultPath } from "./common.mjs";
 
 export function labInit() {
   log("lab:init — ensuring runtime secrets, TLS certificates, and runtime config...");
@@ -36,9 +37,15 @@ export function labInit() {
     killSwitch: { active: false, reasonCode: "none" },
   });
   writeProxyGate(false);
+  writeDeliveryControl({ hold: false, reason: "lab-init" });
+  atomicWriteFile(
+    workerFaultPath,
+    `${JSON.stringify({ schemaVersion: 1, enabled: false, updatedAt: new Date().toISOString() }, null, 2)}\n`,
+    { mode: 0o644 },
+  );
   log(
     `  runtime control: written to .runtime/generated/runtime-control.json ` +
-      `(revision=${controlDocument.revision}, killSwitch inactive); proxy gate open`,
+      `(revision=${controlDocument.revision}, killSwitch inactive); proxy gate open; delivery resumed; worker fault disabled`,
   );
 
   log("lab:init complete.");

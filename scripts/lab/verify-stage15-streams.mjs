@@ -59,7 +59,7 @@ import { RUM_APPLICATION_ID } from "./generate-runtime-config.mjs";
 
 const DEMO_URL = "https://localhost:8443";
 const NOW_US = () => Date.now() * 1000;
-const POLL_TIMEOUT_MS = 30_000;
+const POLL_TIMEOUT_MS = 60_000;
 const POLL_INTERVAL_MS = 500;
 
 function readAdminSecretValues() {
@@ -272,6 +272,10 @@ async function driveCanaryBrowser(browserType, testRunId) {
       await page.waitForTimeout(250);
     }
 
+    await click("consent-grant");
+    await click("initialize-runtime-config");
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(500);
     await click("initialize-runtime-config");
     await click("consent-grant");
     await click("record-action");

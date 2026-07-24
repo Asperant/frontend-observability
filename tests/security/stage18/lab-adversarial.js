@@ -608,7 +608,7 @@ export function checkDockerCrossContainerIsolation() {
   const alertSinkNoCreds = execProbe(
     "alert-sink",
     "const fs=require('fs');" +
-      "const paths=['/run/secrets/openobserve_root_email','/run/secrets/openobserve_root_password','/run/secrets/openobserve_rum_client_token'];" +
+      "const paths=['/run/secrets/openobserve_root_email','/run/secrets/openobserve_root_password','/run/secrets/openobserve_rum_ingest_token'];" +
       "const present=paths.filter(p=>{try{fs.accessSync(p);return true;}catch{return false;}});" +
       "console.log(JSON.stringify(present));process.exit(0);",
   );

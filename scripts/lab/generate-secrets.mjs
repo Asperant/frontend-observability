@@ -6,7 +6,17 @@ import {
   emailSecretPath,
   fileMode,
   isWorldOrGroupReadableSecret,
+  openObserveDeliveryOpsIngestTokenSecretPath,
+  openObserveRumIngestTokenSecretPath,
   passwordSecretPath,
+  rabbitmqAdminPasswordSecretPath,
+  rabbitmqAdminUsernameSecretPath,
+  rabbitmqIngestPasswordSecretPath,
+  rabbitmqIngestUsernameSecretPath,
+  rabbitmqMonitoringPasswordSecretPath,
+  rabbitmqMonitoringUsernameSecretPath,
+  rabbitmqWorkerPasswordSecretPath,
+  rabbitmqWorkerUsernameSecretPath,
   rejectSymlink,
   rumClientTokenSecretPath,
   secretsDir,
@@ -19,6 +29,7 @@ const DIGITS = "0123456789";
 const SPECIAL = "!@#$%^&*()-_=+";
 const ALL = LOWER + UPPER + DIGITS + SPECIAL;
 const RUM_CLIENT_TOKEN_BYTES = 32;
+const RABBITMQ_USERNAME_PATTERN = /^[a-z][a-z0-9_-]{2,31}$/;
 
 function pick(alphabet) {
   return alphabet[randomInt(alphabet.length)];
@@ -62,6 +73,27 @@ export function generateEmail() {
   return `root-${suffix}@chicek-lab.invalid`;
 }
 
+function ensureSecret(path, valueFactory, results, key) {
+  if (existsSync(path)) {
+    assertSecretFileIsSafe(path);
+    if (readFileSync(path, "utf8").length === 0) {
+      throw new Error(`existing secret file is empty: ${path}`);
+    }
+  } else {
+    atomicWriteFile(path, valueFactory(), { mode: 0o600 });
+    results[key] = true;
+  }
+  assertSecretFileIsSafe(path);
+  if (fileMode(path) !== 0o600) {
+    throw new Error(`secret file must be exactly 0600 after generation: ${path}`);
+  }
+}
+
+function fixedUsername(value) {
+  if (!RABBITMQ_USERNAME_PATTERN.test(value)) throw new Error(`invalid fixed username: ${value}`);
+  return value;
+}
+
 function assertSecretFileIsSafe(path) {
   rejectSymlink(path);
   if (isWorldOrGroupReadableSecret(path)) {
@@ -79,48 +111,85 @@ function assertSecretFileIsSafe(path) {
 export function ensureSecrets() {
   mkdirSync(secretsDir, { recursive: true, mode: 0o700 });
 
-  const results = { emailCreated: false, passwordCreated: false, rumClientTokenCreated: false };
+  const results = {
+    emailCreated: false,
+    passwordCreated: false,
+    rumClientTokenCreated: false,
+    openObserveRumIngestTokenCreated: false,
+    openObserveDeliveryOpsIngestTokenCreated: false,
+    rabbitmqAdminUsernameCreated: false,
+    rabbitmqAdminPasswordCreated: false,
+    rabbitmqIngestUsernameCreated: false,
+    rabbitmqIngestPasswordCreated: false,
+    rabbitmqWorkerUsernameCreated: false,
+    rabbitmqWorkerPasswordCreated: false,
+    rabbitmqMonitoringUsernameCreated: false,
+    rabbitmqMonitoringPasswordCreated: false,
+  };
 
-  if (existsSync(emailSecretPath)) {
-    assertSecretFileIsSafe(emailSecretPath);
-    if (readFileSync(emailSecretPath, "utf8").length === 0) {
-      throw new Error(`existing secret file is empty: ${emailSecretPath}`);
-    }
-  } else {
-    atomicWriteFile(emailSecretPath, generateEmail(), { mode: 0o600 });
-    results.emailCreated = true;
-  }
-
-  if (existsSync(passwordSecretPath)) {
-    assertSecretFileIsSafe(passwordSecretPath);
-    if (readFileSync(passwordSecretPath, "utf8").length === 0) {
-      throw new Error(`existing secret file is empty: ${passwordSecretPath}`);
-    }
-  } else {
-    atomicWriteFile(passwordSecretPath, generatePassword(), { mode: 0o600 });
-    results.passwordCreated = true;
-  }
-
-  if (existsSync(rumClientTokenSecretPath)) {
-    assertSecretFileIsSafe(rumClientTokenSecretPath);
-    if (readFileSync(rumClientTokenSecretPath, "utf8").length === 0) {
-      throw new Error(`existing secret file is empty: ${rumClientTokenSecretPath}`);
-    }
-  } else {
-    atomicWriteFile(rumClientTokenSecretPath, generateRumClientToken(), { mode: 0o600 });
-    results.rumClientTokenCreated = true;
-  }
-
-  assertSecretFileIsSafe(emailSecretPath);
-  assertSecretFileIsSafe(passwordSecretPath);
-  assertSecretFileIsSafe(rumClientTokenSecretPath);
-  if (
-    fileMode(emailSecretPath) !== 0o600 ||
-    fileMode(passwordSecretPath) !== 0o600 ||
-    fileMode(rumClientTokenSecretPath) !== 0o600
-  ) {
-    throw new Error("secret files must be exactly 0600 after generation.");
-  }
+  ensureSecret(emailSecretPath, generateEmail, results, "emailCreated");
+  ensureSecret(passwordSecretPath, generatePassword, results, "passwordCreated");
+  ensureSecret(rumClientTokenSecretPath, generateRumClientToken, results, "rumClientTokenCreated");
+  ensureSecret(
+    openObserveRumIngestTokenSecretPath,
+    generateRumClientToken,
+    results,
+    "openObserveRumIngestTokenCreated",
+  );
+  ensureSecret(
+    openObserveDeliveryOpsIngestTokenSecretPath,
+    generateRumClientToken,
+    results,
+    "openObserveDeliveryOpsIngestTokenCreated",
+  );
+  ensureSecret(
+    rabbitmqAdminUsernameSecretPath,
+    () => fixedUsername("chicek_admin"),
+    results,
+    "rabbitmqAdminUsernameCreated",
+  );
+  ensureSecret(
+    rabbitmqAdminPasswordSecretPath,
+    generatePassword,
+    results,
+    "rabbitmqAdminPasswordCreated",
+  );
+  ensureSecret(
+    rabbitmqIngestUsernameSecretPath,
+    () => fixedUsername("chicek_ingest"),
+    results,
+    "rabbitmqIngestUsernameCreated",
+  );
+  ensureSecret(
+    rabbitmqIngestPasswordSecretPath,
+    generatePassword,
+    results,
+    "rabbitmqIngestPasswordCreated",
+  );
+  ensureSecret(
+    rabbitmqWorkerUsernameSecretPath,
+    () => fixedUsername("chicek_worker"),
+    results,
+    "rabbitmqWorkerUsernameCreated",
+  );
+  ensureSecret(
+    rabbitmqWorkerPasswordSecretPath,
+    generatePassword,
+    results,
+    "rabbitmqWorkerPasswordCreated",
+  );
+  ensureSecret(
+    rabbitmqMonitoringUsernameSecretPath,
+    () => fixedUsername("chicek_monitoring"),
+    results,
+    "rabbitmqMonitoringUsernameCreated",
+  );
+  ensureSecret(
+    rabbitmqMonitoringPasswordSecretPath,
+    generatePassword,
+    results,
+    "rabbitmqMonitoringPasswordCreated",
+  );
 
   return results;
 }

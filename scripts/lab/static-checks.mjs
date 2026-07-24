@@ -83,8 +83,10 @@ function acceptedRepoSpellings({ registry, repository }) {
 
 const DOCKERFILE_PATHS = {
   openobserve: join(dockerDir, "openobserve/Dockerfile"),
+  "durable-node": join(dockerDir, "durable-node/Dockerfile"),
   "demo-frontend": join(dockerDir, "demo-frontend/Dockerfile"),
   "mock-api": join(dockerDir, "mock-api/Dockerfile"),
+  rabbitmq: join(dockerDir, "rabbitmq/Dockerfile"),
   "reverse-proxy": join(dockerDir, "reverse-proxy/Dockerfile"),
 };
 
@@ -174,8 +176,12 @@ export function checkHostPortsLoopback(doc) {
 }
 
 const EDGE_PUBLISH_NETWORK = "edge-publish";
-const EDGE_PUBLISH_MEMBERS = new Set(["reverse-proxy", "openobserve"]);
-const EXPECTED_PUBLISHED_PORTS = new Set(["127.0.0.1:8443:8443", "127.0.0.1:5080:5080"]);
+const EDGE_PUBLISH_MEMBERS = new Set(["reverse-proxy", "openobserve", "rabbitmq"]);
+const EXPECTED_PUBLISHED_PORTS = new Set([
+  "127.0.0.1:8443:8443",
+  "127.0.0.1:5080:5080",
+  "127.0.0.1:15672:15672",
+]);
 
 function serviceNetworkNames(service) {
   const networks = service.networks;

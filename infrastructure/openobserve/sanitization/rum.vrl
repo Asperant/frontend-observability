@@ -33,6 +33,25 @@ del(.chicek_correlation_view_id)
 del(.chicek_correlation_action_id)
 del(.chicek_correlation_trusted)
 
+# Session Replay is permanently disabled (docs/session-replay-security-decision.md)
+# so the browser SDK never populates session.has_replay (it's only ever undefined,
+# which the SDK's own JSON encoding drops) — and the vendor SDK's beforeSend hook
+# refuses to let a caller set it client-side (limitModification only allows a
+# fixed field allowlist that excludes session.*). Without this, _rumdata never
+# gains the column at all, and OpenObserve's native RUM -> Sessions page 400s on
+# every load; even once the column exists, that page's own query is
+# `WHERE session_has_replay IS NOT NULL`, so every real session still needs the
+# value present (false is accurate: replay never runs) to appear in the list.
+# Force-set (never "only if missing"): the RUM client token is a non-secret,
+# browser-exposed credential (Stage 8), so a direct, non-SDK POST to the
+# ingestion endpoint could otherwise forge session.has_replay:true straight
+# through — has_replay must always be exactly the boolean false, regardless
+# of what a caller already sent, never a caller-controlled value.
+if exists(.session) && is_object(.session) {
+  .session.has_replay = false
+}
+.session_has_replay = false
+
 if exists(.context.test_run_id) {
   test_run_value = to_string(.context.test_run_id) ?? ""
   if is_string(.context.test_run_id) && match(test_run_value, valid_test_run_id) && !match(test_run_value, forbidden_correlation_control) && !contains(test_run_value, "\n") && !contains(test_run_value, "\r") && !contains(test_run_value, "\t") {

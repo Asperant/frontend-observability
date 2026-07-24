@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "recent-sessions-list",
+  "version": 1,
+  "metricId": null,
+  "title": "Recent sessions (detail)",
+  "queryClass": "LIST",
+  "stream": "_rumdata",
+  "sqlTemplate": "select _timestamp, session_id, view_url, user_agent_user_agent_family, user_agent_os_family from _rumdata where service = {{service}} and env = {{environment}}{{version_clause}} and type = 'view' order by _timestamp desc limit 50",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [
+    { "name": "version", "column": "version", "clausePlaceholder": "{{version_clause}}" }
+  ],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": 50,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    { "name": "_timestamp", "type": "Int64" },
+    { "name": "session_id", "type": "Utf8" },
+    { "name": "view_url", "type": "Utf8" },
+    { "name": "user_agent_user_agent_family", "type": "Utf8" },
+    { "name": "user_agent_os_family", "type": "Utf8" }
+  ],
+  "emptyDataSemantics": "No matching view records -> an empty result set (zero rows). session_id/view_url are high-cardinality fields shown only as a bounded (LIMIT 50, most-recent-first) list, never grouped/aggregated on. A session with multiple page views appears as multiple rows (one per view event) by design, exactly like recent-errors-detail's own session_id list column — this is a recent-activity feed for finding a session_id to paste into Session Investigation, not a deduplicated session count (see sessions_count for that number). Sourced only from _rumdata: no dependency on _sessionreplay/Session Replay, which remains fully disabled (docs/session-replay-security-decision.md).",
+  "cardinalityClass": "BOUNDED_LIST",
+  "hasDivisionGuard": false
+}

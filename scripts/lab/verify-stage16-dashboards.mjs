@@ -129,9 +129,9 @@ function runDashboardsUnitCoverage() {
 function verifyCatalogValidation() {
   const findings = [];
   const queryManifests = loadAllQueryManifests();
-  if (queryManifests.length !== 26) {
+  if (queryManifests.length !== 30) {
     findings.push(
-      `query catalog size changed: expected 26 manifests, got ${queryManifests.length}.`,
+      `query catalog size changed: expected 30 manifests, got ${queryManifests.length}.`,
     );
   }
   for (const manifest of queryManifests) {
@@ -141,9 +141,9 @@ function verifyCatalogValidation() {
     }
   }
   const metricCatalog = loadMetricCatalog();
-  if (metricCatalog.metrics?.length !== 12) {
+  if (metricCatalog.metrics?.length !== 14) {
     findings.push(
-      `metric catalog size changed: expected 12 metrics, got ${metricCatalog.metrics?.length ?? "missing"}.`,
+      `metric catalog size changed: expected 14 metrics, got ${metricCatalog.metrics?.length ?? "missing"}.`,
     );
   }
   const knownQueryIds = new Set(queryManifests.map((manifest) => manifest.id));
@@ -671,8 +671,8 @@ async function verifyAllQueryManifestsExecute(auth, queryManifests, variables, w
     }
     executed += 1;
   }
-  if (executed !== 26) {
-    findings.push(`[${browserLabel}] live _search executed ${executed}/26 query manifests.`);
+  if (executed !== 30) {
+    findings.push(`[${browserLabel}] live _search executed ${executed}/30 query manifests.`);
   }
   return findings;
 }

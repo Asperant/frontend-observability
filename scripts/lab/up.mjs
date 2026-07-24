@@ -9,18 +9,23 @@ import {
   repoRoot,
   runDockerCompose,
   runtimeControlDaemonPidPath,
+  sessionMetadataDaemonPidPath,
   stopDetachedProcess,
 } from "./common.mjs";
 import { fetchRealRumToken, persistRumToken } from "./fetch-rum-token.mjs";
 import { generateRuntimeConfig } from "./generate-runtime-config.mjs";
 import { generateRuntimeControl } from "./generate-runtime-control.mjs";
 import { labInit } from "./init.mjs";
+import { provisionDeliveryOpsToken } from "./provision-delivery-ops-token.mjs";
 import { provisionSanitization } from "./provision-sanitization.mjs";
 import { runAllStaticChecks } from "./static-checks.mjs";
 import { waitForHealthy } from "./wait.mjs";
 
 const runtimeControlDaemonScript = fileURLToPath(
   new URL("./runtime-control-refresh-daemon.mjs", import.meta.url),
+);
+const sessionMetadataDaemonScript = fileURLToPath(
+  new URL("./session-metadata-daemon.mjs", import.meta.url),
 );
 
 /**
@@ -39,6 +44,24 @@ function restartRuntimeControlDaemon() {
   });
   child.unref();
   writeFileSync(runtimeControlDaemonPidPath, String(child.pid), { mode: 0o600 });
+}
+
+/**
+ * Starts (or restarts) the detached background process that keeps
+ * `_sessionreplay` populated with fresh, derived (non-recording) session
+ * summary metadata so OpenObserve's native RUM -> Sessions page can render
+ * a real session list — see sync-session-metadata.mjs for exactly what
+ * this is and, just as importantly, what it deliberately is not.
+ */
+function restartSessionMetadataDaemon() {
+  stopDetachedProcess(sessionMetadataDaemonPidPath);
+  const child = spawn(process.execPath, [sessionMetadataDaemonScript], {
+    cwd: repoRoot,
+    detached: true,
+    stdio: "ignore",
+  });
+  child.unref();
+  writeFileSync(sessionMetadataDaemonPidPath, String(child.pid), { mode: 0o600 });
 }
 
 function checkToolchain() {
@@ -79,18 +102,18 @@ export async function labUp() {
     throw new Error("Not all services became healthy in time.");
   }
 
-  log("lab:up — fetching the real OpenObserve RUM client token...");
+  log("lab:up — fetching the real server-side OpenObserve RUM ingest token...");
   const rumToken = await fetchRealRumToken();
   const persistResult = persistRumToken(rumToken);
   generateRuntimeConfig();
   log(
-    `  RUM client token: ${persistResult.changed ? "updated" : "already current"} ` +
-      "(0600, value never printed); runtime config regenerated with it.",
+    `  OpenObserve ingest token: ${persistResult.changed ? "updated" : "already current"} ` +
+      "(0600, value never printed); runtime config regenerated with browser-only token.",
   );
 
   if (persistResult.changed) {
     log(
-      "lab:up — RUM token changed; recreating openobserve, alert-sink, and reverse-proxy so all reflect it...",
+      "lab:up — OpenObserve ingest token changed; recreating openobserve and delivery-worker so both reflect it...",
     );
     // Compose does not treat a secret/bind-mounted *file's* content change as
     // a reason to recreate a service on its own (only a change to the
@@ -112,15 +135,35 @@ export async function labUp() {
       "--force-recreate",
       "openobserve",
       "alert-sink",
-      "reverse-proxy",
+      "delivery-worker",
     ]);
     const rumWaitResult = await waitForHealthy({
-      services: ["openobserve", "alert-sink", "reverse-proxy"],
+      services: ["openobserve", "alert-sink", "delivery-worker"],
     });
     if (!rumWaitResult.healthy) {
       throw new Error(
-        "openobserve/alert-sink/reverse-proxy did not become healthy again after the RUM token refresh.",
+        "openobserve/alert-sink/delivery-worker did not become healthy again after the OpenObserve ingest token refresh.",
       );
+    }
+  }
+
+  log("lab:up — provisioning dedicated OpenObserve delivery-ops ingestion token...");
+  const opsTokenResult = await provisionDeliveryOpsToken();
+  log(
+    `  delivery ops token: ${opsTokenResult.changed ? "updated" : "already current"} ` +
+      "(org ingestion token, 0600, value never printed).",
+  );
+  if (opsTokenResult.changed) {
+    log(
+      "lab:up — delivery ops token changed; recreating delivery-worker so it re-reads the secret...",
+    );
+    runDockerCompose(["up", "-d", "--force-recreate", "delivery-worker"]);
+    const opsWaitResult = await waitForHealthy({
+      services: ["delivery-worker"],
+      timeoutMs: 90_000,
+    });
+    if (!opsWaitResult.healthy) {
+      throw new Error("delivery-worker did not become healthy after delivery ops token refresh.");
     }
   }
 
@@ -142,6 +185,13 @@ export async function labUp() {
   log(
     "  runtime control: refresh daemon (re-)started — keeps the document " +
       "inside its 10-minute TTL for as long as the lab stays up.",
+  );
+
+  restartSessionMetadataDaemon();
+  log(
+    "  session metadata: sync daemon (re-)started — keeps _sessionreplay " +
+      "populated with derived (non-recording) session summaries so the " +
+      "native RUM Sessions page can render a real list.",
   );
 
   log("lab:up complete. Demo: https://localhost:8443  OpenObserve UI: http://localhost:5080");

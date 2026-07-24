@@ -119,6 +119,16 @@ export default [
     },
   },
 
+  // packages/durable-telemetry: Node-only durable delivery primitives.
+  {
+    files: ["packages/durable-telemetry/src/**/*.js"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+
   // apps/demo-frontend: React + browser, may only use the public package API.
   {
     files: ["apps/demo-frontend/src/**/*.js", "apps/demo-frontend/src/**/*.jsx"],
@@ -163,6 +173,19 @@ export default [
   // apps/mock-api: Node built-in HTTP only.
   {
     files: ["apps/mock-api/src/**/*.js"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "no-console": "off",
+    },
+  },
+
+  // Stage 20.5 internal Node services.
+  {
+    files: ["apps/durable-ingest/src/**/*.js", "apps/delivery-worker/src/**/*.js"],
     languageOptions: {
       globals: {
         ...globals.node,

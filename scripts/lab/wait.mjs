@@ -11,7 +11,16 @@ import {
   assertExactLabToolchain,
 } from "./common.mjs";
 import { getComposeStatus } from "./status.mjs";
-import { passwordSecretPath, emailSecretPath, rumClientTokenSecretPath } from "./common.mjs";
+import {
+  emailSecretPath,
+  openObserveRumIngestTokenSecretPath,
+  passwordSecretPath,
+  rabbitmqAdminPasswordSecretPath,
+  rabbitmqIngestPasswordSecretPath,
+  rabbitmqMonitoringPasswordSecretPath,
+  rabbitmqWorkerPasswordSecretPath,
+  rumClientTokenSecretPath,
+} from "./common.mjs";
 import { readFileSync, existsSync } from "node:fs";
 
 const DEFAULT_TIMEOUT_MS = 180_000;
@@ -19,7 +28,16 @@ const POLL_INTERVAL_MS = 3_000;
 
 function readSecretValuesForRedaction() {
   const values = [];
-  for (const path of [emailSecretPath, passwordSecretPath, rumClientTokenSecretPath]) {
+  for (const path of [
+    emailSecretPath,
+    passwordSecretPath,
+    rumClientTokenSecretPath,
+    openObserveRumIngestTokenSecretPath,
+    rabbitmqAdminPasswordSecretPath,
+    rabbitmqIngestPasswordSecretPath,
+    rabbitmqWorkerPasswordSecretPath,
+    rabbitmqMonitoringPasswordSecretPath,
+  ]) {
     if (existsSync(path)) values.push(readFileSync(path, "utf8"));
   }
   return values;

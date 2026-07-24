@@ -8,6 +8,7 @@ import {
   runDockerCompose,
   runtimeControlDaemonPidPath,
   runtimeDir,
+  sessionMetadataDaemonPidPath,
   stopDetachedProcess,
 } from "./common.mjs";
 
@@ -39,6 +40,9 @@ export async function labPurge({ yes = false } = {}) {
 
   log("lab:purge — stopping the runtime-control refresh daemon...");
   stopDetachedProcess(runtimeControlDaemonPidPath);
+
+  log("lab:purge — stopping the session metadata sync daemon...");
+  stopDetachedProcess(sessionMetadataDaemonPidPath);
 
   log("lab:purge — removing containers, networks, and volumes for this project...");
   runDockerCompose(["down", "--volumes", "--remove-orphans"]);

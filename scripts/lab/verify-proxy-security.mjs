@@ -180,7 +180,7 @@ async function checkPositiveAndPolicy(findings) {
         headers: ingestionHeaders({ "Content-Type": contentType, "Sec-Fetch-Site": "same-origin" }),
         body: jsonPayload(1024, stream),
       });
-      expectStatus(findings, `${path} ${contentType}`, response.statusCode, 200);
+      expectStatus(findings, `${path} ${contentType}`, response.statusCode, 202);
     }
 
     expectStatus(
@@ -246,12 +246,12 @@ async function checkPositiveAndPolicy(findings) {
 
 async function checkBodyLimits(findings) {
   const rumUnder = await requestProxy(RUM_PATH, { body: jsonPayload(RUM_LIMIT - 1024, "rum") });
-  expectStatus(findings, "RUM under body limit", rumUnder.statusCode, 200);
+  expectStatus(findings, "RUM under body limit", rumUnder.statusCode, 202);
   const rumOver = await requestProxy(RUM_PATH, { body: jsonPayload(RUM_LIMIT + 1, "rum") });
   expectStatus(findings, "RUM over body limit", rumOver.statusCode, 413);
 
   const logsUnder = await requestProxy(LOGS_PATH, { body: jsonPayload(LOGS_LIMIT - 1024, "logs") });
-  expectStatus(findings, "logs under body limit", logsUnder.statusCode, 200);
+  expectStatus(findings, "logs under body limit", logsUnder.statusCode, 202);
   const logsOver = await requestProxy(LOGS_PATH, { body: jsonPayload(LOGS_LIMIT + 1, "logs") });
   expectStatus(findings, "logs over body limit", logsOver.statusCode, 413);
 
@@ -501,7 +501,7 @@ async function checkProtocolProbes(findings) {
   }
 
   const h2 = await http2Post(LOGS_PATH, jsonPayload(512, "logs"));
-  expectStatus(findings, "http/2 normal SDK-shaped flow", h2.statusCode, 200);
+  expectStatus(findings, "http/2 normal SDK-shaped flow", h2.statusCode, 202);
 }
 
 function http2Post(path, body) {
@@ -578,7 +578,7 @@ async function checkOutageIsolation(findings) {
   runDockerCompose(["stop", "openobserve"]);
   try {
     const ingest = await requestProxy(LOGS_PATH, { body: jsonPayload(512, "logs") });
-    expectStatus(findings, "OpenObserve stopped ingestion", ingest.statusCode, [502, 504]);
+    expectStatus(findings, "OpenObserve stopped durable admission", ingest.statusCode, 202);
     const root = await requestProxy("/", {
       method: "GET",
       headers: { Host: PROXY_HOST },
@@ -613,7 +613,7 @@ async function checkSlowUpstreamIsolation(findings) {
       statusCode: 0,
     }));
     const elapsed = Date.now() - started;
-    expectStatus(findings, "OpenObserve paused ingestion", ingest.statusCode, [502, 504]);
+    expectStatus(findings, "OpenObserve paused durable admission", ingest.statusCode, 202);
     if (elapsed > 13_000)
       findings.push(`OpenObserve paused timeout exceeded budget: ${elapsed}ms.`);
     const root = await requestProxy("/", {

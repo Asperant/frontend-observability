@@ -4,7 +4,14 @@ import { request as httpsRequest } from "node:https";
 import { chromium, firefox } from "@playwright/test";
 
 import { DEMO_IDENTITY } from "../../apps/demo-frontend/src/identity.js";
-import { assertExactLabToolchain, caCertPath, emailSecretPath, log, logError } from "./common.mjs";
+import {
+  assertExactLabToolchain,
+  caCertPath,
+  emailSecretPath,
+  log,
+  logError,
+  runDockerCompose,
+} from "./common.mjs";
 import { alertsAudit } from "./alerts-audit.mjs";
 import { alertsBackup } from "./alerts-backup.mjs";
 import { alertsExport } from "./alerts-export.mjs";
@@ -146,6 +153,7 @@ export async function verifyStage17Alerts() {
   await alertsExport();
   await alertsBackup();
   log("  local notification sink...");
+  runDockerCompose(["up", "-d", "--force-recreate", "alert-sink"]);
   const notification = await alertsTestNotification();
   if (!notification.firingOk || !notification.resolvedOk || !notification.failureVisible) {
     throw new Error("local notification lifecycle failed");

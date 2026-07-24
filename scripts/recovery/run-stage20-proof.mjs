@@ -404,6 +404,30 @@ async function bootstrapCanonicalStreams(baseUrl, auth) {
       ]),
     });
   }
+  await apiFetch(baseUrl, auth, `/api/${ORG_ID}/_chicek_delivery_ops/_json`, {
+    method: "POST",
+    body: JSON.stringify([
+      {
+        _timestamp: Date.now() * 1000,
+        service: "delivery-worker",
+        stream: "_chicek_delivery_ops",
+        reason: "stage20-lazy-stream-create",
+        held: false,
+        draining: false,
+        counters: {
+          delivered: 0,
+          retried: 0,
+          deadLettered: 0,
+          duplicateObserved: 0,
+          lastPublisherConfirmFailure: 0,
+        },
+        queues: {
+          rum: { queueDepth: 0, consumerCount: 0, deadLetterDepth: 0 },
+          logs: { queueDepth: 0, consumerCount: 0, deadLetterDepth: 0 },
+        },
+      },
+    ]),
+  });
 }
 
 async function createFixtureEnvironment(baseUrl, auth, marker) {

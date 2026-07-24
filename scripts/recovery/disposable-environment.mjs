@@ -11,7 +11,12 @@ import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 
-import { emailSecretPath, passwordSecretPath, repoRoot, runtimeDir } from "../lab/common.mjs";
+import {
+  emailSecretPath,
+  openObserveRumIngestTokenSecretPath,
+  passwordSecretPath,
+  repoRoot,
+} from "../lab/common.mjs";
 
 export const SOURCE = {
   tag: "v0.91.0",
@@ -103,7 +108,7 @@ export function writeCompose(runDir, name, version, port) {
       - openobserve-data:/data
       - ${JSON.stringify(`${emailSecretPath}:/run/secrets/openobserve_root_email:ro`)}
       - ${JSON.stringify(`${passwordSecretPath}:/run/secrets/openobserve_root_password:ro`)}
-      - ${JSON.stringify(`${join(runtimeDir, "secrets/openobserve-rum-client-token")}:/run/secrets/openobserve_rum_client_token:ro`)}
+      - ${JSON.stringify(`${openObserveRumIngestTokenSecretPath}:/run/secrets/openobserve_rum_ingest_token:ro`)}
     ports:
       - "127.0.0.1:${port}:5080"
     environment:

@@ -411,7 +411,7 @@ async function checkOperatorCommand(findings) {
   const rumAllowed = await requestProxy(RUM_PATH, {
     body: JSON.stringify({ date: Date.now(), type: "view" }),
   });
-  if (rumAllowed.statusCode !== 200) {
+  if (rumAllowed.statusCode !== 202) {
     findings.push(
       `operator-command: proxy still rejected ingestion after off() (got ${rumAllowed.statusCode}).`,
     );

@@ -1,11 +1,34 @@
 {
   "schemaVersion": 1,
   "starterId": "session-investigation",
-  "starterVersion": 9,
+  "starterVersion": 10,
   "folderName": "CHICEK Starters",
   "title": "Session Investigation",
-  "description": "Bounded, exact-session drill-down: summary, views/actions, errors, resources, and browser logs for exactly one session_id, entered in the session_id variable below. No session/view listing or overview group-by uses these high-cardinality IDs \u2014 they are exact-match drill-down input only. Panels use OpenObserve's own $session_id dashboard-variable substitution, which this stage's backend-only capability audit could not independently verify (docs/openobserve-v0.91-dashboard-capabilities.md capability #13/#13a, since that substitution happens inside OpenObserve's own web UI) \u2014 verify visually after install, or edit a panel's query to a literal session_id if it does not behave as expected on your OpenObserve build. No Session Replay panel or replay link is included (Session Replay is Security Blocked \u2014 see docs/session-replay-security-decision.md). Installed by pnpm lab:dashboards:install-starters as an initial template \u2014 edit or delete freely from the OpenObserve UI; this stage never overwrites your changes.",
+  "description": "Browse recent sessions, then drill into exactly one by session_id: summary, views/actions, errors, resources, and browser logs. The Recent sessions tab is a bounded (LIMIT 50, most-recent-first) list \u2014 like Error Analysis's own recent-errors-detail panel, session_id/view_url appear only as list columns, never grouped/aggregated on. Copy a session_id from there into the Session records tab's session_id variable to drill in. Panels use OpenObserve's own $session_id dashboard-variable substitution, which this stage's backend-only capability audit could not independently verify (docs/openobserve-v0.91-dashboard-capabilities.md capability #13/#13a, since that substitution happens inside OpenObserve's own web UI) \u2014 verify visually after install, or edit a panel's query to a literal session_id if it does not behave as expected on your OpenObserve build. No Session Replay panel or replay link is included, and no panel here ever queries the _sessionreplay stream \u2014 Session Replay is Security Blocked (see docs/session-replay-security-decision.md) and this dashboard exists precisely because OpenObserve's own native RUM -> Sessions page can't list a session without _sessionreplay data. Installed by pnpm lab:dashboards:install-starters as an initial template \u2014 edit or delete freely from the OpenObserve UI; this stage never overwrites your changes.",
   "tabs": [
+    {
+      "tabId": "recent",
+      "name": "Recent sessions",
+      "panels": [
+        {
+          "id": "recent-sessions-list",
+          "type": "table",
+          "title": "Recent sessions (detail)",
+          "description": "Bounded to the most recent 50 page views. session_id/view_url are high-cardinality fields shown only in this bounded, ordered list \u2014 never grouped on. A session with multiple page views appears as multiple rows. Copy a session_id into the Session records tab's session_id variable to drill in.",
+          "config": {
+            "show_legends": true
+          },
+          "queryRef": "recent-sessions-list",
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "w": 48,
+            "h": 12,
+            "i": 1
+          }
+        }
+      ]
+    },
     {
       "tabId": "default",
       "name": "Session records",

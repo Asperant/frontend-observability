@@ -384,7 +384,7 @@ export async function measureIngestionVisibility() {
   };
 }
 
-// --- 5. 26-query catalog performance smoke ---------------------------------
+// --- 5. 30-query catalog performance smoke ---------------------------------
 
 export async function measureQueryCatalogPerformance() {
   const auth = readAdminAuthHeader();
@@ -780,15 +780,15 @@ export async function verifyStage19Resilience() {
     log(`  PASS (visibility=${ingestion.visibilityMs}ms)`);
   }
 
-  log("▶ stage19: 26-query catalog performance smoke");
+  log("▶ stage19: 30-query catalog performance smoke");
   const queryPerf = await measureQueryCatalogPerformance();
-  if (queryPerf.results.length !== 26) {
+  if (queryPerf.results.length !== 30) {
     overallPass = false;
-    findings.push(`expected 26 query manifests, found ${queryPerf.results.length}`);
+    findings.push(`expected 30 query manifests, found ${queryPerf.results.length}`);
   }
   if (!queryPerf.allSucceeded) {
     overallPass = false;
-    findings.push("at least one query in the 26-query catalog did not return HTTP 200");
+    findings.push("at least one query in the 30-query catalog did not return HTTP 200");
   }
   if (!queryPerf.allWithinOwnBudget) {
     overallPass = false;
@@ -796,7 +796,7 @@ export async function verifyStage19Resilience() {
   }
   measurements["query.catalog.p95"] = queryPerf.p95;
   log(
-    `  ${queryPerf.allSucceeded && queryPerf.allWithinOwnBudget ? "PASS" : "FAIL"} (26/26 ran, p95=${queryPerf.p95}ms)`,
+    `  ${queryPerf.allSucceeded && queryPerf.allWithinOwnBudget ? "PASS" : "FAIL"} (30/30 ran, p95=${queryPerf.p95}ms)`,
   );
 
   log("▶ stage19: alert notification readiness (must be HEALTHY, not just container-healthy)");

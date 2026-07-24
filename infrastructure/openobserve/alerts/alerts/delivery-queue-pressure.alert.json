@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "delivery-queue-pressure",
+  "name": "Durable delivery queue pressure",
+  "description": "The durable frontend telemetry buffer is accumulating messages or dead letters.",
+  "metricId": "delivery_queue_pressure",
+  "queryId": "delivery-queue-depth",
+  "stream": "_chicek_delivery_ops",
+  "severity": "high",
+  "enabledByDefault": false,
+  "requiredScope": {
+    "service": "NOT_APPLICABLE",
+    "environment": "NOT_APPLICABLE",
+    "version": "NOT_APPLICABLE"
+  },
+  "evaluation": { "intervalMinutes": 1, "lookbackMinutes": 10 },
+  "threshold": {
+    "direction": "above",
+    "starterValue": 1000,
+    "productionValue": "REQUIRED_COMPANY_DECISION"
+  },
+  "sample": { "field": "delivery_ops_events", "minimum": 1 },
+  "breach": { "requiredConsecutiveBreaches": 2 },
+  "cooldown": { "minutes": 10 },
+  "deduplicationKey": "frontend-delivery:queue-pressure",
+  "recoveryCondition": {
+    "direction": "below_or_equal",
+    "value": 100,
+    "requiredConsecutiveHealthy": 2
+  },
+  "noDataPolicy": "NOT_HEALTHY",
+  "queryErrorPolicy": "NOT_HEALTHY",
+  "destinationRef": "local-alert-sink",
+  "dashboardRef": "delivery-operations",
+  "runbookRef": "docs/runbooks/alerts/delivery-queue-pressure.md",
+  "owner": "REQUIRED_COMPANY_OWNER",
+  "productionDecision": {
+    "enabled": "REQUIRED_COMPANY_DECISION",
+    "threshold": "REQUIRED_COMPANY_DECISION",
+    "destination": "REQUIRED_COMPANY_DECISION"
+  },
+  "openObserve": { "nativeComparison": "single_query_threshold", "createsIncident": false }
+}

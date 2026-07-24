@@ -10,7 +10,8 @@ import { expect, test } from "@playwright/test";
 
 import { alertSinkControl, readAdminAuthHeader } from "../../scripts/lab/alerts/admin-client.mjs";
 import { runRealAlertEvaluationProbe } from "../../scripts/lab/alerts/real-evaluation-probe.mjs";
-import { listStreams } from "../../scripts/lab/streams/admin-client.mjs";
+import { syncSessionMetadata } from "../../scripts/lab/sync-session-metadata.mjs";
+import { getStreamSchema } from "../../scripts/lab/streams/admin-client.mjs";
 import { loginToOpenObserveUi, OPENOBSERVE_UI_BASE_URL } from "./helpers/openobserve-native-ui.js";
 
 test.describe("native OpenObserve v0.91.2 UI (requires `pnpm lab:up` already running)", () => {
@@ -21,11 +22,32 @@ test.describe("native OpenObserve v0.91.2 UI (requires `pnpm lab:up` already run
     await expect(page.getByText("Alerts", { exact: true }).first()).toBeVisible();
   });
 
-  test("RUM Sessions list opens; the known session_has_replay schema toast is the only error (Session Replay stays Security Blocked)", async ({
+  test("RUM Sessions list shows a real session and its replay view stays empty (Session Replay stays Security Blocked)", async ({
     page,
   }) => {
+    test.setTimeout(90_000);
     const pageErrors = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
+
+    // This test must never depend on incidental traffic left over from
+    // other suites having happened to run first (that made it flaky in
+    // isolation) — it drives one real session itself. Same real,
+    // independently-measured ~35s native SDK batch-flush behavior
+    // established in scripts/lab/verify-stage15-streams.mjs and reused by
+    // scripts/lab/verify-stage16-dashboards.mjs's own canary.
+    await page.goto("/");
+    await page.waitForTimeout(300);
+    await page.getByTestId("scenario-initialize-runtime-config").click();
+    await page.waitForTimeout(250);
+    await page.getByTestId("scenario-consent-grant").click();
+    await page.waitForTimeout(250);
+    await page.getByTestId("scenario-safe-action").click();
+    await page.waitForTimeout(36_000);
+
+    // Sync _sessionreplay directly rather than waiting on the background
+    // daemon's own 60s interval — deterministic, not wall-clock-dependent.
+    const syncResult = await syncSessionMetadata();
+    expect(syncResult.ok).toBe(true);
 
     await loginToOpenObserveUi(page);
     await page.goto(`${OPENOBSERVE_UI_BASE_URL}/web/rum/sessions?org_identifier=default`, {
@@ -33,29 +55,102 @@ test.describe("native OpenObserve v0.91.2 UI (requires `pnpm lab:up` already run
     });
     await page.waitForTimeout(1500);
 
-    // The page itself must still render (not a crash) — this is a known,
-    // accepted, by-design consequence of Session Replay being disabled
-    // (docs/session-replay-security-decision.md): the native UI's Sessions
-    // feature queries a `session_has_replay` field that intentionally does
-    // not exist on `_rumdata`. A future OpenObserve version could remove
-    // this dependency (in which case this toast — and this assertion —
-    // should be revisited, not silently loosened) or could turn it into a
-    // harder failure (which this test must catch).
-    await expect(page.getByText("Discover Session Replay", { exact: false })).toBeVisible();
-
-    // Two known, harmless page errors on this exact route: the
-    // session_has_replay schema toast this test exists to pin, and a
-    // generic "reading getAttribute of null" Vue quirk observed
-    // consistently across this OpenObserve build's pages (unrelated to
-    // Session Replay, reproducible on plain navigation with no console
-    // interaction) — phrased differently per engine (Chromium: "Cannot read
-    // properties of null (reading 'getAttribute')"; Firefox: "can't access
-    // property \"getAttribute\", r is null"). Anything else is a real
-    // regression.
+    // Regression guard for infrastructure/openobserve/sanitization/rum.vrl's
+    // session_has_replay backfill: this test used to pin the *opposite*
+    // behavior (the native Sessions feature 400ing on every load because
+    // _rumdata's schema had never seen a session_has_replay field — nothing
+    // in this project's own SDK pipeline could ever set it: the vendor
+    // SDK's beforeSend hook silently discards any session.* mutation via
+    // its own limitModification field allowlist, confirmed by reading
+    // @openobserve/browser-rum-core's assembly.js). The already-audited
+    // _rumdata ingestion pipeline (Stage 18) now force-sets the field
+    // server-side on every real event, so this exact error must never
+    // reappear — in a pageerror OR anywhere in the rendered page
+    // (OpenObserve shows some query errors as an internal toast, not an
+    // uncaught exception).
+    const bodyText = await page.locator("body").innerText();
+    expect(bodyText).not.toContain("session_has_replay");
     for (const message of pageErrors) {
-      expect(message).toMatch(
-        /session_has_replay|_sessionreplay|getAttribute.*(?:is null|of null)|null.*getAttribute/,
-      );
+      expect(message).not.toContain("session_has_replay");
+    }
+
+    // OpenObserve's own session list query also depends on a *second*
+    // stream, _sessionreplay, to fill in each listed session's browser/OS/
+    // duration columns (see docs/openobserve-v0.91-dashboard-capabilities.md
+    // finding #21) — scripts/lab/sync-session-metadata.mjs (just called
+    // directly above, and also run continuously by a background daemon
+    // lab:up starts) keeps that stream populated with derived session
+    // summaries computed from _rumdata's own already-sanitized fields, so
+    // the onboarding empty-state must not appear and the list must show
+    // the real session this test just created.
+    await expect(page.getByText("Discover Session Replay", { exact: false })).not.toBeVisible();
+    const firstRow = page.locator("table tbody tr").first();
+    await expect(firstRow).toBeVisible();
+
+    // Only a generic "reading getAttribute of null" Vue quirk observed
+    // consistently across this OpenObserve build's pages is tolerated here
+    // (phrased differently per engine: Chromium "Cannot read properties of
+    // null (reading 'getAttribute')"; Firefox "can't access property
+    // \"getAttribute\", r is null"). Anything else is a real regression.
+    for (const message of pageErrors) {
+      expect(message).toMatch(/getAttribute.*(?:is null|of null)|null.*getAttribute/);
+    }
+
+    // The load-bearing assertion, and the whole reason this stream is
+    // populated at all: this project never ingests real replay
+    // segment/DOM-mutation content anywhere (the /replay route stays
+    // unallowlisted at the reverse proxy — tests/contract/
+    // session-replay-disabled.test.js — and the SDK never records), so
+    // clicking into this real session's replay view must always show a
+    // real, honest zero — never a fabricated or stale-looking duration —
+    // and the replay canvas area must render nothing: no captured DOM
+    // snapshot, no image, no visible page content. A real replay would
+    // paint an iframe/canvas with the recorded page; here that region has
+    // no content at all to paint.
+    await firstRow.locator("button, [role='button'], svg").first().click();
+    await page.waitForTimeout(2000);
+    await expect(page.getByText("00.00", { exact: false }).first()).toBeVisible();
+    const canvasCount = await page.locator("canvas").count();
+    const iframeCount = await page.locator("iframe").count();
+    expect(canvasCount + iframeCount).toBe(0);
+  });
+
+  test("Session Investigation dashboard's Recent sessions tab lists real sessions with zero Session Replay dependency", async ({
+    page,
+  }) => {
+    const pageErrors = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+
+    await loginToOpenObserveUi(page);
+    await page.goto(`${OPENOBSERVE_UI_BASE_URL}/web/dashboards?org_identifier=default`, {
+      waitUntil: "networkidle",
+    });
+    // Mirrors the already-working folder-navigation pattern from the
+    // Frontend Operations dashboard test below — exact:true here, unlike
+    // the other getByText calls in this file, because a loose match against
+    // "CHICEK Starters" is ambiguous (folder tab vs. other on-page text) and
+    // was observed live to pick the wrong element on Firefox.
+    await page.getByText("CHICEK Starters", { exact: true }).click();
+    await page.waitForTimeout(500);
+    await page.getByText("Session Investigation", { exact: false }).first().click();
+    await page.waitForTimeout(1500);
+    await page.getByText("Recent sessions", { exact: false }).first().click();
+    await page.waitForTimeout(2500);
+
+    // The panel renders (column headers appear) regardless of whether any
+    // real session happened to land inside the current time window — this
+    // test doesn't drive real RUM traffic itself (unlike
+    // scripts/lab/verify-stage16-dashboards.mjs's heavier 35s-flush canary),
+    // it only proves the panel isn't broken.
+    await expect(page.getByText("session_id", { exact: false }).first()).toBeVisible();
+
+    // This panel (recent-sessions-list) is sourced only from _rumdata — it
+    // must never reference _sessionreplay, the stream that makes OpenObserve's
+    // own native Sessions page unusable (previous test).
+    const bodyText = await page.locator("body").innerText();
+    expect(bodyText).not.toContain("_sessionreplay");
+    for (const message of pageErrors) {
+      expect(message).toMatch(/getAttribute.*(?:is null|of null)|null.*getAttribute/);
     }
   });
 
@@ -126,11 +221,38 @@ test.describe("native OpenObserve v0.91.2 UI (requires `pnpm lab:up` already run
     expect(canvasCount).toBeGreaterThan(0);
   });
 
-  test("Session Replay stays closed: no _sessionreplay stream exists", async () => {
+  test("_sessionreplay holds only derived session-summary metadata, never real replay segment content", async () => {
+    // _sessionreplay legitimately exists now (scripts/lab/sync-session-metadata.mjs,
+    // a background daemon started by lab:up) — this test used to assert the
+    // stream must not exist at all; that stopped being the right signal once
+    // this project started deliberately populating it. The security property
+    // that actually matters — no real recording ever gets in — is checked
+    // here as a strict field allowlist instead: a real replay segment would
+    // carry DOM-mutation/canvas/HTML-shaped fields, and any such field
+    // appearing here would mean something bypassed this project's own sync
+    // script (the only writer of this stream) and wrote real recording data.
+    // The complementary, load-bearing check — that watching a session never
+    // shows real content — is the previous test's job, not this one's.
     const auth = readAdminAuthHeader();
-    const streams = await listStreams(auth);
-    const names = streams.map((stream) => stream.name ?? stream.stream_name);
-    expect(names).not.toContain("_sessionreplay");
+    const schema = await getStreamSchema(auth, "_sessionreplay", "logs");
+    expect(schema).not.toBeNull();
+    const ALLOWED_FIELDS = new Set([
+      "_timestamp",
+      "_o2_id",
+      "type",
+      "session_id",
+      "start",
+      "end",
+      "user_agent_user_agent_family",
+      "user_agent_os_family",
+      "ip",
+      "source",
+    ]);
+    const fieldNames = (schema?.schema ?? []).map((field) => field.name);
+    expect(fieldNames.length).toBeGreaterThan(0);
+    for (const name of fieldNames) {
+      expect(ALLOWED_FIELDS.has(name), `unexpected field '${name}' in _sessionreplay`).toBe(true);
+    }
   });
 
   // Heaviest test in this file by design: proves the real scheduler-driven

@@ -6,7 +6,13 @@ import {
   dockerDir,
   dockerEnv,
   emailSecretPath,
+  openObserveDeliveryOpsIngestTokenSecretPath,
+  openObserveRumIngestTokenSecretPath,
   passwordSecretPath,
+  rabbitmqAdminPasswordSecretPath,
+  rabbitmqIngestPasswordSecretPath,
+  rabbitmqMonitoringPasswordSecretPath,
+  rabbitmqWorkerPasswordSecretPath,
   rumClientTokenSecretPath,
   assertExactLabToolchain,
   log,
@@ -15,7 +21,17 @@ import {
 
 function secretValues() {
   const values = [];
-  for (const path of [emailSecretPath, passwordSecretPath, rumClientTokenSecretPath]) {
+  for (const path of [
+    emailSecretPath,
+    passwordSecretPath,
+    rumClientTokenSecretPath,
+    openObserveRumIngestTokenSecretPath,
+    openObserveDeliveryOpsIngestTokenSecretPath,
+    rabbitmqAdminPasswordSecretPath,
+    rabbitmqIngestPasswordSecretPath,
+    rabbitmqWorkerPasswordSecretPath,
+    rabbitmqMonitoringPasswordSecretPath,
+  ]) {
     if (existsSync(path)) values.push(readFileSync(path, "utf8"));
   }
   return values;

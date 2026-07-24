@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "delivery-worker-state",
+  "version": 1,
+  "metricId": null,
+  "title": "Delivery worker state",
+  "queryClass": "LIST",
+  "stream": "_chicek_delivery_ops",
+  "sqlTemplate": "select _timestamp, held, draining, lastsuccessfuldeliveryat, reason from _chicek_delivery_ops where service = 'delivery-worker' order by _timestamp desc limit 20",
+  "requiredVariables": ["service", "environment"],
+  "optionalVariables": [],
+  "drilldownVariables": [],
+  "timeRangeCeilingHours": 168,
+  "rowLimit": 20,
+  "timeoutBudgetMs": 10000,
+  "expectedColumns": [
+    { "name": "_timestamp", "type": "Int64" },
+    { "name": "held", "type": "Boolean" },
+    { "name": "draining", "type": "Boolean" },
+    { "name": "lastsuccessfuldeliveryat", "type": "Utf8" },
+    { "name": "reason", "type": "Utf8" }
+  ],
+  "emptyDataSemantics": "No rows means the delivery-worker has not emitted aggregate operational data in the selected range.",
+  "cardinalityClass": "BOUNDED_LIST",
+  "hasDivisionGuard": false
+}

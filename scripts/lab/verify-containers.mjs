@@ -22,6 +22,9 @@ const NON_ROOT_USERS = {
   "reverse-proxy": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
   "demo-frontend": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
   "mock-api": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
+  "durable-ingest": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
+  rabbitmq: (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
+  "delivery-worker": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
   "alert-sink": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
   openobserve: (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
 };

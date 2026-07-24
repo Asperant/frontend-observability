@@ -23,5 +23,9 @@ Bu roadmap, test sonuçları ve yeni bulgularla ortak karar sonucu değiştirile
 18. Güvenlik doğrulaması
 19. Performans ve dayanıklılık doğrulaması — **Accepted**: `pnpm test:stage19:resilience` referans lab'da geçiyor (browser/proxy/ingestion/query/alert bütçeleri, 5 servis restart-recovery, network partition, kill switch under load, alert-sink independent restart). 60 dakikalık standart soak (`pnpm lab:stage19:soak --duration=60m`) gerçek koşuldu ve geçti — bkz. `docs/stage19-performance-resilience-acceptance.md`, `docs/stage19-soak-report.md`. Production capacity guarantee, zero telemetry loss veya guaranteed notification delivery iddiası yok.
 20. Upgrade, rollback ve veri koruma — gerçek logical control-plane export/restore (SHA-256 semantic hash equality, sayaç değil), live-clone cold data backup (canonical ana lab servisi durdurulmaz) ve gerçek scheduler tabanlı alert evaluation kanıtı (`/alerts/destinations/test` veya manuel `PATCH .../trigger` kullanılmaz — ikisi de koşulu kontrol etmeden bildirim gönderiyor) — bkz. `docs/runbooks/backup-restore.md`, `docs/runbooks/upgrade-openobserve.md`, `docs/runbooks/rollback-openobserve.md`.
+    20.5. Durable frontend telemetry delivery — browser ingestion now flows only through
+    `reverse-proxy -> durable-ingest -> RabbitMQ -> delivery-worker -> OpenObserve`; no direct/fallback
+    browser-to-OpenObserve path, no browser persistent queue, at-least-once delivery, server-side
+    durable acceptance only — bkz. `docs/stage20.5-durable-frontend-telemetry.md`.
 21. Şirket entegrasyon paketi
 22. Nihai ürün kabulü

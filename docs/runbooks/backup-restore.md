@@ -56,6 +56,26 @@ volume archives stay under `.runtime/` and are not committed.
 9. Verify `_sessionreplay` is absent.
 10. Remove the disposable containers and volumes.
 
+## Stage 20.5 Durable Buffer Coverage
+
+Also back up and restore:
+
+- RabbitMQ definitions, bindings and policies (`infrastructure/docker/rabbitmq/definitions.json`)
+- the persistent `rabbitmq-data` volume
+- durable-ingest and delivery-worker configuration in `infrastructure/docker/compose.yaml`
+- `.runtime/secrets` entries for RabbitMQ publisher/worker/monitoring/admin users and the
+  server-side OpenObserve ingest token
+
+Recovery checks:
+
+1. Stop OpenObserve while frontend traffic continues.
+2. Confirm accepted batches remain in RabbitMQ after RabbitMQ, durable-ingest and worker restarts.
+3. Restore OpenObserve and run `pnpm lab:delivery:drain`.
+4. Confirm `unexpectedLoss = 0` using the Stage 20.5 accounting summary.
+
+RabbitMQ is a temporary durable buffer, not an archive; production backup retention, HA, storage
+sizing and secret-manager integration remain Stage 21/company responsibilities.
+
 ## Why not the destination-test endpoint
 
 An earlier version of this runbook verified alert delivery with the admin

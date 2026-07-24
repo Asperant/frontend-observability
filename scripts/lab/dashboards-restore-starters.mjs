@@ -44,7 +44,14 @@ async function findOrCreateFolder(auth, name) {
 
 function variablesFor(starterId) {
   if (starterId === "session-investigation") {
-    return { session_id: new DashboardVariableToken("session_id") };
+    // session_id stays a $-token for the exact-match drilldown panel; the
+    // Recent sessions tab's list panel is a normal service/environment
+    // query like every other starter's, so both must be supplied together.
+    return {
+      session_id: new DashboardVariableToken("session_id"),
+      service: DEMO_IDENTITY.service,
+      environment: DEMO_IDENTITY.environment,
+    };
   }
   return { service: DEMO_IDENTITY.service, environment: DEMO_IDENTITY.environment };
 }

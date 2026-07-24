@@ -1,0 +1,279 @@
+{
+  "rabbit_version": "4.1.4",
+  "rabbitmq_version": "4.1.4",
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [],
+  "topic_permissions": [],
+  "parameters": [],
+  "global_parameters": [],
+  "policies": [
+    {
+      "vhost": "/",
+      "name": "chicek-frontend-telemetry-bounds",
+      "pattern": "^chicek\\.frontend\\.",
+      "apply-to": "queues",
+      "definition": {
+        "max-length": 25000,
+        "max-length-bytes": 134217728,
+        "overflow": "reject-publish",
+        "delivery-limit": 16
+      },
+      "priority": 10
+    },
+    {
+      "vhost": "/",
+      "name": "chicek-frontend-telemetry-dlq-bounds",
+      "pattern": "^chicek\\.frontend\\..*\\.dlq$",
+      "apply-to": "queues",
+      "definition": {
+        "max-length": 5000,
+        "max-length-bytes": 33554432,
+        "overflow": "reject-publish"
+      },
+      "priority": 20
+    }
+  ],
+  "queues": [
+    {
+      "name": "chicek.frontend.rum.q",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum",
+        "x-delivery-limit": 16,
+        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-routing-key": "frontend.rum.dlq",
+        "x-overflow": "reject-publish",
+        "x-max-length": 25000,
+        "x-max-length-bytes": 134217728
+      }
+    },
+    {
+      "name": "chicek.frontend.log.q",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum",
+        "x-delivery-limit": 16,
+        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-routing-key": "frontend.log.dlq",
+        "x-overflow": "reject-publish",
+        "x-max-length": 25000,
+        "x-max-length-bytes": 134217728
+      }
+    },
+    {
+      "name": "chicek.frontend.rum.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum",
+        "x-overflow": "reject-publish",
+        "x-max-length": 5000,
+        "x-max-length-bytes": 33554432
+      }
+    },
+    {
+      "name": "chicek.frontend.log.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum",
+        "x-overflow": "reject-publish",
+        "x-max-length": 5000,
+        "x-max-length-bytes": 33554432
+      }
+    },
+    {
+      "name": "chicek.frontend.rum.retry.1.q",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum",
+        "x-message-ttl": 30000,
+        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-routing-key": "frontend.rum",
+        "x-overflow": "reject-publish",
+        "x-max-length": 25000,
+        "x-max-length-bytes": 134217728
+      }
+    },
+    {
+      "name": "chicek.frontend.rum.retry.2.q",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum",
+        "x-message-ttl": 120000,
+        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-routing-key": "frontend.rum",
+        "x-overflow": "reject-publish",
+        "x-max-length": 25000,
+        "x-max-length-bytes": 134217728
+      }
+    },
+    {
+      "name": "chicek.frontend.rum.retry.3.q",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum",
+        "x-message-ttl": 300000,
+        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-routing-key": "frontend.rum",
+        "x-overflow": "reject-publish",
+        "x-max-length": 25000,
+        "x-max-length-bytes": 134217728
+      }
+    },
+    {
+      "name": "chicek.frontend.log.retry.1.q",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum",
+        "x-message-ttl": 30000,
+        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-routing-key": "frontend.log",
+        "x-overflow": "reject-publish",
+        "x-max-length": 25000,
+        "x-max-length-bytes": 134217728
+      }
+    },
+    {
+      "name": "chicek.frontend.log.retry.2.q",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum",
+        "x-message-ttl": 120000,
+        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-routing-key": "frontend.log",
+        "x-overflow": "reject-publish",
+        "x-max-length": 25000,
+        "x-max-length-bytes": 134217728
+      }
+    },
+    {
+      "name": "chicek.frontend.log.retry.3.q",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum",
+        "x-message-ttl": 300000,
+        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-routing-key": "frontend.log",
+        "x-overflow": "reject-publish",
+        "x-max-length": 25000,
+        "x-max-length-bytes": 134217728
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "chicek.frontend.telemetry",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "chicek.frontend.telemetry",
+      "vhost": "/",
+      "destination": "chicek.frontend.rum.q",
+      "destination_type": "queue",
+      "routing_key": "frontend.rum",
+      "arguments": {}
+    },
+    {
+      "source": "chicek.frontend.telemetry",
+      "vhost": "/",
+      "destination": "chicek.frontend.log.q",
+      "destination_type": "queue",
+      "routing_key": "frontend.log",
+      "arguments": {}
+    },
+    {
+      "source": "chicek.frontend.telemetry",
+      "vhost": "/",
+      "destination": "chicek.frontend.rum.dlq",
+      "destination_type": "queue",
+      "routing_key": "frontend.rum.dlq",
+      "arguments": {}
+    },
+    {
+      "source": "chicek.frontend.telemetry",
+      "vhost": "/",
+      "destination": "chicek.frontend.log.dlq",
+      "destination_type": "queue",
+      "routing_key": "frontend.log.dlq",
+      "arguments": {}
+    },
+    {
+      "source": "chicek.frontend.telemetry",
+      "vhost": "/",
+      "destination": "chicek.frontend.rum.retry.1.q",
+      "destination_type": "queue",
+      "routing_key": "frontend.rum.retry.1",
+      "arguments": {}
+    },
+    {
+      "source": "chicek.frontend.telemetry",
+      "vhost": "/",
+      "destination": "chicek.frontend.rum.retry.2.q",
+      "destination_type": "queue",
+      "routing_key": "frontend.rum.retry.2",
+      "arguments": {}
+    },
+    {
+      "source": "chicek.frontend.telemetry",
+      "vhost": "/",
+      "destination": "chicek.frontend.rum.retry.3.q",
+      "destination_type": "queue",
+      "routing_key": "frontend.rum.retry.3",
+      "arguments": {}
+    },
+    {
+      "source": "chicek.frontend.telemetry",
+      "vhost": "/",
+      "destination": "chicek.frontend.log.retry.1.q",
+      "destination_type": "queue",
+      "routing_key": "frontend.log.retry.1",
+      "arguments": {}
+    },
+    {
+      "source": "chicek.frontend.telemetry",
+      "vhost": "/",
+      "destination": "chicek.frontend.log.retry.2.q",
+      "destination_type": "queue",
+      "routing_key": "frontend.log.retry.2",
+      "arguments": {}
+    },
+    {
+      "source": "chicek.frontend.telemetry",
+      "vhost": "/",
+      "destination": "chicek.frontend.log.retry.3.q",
+      "destination_type": "queue",
+      "routing_key": "frontend.log.retry.3",
+      "arguments": {}
+    }
+  ]
+}

@@ -3,8 +3,8 @@ import { existsSync, readFileSync } from "node:fs";
 import {
   atomicWriteFile,
   emailSecretPath,
+  openObserveRumIngestTokenSecretPath,
   passwordSecretPath,
-  rumClientTokenSecretPath,
 } from "./common.mjs";
 
 // openobserve's own management API, reached over its loopback-only
@@ -54,12 +54,12 @@ export async function fetchRealRumToken() {
  * 0600 permissions, only if it differs from what is already stored.
  */
 export function persistRumToken(token) {
-  const existing = existsSync(rumClientTokenSecretPath)
-    ? readFileSync(rumClientTokenSecretPath, "utf8").trim()
+  const existing = existsSync(openObserveRumIngestTokenSecretPath)
+    ? readFileSync(openObserveRumIngestTokenSecretPath, "utf8").trim()
     : null;
   if (existing === token) {
     return { changed: false };
   }
-  atomicWriteFile(rumClientTokenSecretPath, token, { mode: 0o600 });
+  atomicWriteFile(openObserveRumIngestTokenSecretPath, token, { mode: 0o600 });
   return { changed: true };
 }

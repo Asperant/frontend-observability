@@ -10,7 +10,17 @@ import {
   emailSecretPath,
   fileMode,
   leafKeyPath,
+  openObserveDeliveryOpsIngestTokenSecretPath,
+  openObserveRumIngestTokenSecretPath,
   passwordSecretPath,
+  rabbitmqAdminPasswordSecretPath,
+  rabbitmqAdminUsernameSecretPath,
+  rabbitmqIngestPasswordSecretPath,
+  rabbitmqIngestUsernameSecretPath,
+  rabbitmqMonitoringPasswordSecretPath,
+  rabbitmqMonitoringUsernameSecretPath,
+  rabbitmqWorkerPasswordSecretPath,
+  rabbitmqWorkerUsernameSecretPath,
   repoRoot,
   rumClientTokenSecretPath,
   runtimeConfigPath,
@@ -31,6 +41,11 @@ function readSecrets() {
     email: readFileSync(emailSecretPath, "utf8"),
     password: readFileSync(passwordSecretPath, "utf8"),
     rumClientToken: readFileSync(rumClientTokenSecretPath, "utf8").trim(),
+    openObserveRumIngestToken: readFileSync(openObserveRumIngestTokenSecretPath, "utf8").trim(),
+    openObserveDeliveryOpsIngestToken: readFileSync(
+      openObserveDeliveryOpsIngestTokenSecretPath,
+      "utf8",
+    ).trim(),
   };
 }
 
@@ -52,7 +67,21 @@ export function checkSecretSecurity() {
     findings.push(".runtime/ is not covered by .gitignore.");
   }
 
-  for (const path of [emailSecretPath, passwordSecretPath, rumClientTokenSecretPath]) {
+  for (const path of [
+    emailSecretPath,
+    passwordSecretPath,
+    rumClientTokenSecretPath,
+    openObserveRumIngestTokenSecretPath,
+    openObserveDeliveryOpsIngestTokenSecretPath,
+    rabbitmqAdminUsernameSecretPath,
+    rabbitmqAdminPasswordSecretPath,
+    rabbitmqIngestUsernameSecretPath,
+    rabbitmqIngestPasswordSecretPath,
+    rabbitmqWorkerUsernameSecretPath,
+    rabbitmqWorkerPasswordSecretPath,
+    rabbitmqMonitoringUsernameSecretPath,
+    rabbitmqMonitoringPasswordSecretPath,
+  ]) {
     if (lstatSync(path).isSymbolicLink()) findings.push(`${path} is a symlink.`);
     if (fileMode(path) !== 0o600)
       findings.push(`${path} is not mode 0600 (got ${fileMode(path).toString(8)}).`);
@@ -63,11 +92,30 @@ export function checkSecretSecurity() {
       findings.push(`${path} is not mode 0600 (got ${fileMode(path).toString(8)}).`);
   }
 
-  const { email, password, rumClientToken } = readSecrets();
+  const {
+    email,
+    password,
+    rumClientToken,
+    openObserveRumIngestToken,
+    openObserveDeliveryOpsIngestToken,
+  } = readSecrets();
   const secretHashes = new Set([sha256(email), sha256(password)]);
 
   if (rumClientToken === email || rumClientToken === password) {
     findings.push("The RUM client token must be distinct from the root email/password secret.");
+  }
+  if (openObserveRumIngestToken === rumClientToken) {
+    findings.push("Browser RUM token and server-side OpenObserve ingest token must be distinct.");
+  }
+  if (
+    openObserveDeliveryOpsIngestToken === rumClientToken ||
+    openObserveDeliveryOpsIngestToken === openObserveRumIngestToken ||
+    openObserveDeliveryOpsIngestToken === email ||
+    openObserveDeliveryOpsIngestToken === password
+  ) {
+    findings.push(
+      "Delivery ops ingest token must be distinct from browser, RUM, and root secrets.",
+    );
   }
 
   const composeConfig = spawnSync("docker", composeArgs(["config"]), {
@@ -113,6 +161,12 @@ export function checkSecretSecurity() {
       findings.push(
         "Runtime config's rum.clientToken does not match the generated RUM secret file.",
       );
+    }
+    if (runtimeConfigText.includes(openObserveRumIngestToken)) {
+      findings.push("The server-side OpenObserve ingest token appears in runtime config.");
+    }
+    if (runtimeConfigText.includes(openObserveDeliveryOpsIngestToken)) {
+      findings.push("The delivery ops ingest token appears in runtime config.");
     }
   } else {
     findings.push("Generated runtime config is missing.");

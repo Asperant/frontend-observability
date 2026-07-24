@@ -55,19 +55,22 @@ describe("static compose safety checks (against the real infrastructure/docker/c
     expect(result.pass).toBe(false);
   });
 
-  it("edge-publish is joined only by reverse-proxy and openobserve, publishing only their two loopback ports", () => {
+  it("edge-publish is joined only by loopback-published edge services", () => {
     const { doc } = loadComposeDocument();
     expect(checkEdgePublishScope(doc)).toEqual({ pass: true, findings: [] });
 
     const services = doc.services;
     expect(services["reverse-proxy"].networks).toContain("edge-publish");
     expect(services.openobserve.networks).toContain("edge-publish");
+    expect(services.rabbitmq.networks).toContain("edge-publish");
     expect(services["demo-frontend"].networks ?? []).not.toContain("edge-publish");
     expect(services["mock-api"].networks ?? []).not.toContain("edge-publish");
+    expect(services["durable-ingest"].networks ?? []).not.toContain("edge-publish");
+    expect(services["delivery-worker"].networks ?? []).not.toContain("edge-publish");
 
     const publishedPorts = Object.values(services).flatMap((service) => service.ports ?? []);
     expect(new Set(publishedPorts)).toEqual(
-      new Set(["127.0.0.1:8443:8443", "127.0.0.1:5080:5080"]),
+      new Set(["127.0.0.1:8443:8443", "127.0.0.1:5080:5080", "127.0.0.1:15672:15672"]),
     );
   });
 

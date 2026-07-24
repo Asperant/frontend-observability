@@ -32,6 +32,25 @@ export const generatedDir = join(runtimeDir, "generated");
 export const emailSecretPath = join(secretsDir, "openobserve-root-email");
 export const passwordSecretPath = join(secretsDir, "openobserve-root-password");
 export const rumClientTokenSecretPath = join(secretsDir, "openobserve-rum-client-token");
+export const openObserveRumIngestTokenSecretPath = join(secretsDir, "openobserve-rum-ingest-token");
+export const openObserveDeliveryOpsIngestTokenSecretPath = join(
+  secretsDir,
+  "openobserve-delivery-ops-ingest-token",
+);
+export const rabbitmqAdminUsernameSecretPath = join(secretsDir, "rabbitmq-admin-username");
+export const rabbitmqAdminPasswordSecretPath = join(secretsDir, "rabbitmq-admin-password");
+export const rabbitmqIngestUsernameSecretPath = join(secretsDir, "rabbitmq-ingest-username");
+export const rabbitmqIngestPasswordSecretPath = join(secretsDir, "rabbitmq-ingest-password");
+export const rabbitmqWorkerUsernameSecretPath = join(secretsDir, "rabbitmq-worker-username");
+export const rabbitmqWorkerPasswordSecretPath = join(secretsDir, "rabbitmq-worker-password");
+export const rabbitmqMonitoringUsernameSecretPath = join(
+  secretsDir,
+  "rabbitmq-monitoring-username",
+);
+export const rabbitmqMonitoringPasswordSecretPath = join(
+  secretsDir,
+  "rabbitmq-monitoring-password",
+);
 export const caCertPath = join(certsDir, "lab-ca.crt");
 export const caKeyPath = join(certsDir, "lab-ca.key");
 // The leaf cert/key live in their own directory under generatedDir (not
@@ -60,12 +79,24 @@ export const runtimeConfigPath = join(generatedDir, "runtime-config.json");
 export const proxyDynamicDir = join(generatedDir, "proxy-dynamic");
 export const runtimeControlPath = join(proxyDynamicDir, "runtime-control.json");
 export const proxyGatePath = join(proxyDynamicDir, "proxy-gate.conf");
+export const deliveryControlPath = join(proxyDynamicDir, "delivery-control.json");
+export const workerFaultPath = join(proxyDynamicDir, "worker-fault.json");
 export const killSwitchLockPath = join(generatedDir, "kill-switch.lock");
 export const runtimeControlDaemonPidPath = join(generatedDir, "runtime-control-daemon.pid");
+export const sessionMetadataDaemonPidPath = join(generatedDir, "session-metadata-daemon.pid");
 
 export const COMPOSE_PROJECT_NAME = "chicek-lab";
 
-export const SERVICES = ["reverse-proxy", "demo-frontend", "mock-api", "openobserve", "alert-sink"];
+export const SERVICES = [
+  "reverse-proxy",
+  "demo-frontend",
+  "mock-api",
+  "durable-ingest",
+  "rabbitmq",
+  "delivery-worker",
+  "openobserve",
+  "alert-sink",
+];
 
 /**
  * Every docker compose invocation must go through here so LAB_UID/LAB_GID

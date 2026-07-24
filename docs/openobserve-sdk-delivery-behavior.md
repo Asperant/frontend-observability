@@ -2,6 +2,10 @@
 
 Audit date: 2026-07-19
 
+Stage 20.5 note: the native browser SDK treats successful 2xx ingestion responses as success. The
+lab now returns durable admission `202` after RabbitMQ publisher confirm instead of direct
+OpenObserve `200`; this remains in the SDK success class and does not create retry loops.
+
 Audited local packages:
 
 - `@openobserve/browser-rum@0.3.4`

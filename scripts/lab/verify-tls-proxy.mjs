@@ -105,9 +105,8 @@ export async function checkTlsAndProxy() {
   expectStatus(findings, "POST /mock/status/200 (method not allowed)", postDenied.statusCode, 405);
 
   // Exact RUM/browser-logs ingestion allowlist. These probes exercise
-  // genuine end-to-end ingestion through the queryless browser-facing
-  // proxy; the reverse-proxy injects the upstream-only OpenObserve token
-  // query from its Docker secret.
+  // genuine durable admission through the queryless browser-facing proxy;
+  // Stage 20.5 returns 202 only after RabbitMQ publisher confirm.
   const ingestionHeaders = {
     Host: "localhost:8443",
     Origin: "https://localhost:8443",
@@ -116,15 +115,29 @@ export async function checkTlsAndProxy() {
   const rumOk = await requestHttps("/rum/v1/default/rum", {
     method: "POST",
     headers: ingestionHeaders,
-    body: "{}",
+    body: JSON.stringify({
+      date: Date.now(),
+      type: "view",
+      service: "chicek-demo-frontend",
+      env: "lab",
+      version: "2026.07.1",
+      view: { id: "tls-proxy-smoke-view", url: "https://localhost:8443/tls-proxy-smoke" },
+    }),
   });
-  expectStatus(findings, "POST /rum/v1/default/rum (real content-type)", rumOk.statusCode, 200);
+  expectStatus(findings, "POST /rum/v1/default/rum (real content-type)", rumOk.statusCode, 202);
   const logsOk = await requestHttps("/rum/v1/default/logs", {
     method: "POST",
     headers: ingestionHeaders,
-    body: "{}",
+    body: JSON.stringify({
+      date: Date.now(),
+      message: "tls proxy smoke log",
+      status: "info",
+      service: "chicek-demo-frontend",
+      env: "lab",
+      version: "2026.07.1",
+    }),
   });
-  expectStatus(findings, "POST /rum/v1/default/logs (real content-type)", logsOk.statusCode, 200);
+  expectStatus(findings, "POST /rum/v1/default/logs (real content-type)", logsOk.statusCode, 202);
   const rumWrongContentType = await requestHttps("/rum/v1/default/rum", {
     method: "POST",
     headers: { ...ingestionHeaders, "Content-Type": "application/json" },
