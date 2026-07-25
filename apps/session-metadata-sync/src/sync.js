@@ -84,58 +84,82 @@ const SOURCE_SELECT_CANDIDATES = Object.freeze([
 
 export function createSessionMetadataSync(options) {
   const state = {
+    initialized: false,
+    lastAttemptAt: null,
     lastSuccessfulSyncAt: null,
-    lastWatermarkUs: readWatermark(options.watermarkPath),
+    watermarkUs: readWatermark(options.watermarkPath),
+    lagUs: null,
     unsafeRejections: 0,
-    lastLagUs: null,
+    lastErrorCode: null,
   };
 
   async function syncOnce(now = new Date()) {
-    const nowUs = now.getTime() * 1000;
-    const startUs =
-      state.lastWatermarkUs > 0
-        ? Math.max(0, state.lastWatermarkUs - options.lookbackMs * 1000)
-        : Math.max(0, nowUs - options.lookbackMs * 1000);
-    const rows = await searchRumRows(options, startUs, nowUs);
-    const aggregate = aggregateSessionMetadataRows(rows, nowUs);
-    state.unsafeRejections += aggregate.unsafeRejections;
-    if (aggregate.records.length > 0) {
-      await ingestJson(options, TARGET_STREAM, aggregate.records);
+    state.lastAttemptAt = now.toISOString();
+    try {
+      const nowUs = now.getTime() * 1000;
+      const startUs =
+        state.watermarkUs > 0
+          ? Math.max(0, state.watermarkUs - options.lookbackMs * 1000)
+          : Math.max(0, nowUs - options.lookbackMs * 1000);
+      const rows = await searchRumRows(options, startUs, nowUs);
+      const aggregate = aggregateSessionMetadataRows(rows, nowUs);
+      state.unsafeRejections += aggregate.unsafeRejections;
+      if (aggregate.records.length > 0) {
+        await ingestJson(options, TARGET_STREAM, aggregate.records);
+      }
+      if (aggregate.diagnostics.length > 0) {
+        await ingestJson(options, OPS_STREAM, aggregate.diagnostics);
+      }
+      const maxTimestamp = rows.reduce(
+        (max, row) => Math.max(max, Number(row._timestamp ?? 0)),
+        state.watermarkUs,
+      );
+      if (maxTimestamp > state.watermarkUs) {
+        writeWatermark(options.watermarkPath, maxTimestamp);
+        state.watermarkUs = maxTimestamp;
+      }
+      state.initialized = true;
+      state.lastSuccessfulSyncAt = now.toISOString();
+      state.lastErrorCode = null;
+      state.lagUs = nowUs - state.watermarkUs;
+      return {
+        ok: true,
+        scanned: rows.length,
+        written: aggregate.records.length,
+        unsafeRejections: aggregate.unsafeRejections,
+        watermarkUs: state.watermarkUs,
+        lagUs: state.lagUs,
+      };
+    } catch (error) {
+      state.lastErrorCode = classifySyncError(error);
+      throw error;
     }
-    if (aggregate.diagnostics.length > 0) {
-      await ingestJson(options, OPS_STREAM, aggregate.diagnostics);
-    }
-    const maxTimestamp = rows.reduce(
-      (max, row) => Math.max(max, Number(row._timestamp ?? 0)),
-      state.lastWatermarkUs,
-    );
-    if (maxTimestamp > state.lastWatermarkUs) {
-      writeWatermark(options.watermarkPath, maxTimestamp);
-      state.lastWatermarkUs = maxTimestamp;
-    }
-    state.lastSuccessfulSyncAt = now.toISOString();
-    state.lastLagUs = nowUs - state.lastWatermarkUs;
-    return {
-      ok: true,
-      scanned: rows.length,
-      written: aggregate.records.length,
-      unsafeRejections: aggregate.unsafeRejections,
-      watermarkUs: state.lastWatermarkUs,
-      lagUs: state.lastLagUs,
-    };
   }
 
   function ready() {
     return {
-      ready: Boolean(state.lastSuccessfulSyncAt || state.lastWatermarkUs >= 0),
-      watermarkUs: state.lastWatermarkUs,
+      ready: state.initialized,
+      initialized: state.initialized,
+      lastAttemptAt: state.lastAttemptAt,
       lastSuccessfulSyncAt: state.lastSuccessfulSyncAt,
-      lagUs: state.lastLagUs,
+      watermarkUs: state.watermarkUs,
+      lagUs: state.lagUs,
       unsafeRejections: state.unsafeRejections,
+      lastErrorCode: state.lastErrorCode,
     };
   }
 
   return Object.freeze({ ready, syncOnce });
+}
+
+function classifySyncError(error) {
+  const message = error instanceof Error ? error.message : "";
+  if (message.startsWith("openobserve_search_failed")) return "openobserve_search_failed";
+  if (message.startsWith("openobserve_ingest_failed")) return "openobserve_ingest_failed";
+  if (message.startsWith("missing required environment variable")) {
+    return "missing_environment_variable";
+  }
+  return "session_metadata_sync_failed";
 }
 
 export function optionsFromEnv(env = process.env) {

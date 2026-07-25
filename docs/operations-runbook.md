@@ -13,6 +13,15 @@ Runtime control:
 - Enable collection: `pnpm operator:runtime-control enable`
 - Status: `pnpm operator:runtime-control status`
 
+Required runtime control environment variables (fail-closed — see `docs/security-model.md`):
+
+- `apps/telemetry-ingest` requires `OBSERVABILITY_CONTROL_URL`. The service refuses to start if it is missing or not a well-formed URL. Once running, admission fails closed (HTTP 503) whenever the control endpoint is unreachable, times out, returns a non-200, returns malformed JSON, or returns an expired/unsupported/kill-switch-active document.
+- `apps/telemetry-delivery-worker` requires `DELIVERY_CONTROL_FILE`. If the env var is unset, the file is missing/unreadable, or its contents are malformed, the worker treats this identically to an explicit hold and does not consume; `/readyz` reports unready until a valid `hold: false` document is present.
+
+Both variables must be present in each service's systemd `EnvironmentFile` (see `docs/production-handoff.md`) and in `infrastructure/docker/compose.yaml` for every environment, including lab.
+
+`apps/session-metadata-sync` readiness contract: `/readyz` reports unready (HTTP 503) until the first `syncOnce()` completes successfully — a persisted watermark file alone does not make the service ready after a restart. A sync that scans zero rows still counts as successful. At most one sync runs at a time; an interval tick that fires while a sync is still in flight is a no-op rather than starting a second, overlapping sync.
+
 Runtime config:
 
 - Publish: `pnpm operator:runtime-config publish <config.json>`

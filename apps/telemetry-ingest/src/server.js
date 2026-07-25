@@ -13,14 +13,22 @@ import {
   requiredEnv,
   validateAdmissionRequest,
 } from "@chicek/telemetry-delivery-core";
+import { createRuntimeControlGuard, validateControlUrl } from "./runtime-control.js";
 
 const PORT = optionalIntEnv("PORT", 4313);
 const MAX_RUM_BYTES = optionalIntEnv("RUM_MAX_BYTES", DEFAULT_LIMITS.rumMaxBytes);
 const MAX_LOG_BYTES = optionalIntEnv("LOGS_MAX_BYTES", DEFAULT_LIMITS.logsMaxBytes);
 const CONFIRM_TIMEOUT_MS = optionalIntEnv("PUBLISH_CONFIRM_TIMEOUT_MS", 5000);
 const SHUTDOWN_TIMEOUT_MS = 5000;
-const CONTROL_URL = process.env.OBSERVABILITY_CONTROL_URL ?? "";
+// OBSERVABILITY_CONTROL_URL is a required security/privacy control (kill switch
+// enforcement). Missing or malformed values must fail startup, not silently
+// disable the check — see docs/security-model.md.
+const CONTROL_URL = validateControlUrl(requiredEnv("OBSERVABILITY_CONTROL_URL"));
 const CONTROL_TIMEOUT_MS = optionalIntEnv("OBSERVABILITY_CONTROL_TIMEOUT_MS", 1000);
+const assertRuntimeControlOpen = createRuntimeControlGuard({
+  url: CONTROL_URL,
+  timeoutMs: CONTROL_TIMEOUT_MS,
+});
 
 let connection;
 let channel;
@@ -194,32 +202,6 @@ function boundedScope(value) {
 function optionalScope(value) {
   if (value === undefined) return null;
   return boundedScope(value);
-}
-
-async function assertRuntimeControlOpen(scope) {
-  if (!CONTROL_URL) return;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), CONTROL_TIMEOUT_MS);
-  try {
-    const response = await fetch(CONTROL_URL, {
-      headers: {
-        Accept: "application/json",
-        "X-Observability-Service": scope.service,
-        "X-Observability-Environment": scope.environment,
-      },
-      signal: controller.signal,
-    });
-    if (response.status !== 200) throw new AdmissionError(503, "runtime_control_unavailable");
-    const document = await response.json();
-    if (document?.killSwitch?.active === true) {
-      throw new AdmissionError(503, "runtime_control_disabled");
-    }
-  } catch (error) {
-    if (error instanceof AdmissionError) throw error;
-    throw new AdmissionError(503, "runtime_control_unavailable");
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 function readBody(req, maxBytes) {

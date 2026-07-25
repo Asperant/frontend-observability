@@ -10,6 +10,7 @@
 - Confirm canary rollout, rollback, backup, and restore procedures.
 - Confirm browser package tarball SHA-256 and contents.
 - Confirm Replay recording, backend traces, Safari/WebKit acceptance, user identity tracking, and Source Maps baseline remain unsupported.
+- Confirm the company has provisioned `OBSERVABILITY_CONTROL_URL` (`telemetry-ingest.env`) and `DELIVERY_CONTROL_FILE` (`telemetry-delivery-worker.env`) in every environment's systemd `EnvironmentFile` — both are required, fail-closed runtime controls (see `docs/security-model.md`); missing either one stops the corresponding service from admitting/consuming telemetry rather than silently bypassing the control.
 
 OpenObserve UI capability source of truth: `infrastructure/openobserve/ui-capabilities.json`.
 

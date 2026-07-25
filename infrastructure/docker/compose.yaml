@@ -302,13 +302,20 @@ services:
       WORKER_PREFETCH: "16"
       OPENOBSERVE_DELIVERY_TIMEOUT_MS: "10000"
       OPS_EMIT_INTERVAL_MS: "30000"
+    # Liveness only: /readyz is fail-closed and correctly reports 503 during a
+    # valid, intentional hold=true control state (see docs/security-model.md),
+    # which can legitimately persist for extended periods (operator hold,
+    # queue-storage-privacy/token-rotation test scenarios). The container
+    # orchestration health status must track "process is up", not "currently
+    # consuming" — otherwise a deliberate hold makes Compose treat a healthy,
+    # correctly-paused worker as unhealthy indefinitely.
     healthcheck:
       test:
         [
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:4316/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:4316/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s

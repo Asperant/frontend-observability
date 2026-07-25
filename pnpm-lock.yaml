@@ -144,8 +144,6 @@ importers:
         specifier: 'catalog:'
         version: 3.0.1(ajv@8.20.0)
 
-  packages/privacy-policy: {}
-
   packages/telemetry-delivery-core:
     dependencies:
       amqplib:

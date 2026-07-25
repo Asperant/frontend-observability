@@ -11,7 +11,12 @@ import {
   retryRoutingKey,
 } from "@chicek/telemetry-delivery-core";
 import { createServer } from "node:http";
-import { readFileSync } from "node:fs";
+import {
+  controlStateChanged,
+  isConsumptionAllowed,
+  isDeliveryReady,
+  readControlState,
+} from "./control-state.js";
 
 const PREFETCH = optionalIntEnv("WORKER_PREFETCH", 16);
 const PORT = optionalIntEnv("PORT", 4316);
@@ -22,7 +27,9 @@ const SHUTDOWN_TIMEOUT_MS = 8000;
 let connection;
 let channel;
 let afterAcceptedBeforeAckHook = null;
-let held = false;
+// Fail-closed by construction: until startTelemetryDeliveryWorker() evaluates
+// the real control file, the worker is treated as an invalid/HOLD state.
+let controlState = { ready: false, held: true, reason: "control_not_evaluated" };
 let draining = false;
 let consuming = false;
 const consumers = new Map();
@@ -50,12 +57,22 @@ export async function startTelemetryDeliveryWorker({ afterAcceptedBeforeAck } = 
   afterAcceptedBeforeAckHook =
     typeof afterAcceptedBeforeAck === "function" ? afterAcceptedBeforeAck : null;
   await initializeRabbit();
-  held = readControlHeld(process.env.DELIVERY_CONTROL_FILE);
+  controlState = readControlState(process.env.DELIVERY_CONTROL_FILE);
   healthServer = startHealthServer();
   startControlLoop();
   startOpsLoop();
+  // A missing/invalid control state is fail-closed HOLD; only a valid
+  // hold=false document may start consumption.
   await resumeConsumers();
-  console.log(JSON.stringify({ event: "telemetry_delivery_worker_started", prefetch: PREFETCH }));
+  console.log(
+    JSON.stringify({
+      event: "telemetry_delivery_worker_started",
+      prefetch: PREFETCH,
+      controlReady: controlState.ready,
+      held: controlState.held,
+      reason: controlState.reason,
+    }),
+  );
 }
 
 async function initializeRabbit() {
@@ -87,7 +104,9 @@ function exitOnAmqpFailure(event, error) {
 }
 
 async function resumeConsumers() {
-  if (consuming || held || shuttingDown) return;
+  // Defense in depth: never start consuming without an explicit, valid
+  // hold=false control state, regardless of caller.
+  if (consuming || shuttingDown || !isConsumptionAllowed(controlState)) return;
   consuming = true;
   for (const [signal, queue] of Object.entries(RABBITMQ.queues)) {
     const consumer = await channel.consume(queue, (message) => {
@@ -222,27 +241,29 @@ function publishConfirmed(routingKey, message) {
 }
 
 function startControlLoop() {
-  const controlFile = process.env.DELIVERY_CONTROL_FILE;
-  if (!controlFile) return;
+  // Polling always runs, even when DELIVERY_CONTROL_FILE is unset: a missing
+  // env var is itself an invalid state, evaluated fail-closed on every tick
+  // like any other invalid state, never silently skipped.
   setInterval(async () => {
     if (shuttingDown) return;
-    const nextHeld = readControlHeld(controlFile);
-    if (nextHeld === held) return;
-    held = nextHeld;
-    if (held) await holdConsumers();
-    else await resumeConsumers();
-    console.log(JSON.stringify({ event: "delivery_control_changed", held }));
+    await applyControlState(readControlState(process.env.DELIVERY_CONTROL_FILE));
   }, 2000).unref();
 }
 
-function readControlHeld(path) {
-  try {
-    const text = readFileSync(path, "utf8");
-    const parsed = JSON.parse(text);
-    return Boolean(parsed.hold);
-  } catch {
-    return false;
-  }
+async function applyControlState(next) {
+  const changed = controlStateChanged(controlState, next);
+  controlState = next;
+  if (!changed) return;
+  if (isConsumptionAllowed(controlState)) await resumeConsumers();
+  else await holdConsumers();
+  console.log(
+    JSON.stringify({
+      event: "delivery_control_changed",
+      controlReady: controlState.ready,
+      held: controlState.held,
+      reason: controlState.reason,
+    }),
+  );
 }
 
 function startOpsLoop() {
@@ -269,7 +290,9 @@ async function emitOpsSummary(reason) {
       service: "telemetry-delivery-worker",
       stream: "_chicek_delivery_ops",
       reason,
-      held,
+      held: controlState.held,
+      controlReady: controlState.ready,
+      controlReason: controlState.reason,
       draining,
       lastSuccessfulDeliveryAt,
       counters,
@@ -301,10 +324,16 @@ function startHealthServer() {
       return;
     }
     if (req.url === "/readyz") {
-      const ready = Boolean(channel && connection && !shuttingDown);
+      const connectionReady = Boolean(channel && connection && !shuttingDown);
+      // A valid hold=true control state still yields 503: the worker cannot
+      // consume, so it must not be reported ready even though the control
+      // mechanism itself is healthy.
+      const ready = isDeliveryReady(connectionReady, controlState);
       sendJson(res, ready ? 200 : 503, {
         ready,
-        held,
+        held: controlState.held,
+        controlReady: controlState.ready,
+        reason: controlState.reason,
         consuming,
         lastSuccessfulDeliveryAt,
         counters,

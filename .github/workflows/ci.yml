@@ -25,7 +25,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium firefox webkit
+        run: pnpm exec playwright install --with-deps chromium firefox
 
       - name: pnpm verify (offline — format, lint, unit, contract, coverage, build, consumer, e2e, SBOM, local secret/bundle scan)
         run: pnpm run verify
