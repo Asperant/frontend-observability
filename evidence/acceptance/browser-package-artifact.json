@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "artifact": "/home/asrin/Desktop/workspace/chicek-frontend-observability/.artifacts/browser-package/chicek-browser-observability-1.0.0-rc.1.tgz",
-  "sha256": "862031592c4dd4f6bbd7a78d28db8b93513951d2b1ab34755190efb1c34dfdbd",
+  "sha256": "751c034623b90c9b1d54c3c9e545981d62cb85e749c73de7b190269486367b17",
   "entries": [
     "package/LICENSE",
     "package/README.md",

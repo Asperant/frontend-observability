@@ -14,6 +14,10 @@
 
 OpenObserve UI capability source of truth: `infrastructure/openobserve/ui-capabilities.json`.
 
+## Reproducible browser artifact
+
+`@chicek/browser-observability`'s published tarball is a reproducible build: the same commit, Node/pnpm toolchain, and `pnpm-lock.yaml` always produce a byte-for-byte identical `.tgz` with the same SHA-256, since no wall-clock build timestamp or other run-specific value is embedded in the artifact (including `dist/artifact-manifest.json`). Verified by `pnpm run package:reproducibility` (two independent build+pack cycles, byte comparison).
+
 ## Linux/systemd Production Reference
 
 The company production target is a plain Linux host running each service under systemd (no Kubernetes requirement or assumption). Docker Compose (`infrastructure/docker/`) is a reference lab/test environment only and is not the deployment target.

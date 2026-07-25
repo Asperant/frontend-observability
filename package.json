@@ -40,6 +40,7 @@
     "security:online": "node scripts/security/run-online-security.js",
     "sbom": "node scripts/build/generate-sbom.js",
     "package:audit": "node scripts/build/audit-browser-package.mjs",
+    "package:reproducibility": "node scripts/build/verify-reproducibility.mjs",
     "verify": "node scripts/verify/run-verify.js",
     "fix": "pnpm run format && eslint . --fix",
     "lab:init": "node scripts/lab/init.mjs",
