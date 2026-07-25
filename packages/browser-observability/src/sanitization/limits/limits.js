@@ -3,7 +3,7 @@ export const LIMITS = Object.freeze({
   // detectors (detectors/patterns.js) are ever run against. Measured
   // empirically: redaction time grows super-linearly with input length
   // (~1.3s at 50,000 chars, ~5.2s at 100,000 chars on the reference
-  // hardware used for Stage 18), so an unbounded attacker- or
+  // hardware used for security-acceptance), so an unbounded attacker- or
   // user-supplied string passed into recordAction()/recordError() could
   // otherwise freeze the host page's JS thread for seconds to hours with a
   // single call. No realistic email/JWT/IBAN/card/phone/base64 token or

@@ -1,4 +1,4 @@
-// Stage 20 closeout, Section 3.2: automated smoke coverage for OpenObserve's
+// native OpenObserve UI, Section 3.2: automated smoke coverage for OpenObserve's
 // own native web UI (v0.91.2), not just its API — everything here was
 // reverse-engineered live against the running lab (no public OpenObserve UI
 // test-id documentation exists) and is now pinned as a regression guard.
@@ -11,7 +11,7 @@ import { expect, test } from "@playwright/test";
 import { alertSinkControl, readAdminAuthHeader } from "../../scripts/lab/alerts/admin-client.mjs";
 import { runRealAlertEvaluationProbe } from "../../scripts/lab/alerts/real-evaluation-probe.mjs";
 import { syncSessionMetadata } from "../../scripts/lab/sync-session-metadata.mjs";
-import { getStreamSchema } from "../../scripts/lab/streams/admin-client.mjs";
+import { getStreamSchema, search } from "../../scripts/lab/streams/admin-client.mjs";
 import { loginToOpenObserveUi, OPENOBSERVE_UI_BASE_URL } from "./helpers/openobserve-native-ui.js";
 
 test.describe("native OpenObserve v0.91.2 UI (requires `pnpm lab:up` already running)", () => {
@@ -33,8 +33,8 @@ test.describe("native OpenObserve v0.91.2 UI (requires `pnpm lab:up` already run
     // other suites having happened to run first (that made it flaky in
     // isolation) — it drives one real session itself. Same real,
     // independently-measured ~35s native SDK batch-flush behavior
-    // established in scripts/lab/verify-stage15-streams.mjs and reused by
-    // scripts/lab/verify-stage16-dashboards.mjs's own canary.
+    // established in scripts/lab/verify-streams.mjs and reused by
+    // scripts/lab/verify-dashboards.mjs's own canary.
     await page.goto("/");
     await page.waitForTimeout(300);
     await page.getByTestId("scenario-initialize-runtime-config").click();
@@ -63,7 +63,7 @@ test.describe("native OpenObserve v0.91.2 UI (requires `pnpm lab:up` already run
     // SDK's beforeSend hook silently discards any session.* mutation via
     // its own limitModification field allowlist, confirmed by reading
     // @openobserve/browser-rum-core's assembly.js). The already-audited
-    // _rumdata ingestion pipeline (Stage 18) now force-sets the field
+    // _rumdata ingestion pipeline (security-acceptance) now force-sets the field
     // server-side on every real event, so this exact error must never
     // reappear — in a pageerror OR anywhere in the rendered page
     // (OpenObserve shows some query errors as an internal toast, not an
@@ -140,7 +140,7 @@ test.describe("native OpenObserve v0.91.2 UI (requires `pnpm lab:up` already run
     // The panel renders (column headers appear) regardless of whether any
     // real session happened to land inside the current time window — this
     // test doesn't drive real RUM traffic itself (unlike
-    // scripts/lab/verify-stage16-dashboards.mjs's heavier 35s-flush canary),
+    // scripts/lab/verify-dashboards.mjs's heavier 35s-flush canary),
     // it only proves the panel isn't broken.
     await expect(page.getByText("session_id", { exact: false }).first()).toBeVisible();
 
@@ -238,20 +238,46 @@ test.describe("native OpenObserve v0.91.2 UI (requires `pnpm lab:up` already run
     expect(schema).not.toBeNull();
     const ALLOWED_FIELDS = new Set([
       "_timestamp",
+      "action_count",
+      "device",
+      "duration",
+      "end",
+      "env",
+      "error_count",
+      "frustration_count",
       "_o2_id",
-      "type",
+      "ip",
+      "metadata_schema_version",
+      "service",
+      "session_has_replay",
       "session_id",
       "start",
-      "end",
+      "source",
+      "type",
       "user_agent_user_agent_family",
       "user_agent_os_family",
-      "ip",
-      "source",
+      "version",
+      "view_count",
     ]);
     const fieldNames = (schema?.schema ?? []).map((field) => field.name);
     expect(fieldNames.length).toBeGreaterThan(0);
     for (const name of fieldNames) {
       expect(ALLOWED_FIELDS.has(name), `unexpected field '${name}' in _sessionreplay`).toBe(true);
+    }
+    expect(fieldNames).toContain("ip");
+
+    const endUs = Date.now() * 1000;
+    const rows = await search(
+      readAdminAuthHeader(),
+      "select ip from _sessionreplay where ip is not null limit 10",
+      {
+        startUs: endUs - 15 * 60 * 1_000_000,
+        endUs,
+      },
+    );
+    expect(rows.hits?.length ?? 0).toBeGreaterThan(0);
+    for (const row of rows.hits ?? []) {
+      expect(row.ip).toBe("redacted");
     }
   });
 

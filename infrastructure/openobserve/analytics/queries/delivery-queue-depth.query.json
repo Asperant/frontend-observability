@@ -6,7 +6,7 @@
   "title": "Delivery queue depth",
   "queryClass": "OVERVIEW",
   "stream": "_chicek_delivery_ops",
-  "sqlTemplate": "select max(queues_rum_queuedepth) as rum_queue_depth, max(queues_logs_queuedepth) as log_queue_depth, max(queues_rum_deadletterdepth) as rum_dlq_depth, max(queues_logs_deadletterdepth) as log_dlq_depth from _chicek_delivery_ops where service = 'delivery-worker'",
+  "sqlTemplate": "select max(queues_rum_queuedepth) as rum_queue_depth, max(queues_logs_queuedepth) as log_queue_depth, max(queues_rum_deadletterdepth) as rum_dlq_depth, max(queues_logs_deadletterdepth) as log_dlq_depth from _chicek_delivery_ops where service = 'telemetry-delivery-worker'",
   "requiredVariables": ["service", "environment"],
   "optionalVariables": [],
   "drilldownVariables": [],
@@ -19,7 +19,7 @@
     { "name": "rum_dlq_depth", "type": "Int64" },
     { "name": "log_dlq_depth", "type": "Int64" }
   ],
-  "emptyDataSemantics": "No delivery-worker aggregate events in range renders NO_DATA; this is an operational visibility gap, not zero queue depth.",
+  "emptyDataSemantics": "No telemetry-delivery-worker aggregate events in range renders NO_DATA; this is an operational visibility gap, not zero queue depth.",
   "cardinalityClass": "LOW_CARDINALITY_OVERVIEW",
   "hasDivisionGuard": false
 }

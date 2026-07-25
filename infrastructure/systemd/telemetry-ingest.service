@@ -1,0 +1,32 @@
+[Unit]
+Description=Chicek Telemetry Ingest
+After=network-online.target rabbitmq-server.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=chicek-telemetry-ingest
+Group=chicek-telemetry-ingest
+WorkingDirectory=/opt/chicek-observability/current
+EnvironmentFile=/etc/chicek-observability/telemetry-ingest.env
+ExecStart=/usr/bin/node apps/telemetry-ingest/src/server.js
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=15s
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/chicek-observability/telemetry-ingest
+ReadOnlyPaths=/etc/chicek-observability
+CapabilityBoundingSet=
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

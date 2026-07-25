@@ -54,16 +54,16 @@ jobs:
           pnpm run lab:init
           pnpm run lab:up
           pnpm run lab:verify
-          pnpm run test:stage15:streams
+          pnpm run test:streams
 
       - name: Stage 16 — dashboard/query governance gate
-        run: pnpm run test:stage16:dashboards
+        run: pnpm run test:dashboards
 
       - name: Stage 17 — alert/incident governance gate
-        run: pnpm run test:stage17:alerts
+        run: pnpm run test:alerts
 
       - name: Stage 18 — security/privacy acceptance gate
-        run: pnpm run test:stage18:security-acceptance
+        run: pnpm run test:security-acceptance
 
       - name: Native OpenObserve UI E2E (Chromium + Firefox)
         run: pnpm run test:e2e:native-ui
@@ -72,13 +72,13 @@ jobs:
         run: pnpm run test:tls:rotation
 
       - name: Stage 19 — performance/resilience gate
-        run: pnpm run test:stage19:resilience
+        run: pnpm run test:resilience
 
       - name: Stage 19 — real 60-minute soak
-        run: pnpm run lab:stage19:soak -- --duration=60m
+        run: pnpm run lab:resilience:soak -- --duration=60m
 
       - name: Stage 20 — full backup/restore/upgrade/rollback recovery proof
-        run: pnpm run lab:stage20:proof
+        run: pnpm run test:recovery
 
       - name: lab:e2e (full Chromium + Firefox lab suite)
         run: pnpm run test:e2e:lab
@@ -87,8 +87,8 @@ jobs:
         if: always()
         run: |
           mkdir -p release-acceptance-evidence
-          cp infrastructure/performance/stage19-acceptance-results.json release-acceptance-evidence/ 2>/dev/null || true
-          cp infrastructure/performance/stage20-recovery-results.json release-acceptance-evidence/ 2>/dev/null || true
+          cp infrastructure/performance/resilience-acceptance-results.json release-acceptance-evidence/ 2>/dev/null || true
+          cp infrastructure/performance/openobserve-recovery-results.json release-acceptance-evidence/ 2>/dev/null || true
           cp docs/stage19-soak-report.md release-acceptance-evidence/ 2>/dev/null || true
           pnpm run lab:status > release-acceptance-evidence/lab-status.txt 2>&1 || true
 

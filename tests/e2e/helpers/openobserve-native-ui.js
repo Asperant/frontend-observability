@@ -1,5 +1,5 @@
 // Shared login/navigation helpers for tests that drive OpenObserve's own
-// native web UI directly (as opposed to the demo-frontend app it observes).
+// native web UI directly (as opposed to the browser-app app it observes).
 // Selectors here were reverse-engineered live against the pinned v0.91.2
 // build (no public OpenObserve UI test-id documentation exists) — if the
 // login form or nav structure changes in a future pinned version, these are

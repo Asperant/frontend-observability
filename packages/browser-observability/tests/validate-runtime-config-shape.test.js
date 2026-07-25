@@ -25,62 +25,39 @@ function config(overrides = {}) {
   };
 }
 
-// Mirrors packages/contracts/schemas/runtime-config.schema.json: this
+// Mirrors packages/observability-contracts/schemas/runtime-config.schema.json: this
 // hand-rolled runtime validator has no Ajv/JSON-Schema dependency (kept out
-// of the browser bundle), so its acceptance of the canonical field, the
-// deprecated legacy alias, and the fail-closed both/neither cases is
-// pinned here independently of the schema-level contract tests.
-describe("validateRuntimeConfigShape — sensitiveRoutes / allowedRoutes", () => {
+// of the browser bundle), so closed product config fields are pinned here
+// independently of the schema-level contract tests.
+describe("validateRuntimeConfigShape — sensitiveRoutes", () => {
   it("accepts the canonical sensitiveRoutes field alone", () => {
     expect(validateRuntimeConfigShape(config({ sensitiveRoutes: ["/a"] }))).toBe(true);
   });
 
-  it("accepts the deprecated legacy allowedRoutes field alone", () => {
-    expect(
-      validateRuntimeConfigShape(config({ sensitiveRoutes: undefined, allowedRoutes: ["/a"] })),
-    ).toBe(true);
+  it("rejects the removed legacy allowedRoutes field", () => {
+    expect(validateRuntimeConfigShape(config({ allowedRoutes: ["/a"] }))).toBe(false);
   });
 
-  it("fails closed when both sensitiveRoutes and allowedRoutes are present", () => {
-    expect(
-      validateRuntimeConfigShape(config({ sensitiveRoutes: ["/a"], allowedRoutes: ["/a"] })),
-    ).toBe(false);
-  });
-
-  it("fails closed when neither sensitiveRoutes nor allowedRoutes is present", () => {
+  it("fails closed when sensitiveRoutes is missing", () => {
     expect(validateRuntimeConfigShape(config({ sensitiveRoutes: undefined }))).toBe(false);
   });
 });
 
-describe("validateRuntimeConfigShape — deprecated no-op fields are optional", () => {
-  it("accepts a config that omits allowedSelectors entirely", () => {
-    expect(validateRuntimeConfigShape(config())).toBe(true);
-  });
-
-  it("still validates allowedSelectors shape when a legacy config sends it", () => {
-    expect(validateRuntimeConfigShape(config({ allowedSelectors: ["#app"] }))).toBe(true);
-    expect(validateRuntimeConfigShape(config({ allowedSelectors: [123] }))).toBe(false);
-  });
-
-  it("accepts a config that omits sampling.errorSampleRate entirely", () => {
+describe("validateRuntimeConfigShape — removed legacy fields", () => {
+  it("accepts sessionSampleRate as the only sampling field", () => {
     expect(validateRuntimeConfigShape(config({ sampling: { sessionSampleRate: 1 } }))).toBe(true);
   });
 
-  it("still validates errorSampleRate range when a legacy config sends it", () => {
+  it("rejects sampling.errorSampleRate", () => {
     expect(
       validateRuntimeConfigShape(
         config({ sampling: { sessionSampleRate: 1, errorSampleRate: 1 } }),
       ),
-    ).toBe(true);
-    expect(
-      validateRuntimeConfigShape(
-        config({ sampling: { sessionSampleRate: 1, errorSampleRate: 2 } }),
-      ),
     ).toBe(false);
   });
 
-  it("still accepts the deprecated balanced privacy profile", () => {
-    expect(validateRuntimeConfigShape(config({ privacyProfile: "balanced" }))).toBe(true);
+  it("rejects the removed balanced privacy profile", () => {
+    expect(validateRuntimeConfigShape(config({ privacyProfile: "balanced" }))).toBe(false);
   });
 
   it("rejects a sampling object with an unknown key", () => {

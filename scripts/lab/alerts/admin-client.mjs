@@ -3,7 +3,7 @@
 // admin-client.mjs, this is pure I/O and not imported by any pure-logic
 // unit test, so it never actually counts toward the "scripts/lab/alerts/**"
 // 100% coverage gate in practice; its correctness is exercised live by
-// scripts/lab/alerts-*.mjs and scripts/lab/verify-stage17-alerts.mjs.
+// scripts/lab/alerts-*.mjs and scripts/lab/verify-alerts.mjs.
 import { runDockerCompose } from "../common.mjs";
 import {
   OPENOBSERVE_ADMIN_URL,

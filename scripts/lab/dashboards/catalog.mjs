@@ -1,4 +1,4 @@
-// Loads the Stage 16 analytics catalog (metric catalog, query manifests,
+// Loads the dashboard-governance analytics catalog (metric catalog, query manifests,
 // starter dashboards) from infrastructure/openobserve/analytics/. Pure I/O —
 // no validation here (see query-manifest.js/metric-catalog.js for the pure,
 // unit-coverage-gated validation logic), mirroring

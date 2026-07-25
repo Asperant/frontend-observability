@@ -8,7 +8,7 @@
 // docs/openobserve-v0.91-dashboard-capabilities.md. This module is
 // intentionally not unit-coverage-gated (it is pure I/O); its correctness is
 // exercised by the live scripts/lab/dashboards-*.mjs commands and
-// scripts/lab/verify-stage16-dashboards.mjs against the real lab.
+// scripts/lab/verify-dashboards.mjs against the real lab.
 
 import {
   OPENOBSERVE_ADMIN_URL,

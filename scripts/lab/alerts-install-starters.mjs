@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 
-import { DEMO_IDENTITY } from "../../apps/demo-frontend/src/identity.js";
+import { DEMO_IDENTITY } from "../../tests/fixtures/apps/browser-app/src/identity.js";
 import { assertExactLabToolchain, emailSecretPath, log, logError } from "./common.mjs";
 import {
   createAlert,
@@ -18,7 +18,7 @@ import { decideInstallAction, INSTALL_ACTION, previouslyInstalledVersion } from 
 import { readInstallState, recordStarterInstalled } from "./alerts/install-state.mjs";
 import { loadAllQueryManifests } from "./dashboards/catalog.mjs";
 
-export const LOCAL_DESTINATION_NAME = "chicek-stage17-local-alert-sink";
+export const LOCAL_DESTINATION_NAME = "chicek-alert-governance-local-alert-sink";
 
 // A name-only existence check would silently ignore a body edit to this
 // repo's own template forever (this is exactly why getting capability

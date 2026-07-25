@@ -18,3 +18,9 @@ blob-report/
 reports/
 *.tsbuildinfo
 .runtime/
+__pycache__/
+*.py[cod]
+*$py.class
+.artifacts/
+system_snapshot.txt
+topla.py

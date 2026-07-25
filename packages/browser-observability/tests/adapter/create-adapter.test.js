@@ -31,7 +31,7 @@ function fakeLogs() {
 }
 
 const identity = Object.freeze({
-  service: "demo-frontend",
+  service: "browser-app",
   environment: "production",
   version: "1.0.0",
 });
@@ -48,7 +48,7 @@ function baseContext({ consent = "not-granted", browserLogsEnabled = true } = {}
         clientToken: "a".repeat(48),
         apiVersion: "v1",
       },
-      sampling: { sessionSampleRate: 1, errorSampleRate: 1 },
+      sampling: { sessionSampleRate: 1 },
       browserLogs: { enabled: browserLogsEnabled },
     },
   };

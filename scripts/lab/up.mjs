@@ -17,6 +17,7 @@ import { generateRuntimeConfig } from "./generate-runtime-config.mjs";
 import { generateRuntimeControl } from "./generate-runtime-control.mjs";
 import { labInit } from "./init.mjs";
 import { provisionDeliveryOpsToken } from "./provision-delivery-ops-token.mjs";
+import { provisionSessionMetadataTokens } from "./provision-session-metadata-tokens.mjs";
 import { provisionSanitization } from "./provision-sanitization.mjs";
 import { runAllStaticChecks } from "./static-checks.mjs";
 import { waitForHealthy } from "./wait.mjs";
@@ -113,7 +114,7 @@ export async function labUp() {
 
   if (persistResult.changed) {
     log(
-      "lab:up — OpenObserve ingest token changed; recreating openobserve and delivery-worker so both reflect it...",
+      "lab:up — OpenObserve ingest token changed; recreating openobserve and telemetry-delivery-worker so both reflect it...",
     );
     // Compose does not treat a secret/bind-mounted *file's* content change as
     // a reason to recreate a service on its own (only a change to the
@@ -135,14 +136,14 @@ export async function labUp() {
       "--force-recreate",
       "openobserve",
       "alert-sink",
-      "delivery-worker",
+      "telemetry-delivery-worker",
     ]);
     const rumWaitResult = await waitForHealthy({
-      services: ["openobserve", "alert-sink", "delivery-worker"],
+      services: ["openobserve", "alert-sink", "telemetry-delivery-worker"],
     });
     if (!rumWaitResult.healthy) {
       throw new Error(
-        "openobserve/alert-sink/delivery-worker did not become healthy again after the OpenObserve ingest token refresh.",
+        "openobserve/alert-sink/telemetry-delivery-worker did not become healthy again after the OpenObserve ingest token refresh.",
       );
     }
   }
@@ -155,15 +156,39 @@ export async function labUp() {
   );
   if (opsTokenResult.changed) {
     log(
-      "lab:up — delivery ops token changed; recreating delivery-worker so it re-reads the secret...",
+      "lab:up — delivery ops token changed; recreating telemetry-delivery-worker so it re-reads the secret...",
     );
-    runDockerCompose(["up", "-d", "--force-recreate", "delivery-worker"]);
+    runDockerCompose(["up", "-d", "--force-recreate", "telemetry-delivery-worker"]);
     const opsWaitResult = await waitForHealthy({
-      services: ["delivery-worker"],
+      services: ["telemetry-delivery-worker"],
       timeoutMs: 90_000,
     });
     if (!opsWaitResult.healthy) {
-      throw new Error("delivery-worker did not become healthy after delivery ops token refresh.");
+      throw new Error(
+        "telemetry-delivery-worker did not become healthy after delivery ops token refresh.",
+      );
+    }
+  }
+
+  log("lab:up — provisioning dedicated OpenObserve session metadata service accounts...");
+  const sessionTokenResult = await provisionSessionMetadataTokens();
+  log(
+    `  session metadata tokens: ${sessionTokenResult.changed ? "updated" : "already current"} ` +
+      "(service-account credentials, 0600, values never printed).",
+  );
+  if (sessionTokenResult.changed) {
+    log(
+      "lab:up — session metadata tokens changed; recreating session-metadata-sync so it re-reads the secrets...",
+    );
+    runDockerCompose(["up", "-d", "--force-recreate", "session-metadata-sync"]);
+    const sessionWaitResult = await waitForHealthy({
+      services: ["session-metadata-sync"],
+      timeoutMs: 90_000,
+    });
+    if (!sessionWaitResult.healthy) {
+      throw new Error(
+        "session-metadata-sync did not become healthy after session metadata token refresh.",
+      );
     }
   }
 

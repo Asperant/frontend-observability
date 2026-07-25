@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { mergePrivacyPolicy, PLATFORM_PRIVACY_BASELINE } from "../src/config/merge-policy.js";
 
 const identity = Object.freeze({
-  service: "demo-frontend",
+  service: "browser-app",
   environment: "production",
   version: "1.0.0",
 });
@@ -16,7 +16,7 @@ function config(overrides = {}) {
     expiresAt: "2099-01-01T00:00:00.000Z",
     killSwitch: { engaged: false },
     privacyProfile: "strict",
-    sampling: { sessionSampleRate: 1, errorSampleRate: 1 },
+    sampling: { sessionSampleRate: 1 },
     rum: {
       site: "localhost:8443",
       organizationIdentifier: "default",
@@ -26,8 +26,7 @@ function config(overrides = {}) {
     },
     browserLogs: { enabled: true },
     sessionReplay: { enabled: false },
-    allowedRoutes: ["/a", "/a", "/b"],
-    allowedSelectors: ["#app"],
+    sensitiveRoutes: ["/a", "/a", "/b"],
     ...overrides,
   };
 }
@@ -71,60 +70,30 @@ describe("mergePrivacyPolicy", () => {
   });
 
   it("caps sampling rates at the platform baseline maximum", () => {
-    const policy = mergePrivacyPolicy(
-      identity,
-      config({ sampling: { sessionSampleRate: 1, errorSampleRate: 1 } }),
-    );
+    const policy = mergePrivacyPolicy(identity, config({ sampling: { sessionSampleRate: 1 } }));
     expect(policy.sampling.sessionSampleRate).toBeLessThanOrEqual(
       PLATFORM_PRIVACY_BASELINE.sampling.sessionSampleRate,
     );
-    expect(policy.sampling.errorSampleRate).toBeLessThanOrEqual(
-      PLATFORM_PRIVACY_BASELINE.sampling.errorSampleRate,
-    );
   });
 
-  it("de-duplicates allowed routes/selectors", () => {
+  it("de-duplicates sensitive routes", () => {
     const policy = mergePrivacyPolicy(identity, config());
     expect(policy.excludedRoutes).toEqual(["/a", "/b"]);
   });
 
   it("reads excludedRoutes from the canonical sensitiveRoutes field when present", () => {
-    const policy = mergePrivacyPolicy(
-      identity,
-      config({ allowedRoutes: undefined, sensitiveRoutes: ["/canonical"] }),
-    );
+    const policy = mergePrivacyPolicy(identity, config({ sensitiveRoutes: ["/canonical"] }));
     expect(policy.excludedRoutes).toEqual(["/canonical"]);
   });
 
-  it("falls back to the deprecated legacy allowedRoutes field when sensitiveRoutes is absent", () => {
-    const policy = mergePrivacyPolicy(identity, config({ allowedRoutes: ["/legacy"] }));
-    expect(policy.excludedRoutes).toEqual(["/legacy"]);
-  });
-
-  it("defaults excludedRoutes to empty when neither sensitiveRoutes nor allowedRoutes is present", () => {
-    const policy = mergePrivacyPolicy(
-      identity,
-      config({ allowedRoutes: undefined, sensitiveRoutes: undefined }),
-    );
+  it("defaults excludedRoutes to empty when a caller omits sensitiveRoutes before schema validation", () => {
+    const policy = mergePrivacyPolicy(identity, config({ sensitiveRoutes: undefined }));
     expect(policy.excludedRoutes).toEqual([]);
-  });
-
-  it("tolerates a config that omits the deprecated allowedSelectors field entirely", () => {
-    const policy = mergePrivacyPolicy(identity, config({ allowedSelectors: undefined }));
-    expect(policy.maskedSelectors).toEqual([]);
-    expect(policy.blockedSelectors).toEqual([]);
-  });
-
-  it("tolerates a config that omits the deprecated sampling.errorSampleRate field entirely", () => {
-    const policy = mergePrivacyPolicy(identity, config({ sampling: { sessionSampleRate: 0.5 } }));
-    expect(policy.sampling.errorSampleRate).toBe(
-      PLATFORM_PRIVACY_BASELINE.sampling.errorSampleRate,
-    );
   });
 
   it("carries the host identity through", () => {
     const policy = mergePrivacyPolicy(identity, config());
-    expect(policy.service).toBe("demo-frontend");
+    expect(policy.service).toBe("browser-app");
     expect(policy.environment).toBe("production");
     expect(policy.version).toBe("1.0.0");
   });

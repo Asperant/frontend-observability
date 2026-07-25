@@ -8,12 +8,15 @@ import {
   CONTROL_SCHEMA_VERSION,
   MAX_CONTROL_TTL_MS,
 } from "../../packages/browser-observability/src/runtime-control/constants.js";
-import { atomicWriteFile, runtimeControlPath } from "./common.mjs";
+import { atomicWriteFile, controlPlaneActiveControlPath, runtimeControlPath } from "./common.mjs";
 
 export function readCurrentRuntimeControl() {
-  if (!existsSync(runtimeControlPath)) return null;
+  const path = existsSync(controlPlaneActiveControlPath)
+    ? controlPlaneActiveControlPath
+    : runtimeControlPath;
+  if (!existsSync(path)) return null;
   try {
-    return JSON.parse(readFileSync(runtimeControlPath, "utf8"));
+    return JSON.parse(readFileSync(path, "utf8"));
   } catch {
     return null;
   }
@@ -57,8 +60,13 @@ export function generateRuntimeControl(options = {}) {
       `generated runtime-control document failed lifetime validation: ${lifetime.reasonCode}`,
     );
   }
-  atomicWriteFile(runtimeControlPath, `${JSON.stringify(document, null, 2)}\n`, { mode: 0o644 });
+  publishRuntimeControlText(`${JSON.stringify(document, null, 2)}\n`);
   return document;
+}
+
+export function publishRuntimeControlText(text) {
+  atomicWriteFile(runtimeControlPath, text, { mode: 0o644 });
+  atomicWriteFile(controlPlaneActiveControlPath, text, { mode: 0o644 });
 }
 
 /**

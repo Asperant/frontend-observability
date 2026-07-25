@@ -1,7 +1,7 @@
 // Pure shape + SQL-safety validation for one
 // infrastructure/openobserve/analytics/queries/*.query.json manifest. No
 // I/O, no network, no execution of the SQL itself (see
-// scripts/lab/dashboards-verify equivalents / verify-stage16-dashboards.mjs
+// scripts/lab/dashboards-verify equivalents / verify-dashboards.mjs
 // for live execution against the real API) — this module only ever inspects
 // the manifest object and its sqlTemplate text.
 

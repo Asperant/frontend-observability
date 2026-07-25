@@ -1,8 +1,8 @@
-// Stage 20 closeout: proves TLS cert rotation actually takes effect on
+// native OpenObserve UI: proves TLS cert rotation actually takes effect on
 // `nginx -s reload` alone, with no reverse-proxy container recreate — the
 // real regression this guards is the single-file bind-mount inode-pinning
 // hazard documented in scripts/lab/common.mjs's tlsLeafDir comment (the same
-// class of bug Stage 14 fixed for the kill switch's proxy-dynamic mount,
+// class of bug runtime-control fixed for the kill switch's proxy-dynamic mount,
 // applied here to infrastructure/docker/compose.yaml's tls-leaf mount).
 import { connect as tlsConnect } from "node:tls";
 

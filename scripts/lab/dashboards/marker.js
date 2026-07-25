@@ -2,8 +2,8 @@
 //
 // docs/openobserve-v0.91-dashboard-capabilities.md capability #9a: a
 // dashboard's own `dashboardId` is always server-assigned and never
-// portable/predictable across a fresh OpenObserve instance, so Stage 16
-// cannot pin a starter dashboard's identity to it the way Stage 15 pins
+// portable/predictable across a fresh OpenObserve instance, so dashboard-governance
+// cannot pin a starter dashboard's identity to it the way stream-lifecycle pins
 // `_rumdata`/`_rumlog` by stream name. Instead, a fixed marker string is
 // embedded in the dashboard's `description` field on create and never
 // touched again — install-starters/status/audit resolve "is this dashboard

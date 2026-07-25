@@ -1,0 +1,822 @@
+{
+  "schemaVersion": 2,
+  "proof": "openobserve-recovery",
+  "decision": "ACCEPTED",
+  "runId": "2026-07-25T11-40-26-974Z",
+  "capturedAt": "2026-07-25T11:40:26.974Z",
+  "sourceVersion": {
+    "tag": "v0.91.0",
+    "digest": "sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8",
+    "image": "public.ecr.aws/zinclabs/openobserve:v0.91.0@sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8"
+  },
+  "targetVersion": {
+    "tag": "v0.91.2",
+    "digest": "sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15",
+    "image": "public.ecr.aws/zinclabs/openobserve:v0.91.2@sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15"
+  },
+  "compatibility": {
+    "sourceToTarget": "v0.91.0 -> v0.91.2",
+    "composeDelta": [
+      "Target updates only the upstream OpenObserve base image tag/digest.",
+      "Wrapper entrypoint, healthcheck, non-root model, loopback alert-sink, and data directory stay compatible."
+    ],
+    "apiSurfacesExercised": [
+      "streams",
+      "stream schema/settings",
+      "functions",
+      "pipelines",
+      "dashboards/folders",
+      "alerts",
+      "templates",
+      "destinations",
+      "ingest",
+      "search",
+      "alerts/history"
+    ]
+  },
+  "mainTargetBackup": {
+    "logical": {
+      "path": ".runtime/recovery/2026-07-25T11-40-26-974Z/backups/target-logical-export.json",
+      "sha256": "f205b2d4fd3cfa1870fec49dae751c5626e557cabd5b301a333807775bae574f",
+      "overallHash": "0f98a4cf4ba8599eda53f506ee55fd9aeef1704539a5b7ee3b2ee417ea963ca8",
+      "groupHashes": {
+        "streams": "678806b6023f9bec7c06738a8ee923b467ceb4100856ccae5124d3632ddf40b4",
+        "functions": "8d09baa3737bd68fc7b8f11fd3ead62f792cc08016c7a458016306feabc6dc29",
+        "pipelines": "7c44f82520df12f5a89a3d3de98e702f900c0e5938cdeb716647a3396cadd403",
+        "dashboards": "ea0fb19dced862dd23fef18d861f865e62c2f874810b239d016eb05b0576d33b",
+        "alerts": "fc933edc934ef0548f006f66779c0d6e6ea86b38797c8d09e85f4a052b00cffd",
+        "templates": "d8c7b1edb91c237d0cea4093c77ce2be705ca7530efe4a480184f7853d2e72dc",
+        "destinations": "2ce4f440471f88cdd9bb9e45fed2036e5a419191538060ee60be71b2ef832da7"
+      },
+      "objectCounts": {
+        "streams": 3,
+        "functions": 4,
+        "pipelines": 2,
+        "dashboards": 6,
+        "alerts": 7,
+        "templates": 9,
+        "destinations": 1
+      }
+    },
+    "coldVolume": {
+      "archive": ".runtime/recovery/2026-07-25T11-40-26-974Z/backups/target-openobserve-data.tar",
+      "sha256": "461717024885e66855a7430eb7b5dda0d25c267a3c143e8d86ccd91ad98eca5d",
+      "bytes": 1617012224,
+      "volumeSizeKiB": 6720,
+      "method": "live-clone (main lab service never stopped)"
+    }
+  },
+  "logicalRoundTrip": {
+    "semanticHashEquality": true,
+    "secondApplyAllNoChange": true,
+    "groupHashesSource": {
+      "streams": "678806b6023f9bec7c06738a8ee923b467ceb4100856ccae5124d3632ddf40b4",
+      "functions": "8d09baa3737bd68fc7b8f11fd3ead62f792cc08016c7a458016306feabc6dc29",
+      "pipelines": "7c44f82520df12f5a89a3d3de98e702f900c0e5938cdeb716647a3396cadd403",
+      "dashboards": "ea0fb19dced862dd23fef18d861f865e62c2f874810b239d016eb05b0576d33b",
+      "alerts": "fc933edc934ef0548f006f66779c0d6e6ea86b38797c8d09e85f4a052b00cffd",
+      "templates": "d8c7b1edb91c237d0cea4093c77ce2be705ca7530efe4a480184f7853d2e72dc",
+      "destinations": "2ce4f440471f88cdd9bb9e45fed2036e5a419191538060ee60be71b2ef832da7"
+    },
+    "groupHashesReExported": {
+      "streams": "678806b6023f9bec7c06738a8ee923b467ceb4100856ccae5124d3632ddf40b4",
+      "functions": "8d09baa3737bd68fc7b8f11fd3ead62f792cc08016c7a458016306feabc6dc29",
+      "pipelines": "7c44f82520df12f5a89a3d3de98e702f900c0e5938cdeb716647a3396cadd403",
+      "dashboards": "ea0fb19dced862dd23fef18d861f865e62c2f874810b239d016eb05b0576d33b",
+      "alerts": "fc933edc934ef0548f006f66779c0d6e6ea86b38797c8d09e85f4a052b00cffd",
+      "templates": "d8c7b1edb91c237d0cea4093c77ce2be705ca7530efe4a480184f7853d2e72dc",
+      "destinations": "2ce4f440471f88cdd9bb9e45fed2036e5a419191538060ee60be71b2ef832da7"
+    }
+  },
+  "restoreTarget": {
+    "newMarker": "target-restore-new-52619eae-ee7d-4a64-b183-8b7d0e98f866",
+    "newVisible": true,
+    "controlPlane": {
+      "overallHash": "0f98a4cf4ba8599eda53f506ee55fd9aeef1704539a5b7ee3b2ee417ea963ca8",
+      "groupHashes": {
+        "streams": "678806b6023f9bec7c06738a8ee923b467ceb4100856ccae5124d3632ddf40b4",
+        "functions": "8d09baa3737bd68fc7b8f11fd3ead62f792cc08016c7a458016306feabc6dc29",
+        "pipelines": "7c44f82520df12f5a89a3d3de98e702f900c0e5938cdeb716647a3396cadd403",
+        "dashboards": "ea0fb19dced862dd23fef18d861f865e62c2f874810b239d016eb05b0576d33b",
+        "alerts": "fc933edc934ef0548f006f66779c0d6e6ea86b38797c8d09e85f4a052b00cffd",
+        "templates": "d8c7b1edb91c237d0cea4093c77ce2be705ca7530efe4a480184f7853d2e72dc",
+        "destinations": "2ce4f440471f88cdd9bb9e45fed2036e5a419191538060ee60be71b2ef832da7"
+      },
+      "objectCounts": {
+        "streams": 3,
+        "functions": 4,
+        "pipelines": 2,
+        "dashboards": 6,
+        "alerts": 7,
+        "templates": 9,
+        "destinations": 1
+      }
+    },
+    "sanitization": {
+      "redacted": true,
+      "secretDropped": true
+    },
+    "alertSmoke": {
+      "alertId": "3Gzg9vpOg9JiQBaBqie02nD8FiF",
+      "quietCycleObserved": true,
+      "eventsAfterQuietWindow": 0,
+      "historyRowCountDuringQuiet": 1,
+      "firingObserved": true,
+      "firingEventCount": 1,
+      "historyRowCountFinal": 3,
+      "historyHits": [
+        {
+          "timestamp": 1784979724992992,
+          "alert_name": "real-eval-probe-1784979663682-ig0hns",
+          "org": "default",
+          "status": "completed",
+          "is_realtime": false,
+          "is_silenced": false,
+          "start_time": 1784979660000000,
+          "end_time": 1784979720000000,
+          "retries": 0,
+          "error": null,
+          "success_response": null,
+          "is_partial": null,
+          "delay_in_secs": 4,
+          "evaluation_took_in_secs": 0.005357548,
+          "source_node": "7f9ccd1d101d",
+          "query_took": 4
+        },
+        {
+          "timestamp": 1784979704993346,
+          "alert_name": "real-eval-probe-1784979663682-ig0hns",
+          "org": "default",
+          "status": "condition_not_satisfied",
+          "is_realtime": false,
+          "is_silenced": false,
+          "start_time": 1784979644023484,
+          "end_time": 1784979704023484,
+          "retries": 0,
+          "error": null,
+          "success_response": null,
+          "is_partial": null,
+          "delay_in_secs": 0,
+          "evaluation_took_in_secs": 0.005351714,
+          "source_node": "7f9ccd1d101d",
+          "query_took": 4
+        },
+        {
+          "timestamp": 1784979664993449,
+          "alert_name": "real-eval-probe-1784979663682-ig0hns",
+          "org": "default",
+          "status": "condition_not_satisfied",
+          "is_realtime": false,
+          "is_silenced": false,
+          "start_time": 1784979603830399,
+          "end_time": 1784979663830399,
+          "retries": 0,
+          "error": null,
+          "success_response": null,
+          "is_partial": null,
+          "delay_in_secs": 1,
+          "evaluation_took_in_secs": 0.005470114,
+          "source_node": "7f9ccd1d101d",
+          "query_took": 4
+        }
+      ]
+    },
+    "startupMs": 6188,
+    "volumeSizeKiB": 6704
+  },
+  "upgrade": {
+    "startupMs": 7405,
+    "elapsedMs": 9853,
+    "oldRumdata": true,
+    "oldRumlog": true,
+    "smoke": {
+      "newMarker": "upgrade-new-f82d8c5d-07f4-4b99-8845-e7ca5e8ce071",
+      "newVisible": true,
+      "controlPlane": {
+        "overallHash": "6840c37b8cb80832ea5a27fe1d1527ccc3865a0783925b1ac14d386cd5727cd1",
+        "groupHashes": {
+          "streams": "678806b6023f9bec7c06738a8ee923b467ceb4100856ccae5124d3632ddf40b4",
+          "functions": "8d09baa3737bd68fc7b8f11fd3ead62f792cc08016c7a458016306feabc6dc29",
+          "pipelines": "7c44f82520df12f5a89a3d3de98e702f900c0e5938cdeb716647a3396cadd403",
+          "dashboards": "5741a9efcc920f90e5f11c2ac6e784c1b9e109304972d480d4eaca04b4c0d7c9",
+          "alerts": "8b9f2b50c4927940be2b1bf5dc95e85c685abce6801328eaa2fa9252ec995417",
+          "templates": "d8c7b1edb91c237d0cea4093c77ce2be705ca7530efe4a480184f7853d2e72dc",
+          "destinations": "902124ac2b97ddc96485dc816af56f4dfd701dce89230aa1acd1adf7a4ba698c"
+        },
+        "objectCounts": {
+          "streams": 3,
+          "functions": 4,
+          "pipelines": 2,
+          "dashboards": 2,
+          "alerts": 1,
+          "templates": 9,
+          "destinations": 1
+        }
+      },
+      "sanitization": {
+        "redacted": true,
+        "secretDropped": true
+      },
+      "alertSmoke": {
+        "alertId": "3GzgYpn2myz0HWEmkctno7fOfev",
+        "quietCycleObserved": true,
+        "eventsAfterQuietWindow": 0,
+        "historyRowCountDuringQuiet": 1,
+        "firingObserved": true,
+        "firingEventCount": 1,
+        "historyRowCountFinal": 3,
+        "historyHits": [
+          {
+            "timestamp": 1784979962758974,
+            "alert_name": "real-eval-probe-1784979861415-sgztu9",
+            "org": "default",
+            "status": "completed",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784979900000000,
+            "end_time": 1784979960000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 2,
+            "evaluation_took_in_secs": 0.004859887,
+            "source_node": "bf6bb46f714b",
+            "query_took": 4
+          },
+          {
+            "timestamp": 1784979902758673,
+            "alert_name": "real-eval-probe-1784979861415-sgztu9",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784979841781322,
+            "end_time": 1784979901781322,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.005165172,
+            "source_node": "bf6bb46f714b",
+            "query_took": 4
+          },
+          {
+            "timestamp": 1784979862759214,
+            "alert_name": "real-eval-probe-1784979861415-sgztu9",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784979801594230,
+            "end_time": 1784979861594230,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.005344075,
+            "source_node": "bf6bb46f714b",
+            "query_took": 4
+          }
+        ]
+      }
+    },
+    "volumeSizeKiB": 5204
+  },
+  "rollback": {
+    "startupMs": 6157,
+    "elapsedMs": 8637,
+    "oldRumdata": true,
+    "oldRumlog": true,
+    "smoke": {
+      "newMarker": "rollback-new-ca229486-63be-4b04-ad0c-ebb9ee121552",
+      "newVisible": true,
+      "controlPlane": {
+        "overallHash": "78f32ee2b1b9e94dc852dd18d1bcff5b32a224ecc53792b3b6578f9a48eee8db",
+        "groupHashes": {
+          "streams": "678806b6023f9bec7c06738a8ee923b467ceb4100856ccae5124d3632ddf40b4",
+          "functions": "8d09baa3737bd68fc7b8f11fd3ead62f792cc08016c7a458016306feabc6dc29",
+          "pipelines": "7c44f82520df12f5a89a3d3de98e702f900c0e5938cdeb716647a3396cadd403",
+          "dashboards": "5741a9efcc920f90e5f11c2ac6e784c1b9e109304972d480d4eaca04b4c0d7c9",
+          "alerts": "8b9f2b50c4927940be2b1bf5dc95e85c685abce6801328eaa2fa9252ec995417",
+          "templates": "9f3d002792cb1d44a3233145577d8d24c6e19d1160cd40ccfcef9f9e97e01ef7",
+          "destinations": "902124ac2b97ddc96485dc816af56f4dfd701dce89230aa1acd1adf7a4ba698c"
+        },
+        "objectCounts": {
+          "streams": 3,
+          "functions": 4,
+          "pipelines": 2,
+          "dashboards": 2,
+          "alerts": 1,
+          "templates": 9,
+          "destinations": 1
+        }
+      },
+      "sanitization": {
+        "redacted": true,
+        "secretDropped": true
+      },
+      "alertSmoke": {
+        "alertId": "3GzgnfQjVUebsP1UnSQNny53AuA",
+        "quietCycleObserved": true,
+        "eventsAfterQuietWindow": 0,
+        "historyRowCountDuringQuiet": 1,
+        "firingObserved": true,
+        "firingEventCount": 1,
+        "historyRowCountFinal": 3,
+        "historyHits": [
+          {
+            "timestamp": 1784980080989239,
+            "alert_name": "real-eval-probe-1784979979648-v1atqm",
+            "org": "default",
+            "status": "completed",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784980020000000,
+            "end_time": 1784980080000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.005003033,
+            "source_node": "d979dfc1a410",
+            "query_took": 4
+          },
+          {
+            "timestamp": 1784980020989209,
+            "alert_name": "real-eval-probe-1784979979648-v1atqm",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784979960036213,
+            "end_time": 1784980020036213,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.005113944,
+            "source_node": "d979dfc1a410",
+            "query_took": 4
+          },
+          {
+            "timestamp": 1784979980989318,
+            "alert_name": "real-eval-probe-1784979979648-v1atqm",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784979919823592,
+            "end_time": 1784979979823592,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.005018233,
+            "source_node": "d979dfc1a410",
+            "query_took": 4
+          }
+        ]
+      }
+    },
+    "volumeSizeKiB": 5204
+  },
+  "reUpgrade": {
+    "startupMs": 6067,
+    "elapsedMs": 8538,
+    "oldRumdata": true,
+    "oldRumlog": true,
+    "smoke": {
+      "newMarker": "reUpgrade-new-df58b501-42a5-489e-a693-520210c6695d",
+      "newVisible": true,
+      "controlPlane": {
+        "overallHash": "6840c37b8cb80832ea5a27fe1d1527ccc3865a0783925b1ac14d386cd5727cd1",
+        "groupHashes": {
+          "streams": "678806b6023f9bec7c06738a8ee923b467ceb4100856ccae5124d3632ddf40b4",
+          "functions": "8d09baa3737bd68fc7b8f11fd3ead62f792cc08016c7a458016306feabc6dc29",
+          "pipelines": "7c44f82520df12f5a89a3d3de98e702f900c0e5938cdeb716647a3396cadd403",
+          "dashboards": "5741a9efcc920f90e5f11c2ac6e784c1b9e109304972d480d4eaca04b4c0d7c9",
+          "alerts": "8b9f2b50c4927940be2b1bf5dc95e85c685abce6801328eaa2fa9252ec995417",
+          "templates": "d8c7b1edb91c237d0cea4093c77ce2be705ca7530efe4a480184f7853d2e72dc",
+          "destinations": "902124ac2b97ddc96485dc816af56f4dfd701dce89230aa1acd1adf7a4ba698c"
+        },
+        "objectCounts": {
+          "streams": 3,
+          "functions": 4,
+          "pipelines": 2,
+          "dashboards": 2,
+          "alerts": 1,
+          "templates": 9,
+          "destinations": 1
+        }
+      },
+      "sanitization": {
+        "redacted": true,
+        "secretDropped": true
+      },
+      "alertSmoke": {
+        "alertId": "3Gzh2Ut4GnofvyRks2dhBLbAdM9",
+        "quietCycleObserved": true,
+        "eventsAfterQuietWindow": 0,
+        "historyRowCountDuringQuiet": 1,
+        "firingObserved": true,
+        "firingEventCount": 1,
+        "historyRowCountFinal": 2,
+        "historyHits": [
+          {
+            "timestamp": 1784980139099884,
+            "alert_name": "real-eval-probe-1784980097768-tuet1s",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784980078112022,
+            "end_time": 1784980138112022,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.004936936,
+            "source_node": "3753300d5eb4",
+            "query_took": 4
+          },
+          {
+            "timestamp": 1784980099100258,
+            "alert_name": "real-eval-probe-1784980097768-tuet1s",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784980037933313,
+            "end_time": 1784980097933313,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.005476054,
+            "source_node": "3753300d5eb4",
+            "query_took": 4
+          }
+        ]
+      }
+    },
+    "volumeSizeKiB": 5256
+  },
+  "targetLogicalRestore": {
+    "startupMs": 6622,
+    "restoreResults": {
+      "streams": [
+        {
+          "id": "_rumdata",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "_rumlog",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "_chicek_delivery_ops",
+          "action": "NO_CHANGE"
+        }
+      ],
+      "functions": [
+        {
+          "id": "chicek_rumlog_sanitize_v1",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "chicek_correlation_normalize_v1",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "chicek_rum_sanitize_v1",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "chicek_sanitization_cleanup_v1",
+          "action": "NO_CHANGE"
+        }
+      ],
+      "pipelines": [
+        {
+          "id": "chicek_rumdata_sanitize_pipeline_v1",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "chicek_rumlog_sanitize_pipeline_v1",
+          "action": "NO_CHANGE"
+        }
+      ],
+      "dashboards": [
+        {
+          "id": "CHICEK Starters::CHICEK Delivery Operations",
+          "action": "CREATED"
+        },
+        {
+          "id": "CHICEK Starters::Error Analysis",
+          "action": "CREATED"
+        },
+        {
+          "id": "CHICEK Starters::Frontend Operations",
+          "action": "CREATED"
+        },
+        {
+          "id": "CHICEK Starters::Performance and Resources",
+          "action": "CREATED"
+        },
+        {
+          "id": "CHICEK Starters::Session Investigation",
+          "action": "CREATED"
+        }
+      ],
+      "templates": [
+        {
+          "id": "chicek-alert-governance-local-aggregate",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_discord",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_email",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_msteams",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_opsgenie",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_pagerduty",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_servicenow",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_slack",
+          "action": "NO_CHANGE"
+        },
+        {
+          "id": "prebuilt_webhook",
+          "action": "NO_CHANGE"
+        }
+      ],
+      "destinations": [
+        {
+          "id": "chicek-alert-governance-local-alert-sink",
+          "action": "CREATED",
+          "status": 200
+        }
+      ],
+      "alerts": [
+        {
+          "id": "delivery-ops-freshness",
+          "action": "CREATED"
+        },
+        {
+          "id": "delivery-queue-pressure",
+          "action": "CREATED"
+        },
+        {
+          "id": "error-session-rate",
+          "action": "CREATED"
+        },
+        {
+          "id": "errors-per-thousand-views",
+          "action": "CREATED"
+        },
+        {
+          "id": "resource-failure-rate",
+          "action": "CREATED"
+        },
+        {
+          "id": "telemetry-freshness",
+          "action": "CREATED"
+        },
+        {
+          "id": "web-vital-degradation",
+          "action": "CREATED"
+        }
+      ]
+    },
+    "finalOverallHash": "4130a08495e8af3206cb47b7ce5a968be4a942f207ee3d63d124433f4dd170f5",
+    "oldRumdata": true,
+    "oldRumlog": true,
+    "replayStreamAbsent": true
+  },
+  "sourceFixture": {
+    "overallHash": "78f32ee2b1b9e94dc852dd18d1bcff5b32a224ecc53792b3b6578f9a48eee8db",
+    "objectCounts": {
+      "streams": 3,
+      "functions": 4,
+      "pipelines": 2,
+      "dashboards": 2,
+      "alerts": 1,
+      "templates": 9,
+      "destinations": 1
+    }
+  },
+  "sourceBackup": {
+    "archive": ".runtime/recovery/2026-07-25T11-40-26-974Z/backups/source-openobserve-data.tar",
+    "sha256": "c808f9ae485577540d409b2f5b670a248be50cc9670978f762473b1cc2a5d389",
+    "bytes": 1615644672,
+    "volumeSizeKiB": 4968
+  },
+  "sourceRestore": {
+    "startupMs": 6141,
+    "elapsedMs": 14442,
+    "oldRumdata": true,
+    "oldRumlog": true,
+    "smoke": {
+      "newMarker": "sourceRestore-new-c2666a63-1c50-47af-9f8c-2b59c8ff7fd8",
+      "newVisible": true,
+      "controlPlane": {
+        "overallHash": "78f32ee2b1b9e94dc852dd18d1bcff5b32a224ecc53792b3b6578f9a48eee8db",
+        "groupHashes": {
+          "streams": "678806b6023f9bec7c06738a8ee923b467ceb4100856ccae5124d3632ddf40b4",
+          "functions": "8d09baa3737bd68fc7b8f11fd3ead62f792cc08016c7a458016306feabc6dc29",
+          "pipelines": "7c44f82520df12f5a89a3d3de98e702f900c0e5938cdeb716647a3396cadd403",
+          "dashboards": "5741a9efcc920f90e5f11c2ac6e784c1b9e109304972d480d4eaca04b4c0d7c9",
+          "alerts": "8b9f2b50c4927940be2b1bf5dc95e85c685abce6801328eaa2fa9252ec995417",
+          "templates": "9f3d002792cb1d44a3233145577d8d24c6e19d1160cd40ccfcef9f9e97e01ef7",
+          "destinations": "902124ac2b97ddc96485dc816af56f4dfd701dce89230aa1acd1adf7a4ba698c"
+        },
+        "objectCounts": {
+          "streams": 3,
+          "functions": 4,
+          "pipelines": 2,
+          "dashboards": 2,
+          "alerts": 1,
+          "templates": 9,
+          "destinations": 1
+        }
+      },
+      "sanitization": {
+        "redacted": true,
+        "secretDropped": true
+      },
+      "alertSmoke": {
+        "alertId": "3GzgMLot9lZNbk63G4q8b2pL1Qp",
+        "quietCycleObserved": true,
+        "eventsAfterQuietWindow": 0,
+        "historyRowCountDuringQuiet": 2,
+        "firingObserved": true,
+        "firingEventCount": 1,
+        "historyRowCountFinal": 4,
+        "historyHits": [
+          {
+            "timestamp": 1784979843954278,
+            "alert_name": "real-eval-probe-1784979762634-nnlqpu",
+            "org": "default",
+            "status": "completed",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784979780000000,
+            "end_time": 1784979840000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 3,
+            "evaluation_took_in_secs": 0.005152803,
+            "source_node": "7a8c65f4a4cd",
+            "query_took": 4
+          },
+          {
+            "timestamp": 1784979803953866,
+            "alert_name": "real-eval-probe-1784979762634-nnlqpu",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784979743029371,
+            "end_time": 1784979803029371,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 0,
+            "evaluation_took_in_secs": 0.005316527,
+            "source_node": "7a8c65f4a4cd",
+            "query_took": 4
+          },
+          {
+            "timestamp": 1784979783953899,
+            "alert_name": "real-eval-probe-1784979762634-nnlqpu",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784979720000000,
+            "end_time": 1784979780000000,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 3,
+            "evaluation_took_in_secs": 0.005816384,
+            "source_node": "7a8c65f4a4cd",
+            "query_took": 5
+          },
+          {
+            "timestamp": 1784979763953924,
+            "alert_name": "real-eval-probe-1784979762634-nnlqpu",
+            "org": "default",
+            "status": "condition_not_satisfied",
+            "is_realtime": false,
+            "is_silenced": false,
+            "start_time": 1784979702808163,
+            "end_time": 1784979762808163,
+            "retries": 0,
+            "error": null,
+            "success_response": null,
+            "is_partial": null,
+            "delay_in_secs": 1,
+            "evaluation_took_in_secs": 0.005978398,
+            "source_node": "7a8c65f4a4cd",
+            "query_took": 5
+          }
+        ]
+      }
+    },
+    "volumeSizeKiB": 5204
+  },
+  "rpo": {
+    "labColdSnapshot": "0",
+    "rationale": "Cold tar snapshot is taken from a live clone of the volume; the main service is never stopped."
+  },
+  "sessionReplay": {
+    "replayRegressionClosed": true,
+    "sessionReplayStreamAbsent": false
+  },
+  "streamGovernance": {
+    "firstRun": {
+      "_rumdata": "NO_CHANGE",
+      "_rumlog": "NO_CHANGE"
+    },
+    "secondRun": {
+      "_rumdata": "NO_CHANGE",
+      "_rumlog": "NO_CHANGE"
+    },
+    "verify": {
+      "_rumdata": "NO_DRIFT",
+      "_rumlog": "NO_DRIFT"
+    }
+  },
+  "backupManifest": {
+    "generatedAt": "2026-07-25T11:49:28.162Z",
+    "sourceVersion": {
+      "tag": "v0.91.0",
+      "digest": "sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8",
+      "image": "public.ecr.aws/zinclabs/openobserve:v0.91.0@sha256:d611fdb1b07c8a27b5876bdc0c69323e4ea3430daa90feb571a03999aedc77e8"
+    },
+    "targetVersion": {
+      "tag": "v0.91.2",
+      "digest": "sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15",
+      "image": "public.ecr.aws/zinclabs/openobserve:v0.91.2@sha256:ece1116d39c00e6039094c8b3d07333f65ecfa7c881ca0a35476454825572e15"
+    },
+    "files": [
+      {
+        "role": "target-logical-control-plane-export",
+        "path": ".runtime/recovery/2026-07-25T11-40-26-974Z/backups/target-logical-export.json",
+        "sha256": "f205b2d4fd3cfa1870fec49dae751c5626e557cabd5b301a333807775bae574f",
+        "bytes": 233859
+      },
+      {
+        "role": "target-cold-data-volume",
+        "path": ".runtime/recovery/2026-07-25T11-40-26-974Z/backups/target-openobserve-data.tar",
+        "sha256": "461717024885e66855a7430eb7b5dda0d25c267a3c143e8d86ccd91ad98eca5d",
+        "bytes": 1617012224
+      },
+      {
+        "role": "source-cold-data-volume",
+        "path": ".runtime/recovery/2026-07-25T11-40-26-974Z/backups/source-openobserve-data.tar",
+        "sha256": "c808f9ae485577540d409b2f5b670a248be50cc9670978f762473b1cc2a5d389",
+        "bytes": 1615644672
+      }
+    ],
+    "objectCounts": {
+      "streams": 3,
+      "functions": 4,
+      "pipelines": 2,
+      "dashboards": 6,
+      "alerts": 7,
+      "templates": 9,
+      "destinations": 1
+    }
+  },
+  "runtimeResultPath": ".runtime/recovery/2026-07-25T11-40-26-974Z/recovery-results.json"
+}

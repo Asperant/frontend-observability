@@ -96,7 +96,7 @@ async function runInitialization(registry, options) {
     return result(false, runtime);
   }
 
-  // The narrow runtime-control overlay (Stage 14) is a hard gate on
+  // The narrow runtime-control overlay (runtime-control) is a hard gate on
   // activation, independent of the immutable runtime config above: no
   // browser/log telemetry may ever leave this page before a first valid
   // control document has been obtained. A shutdown()+reinitialize() cycle on

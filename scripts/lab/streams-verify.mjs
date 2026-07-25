@@ -1,7 +1,7 @@
 // `pnpm lab:streams:verify` — read-back-only API + drift/hash check for
 // both canonical streams: settings drift (vs the desired manifest), native
 // schema type drift (vs the schema-contract's knownFieldTypes), and
-// pipeline destination drift (the Stage 9 sanitization pipeline must still
+// pipeline destination drift (the sanitization sanitization pipeline must still
 // target the same canonical stream it was provisioned against). Never
 // writes. A stable settings hash is printed per stream so a human/CI diff
 // across two runs can spot a change even without re-reading this script's

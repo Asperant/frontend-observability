@@ -1,7 +1,7 @@
-// Stage 20 closeout: a real, full logical control-plane export/restore —
+// native OpenObserve UI: a real, full logical control-plane export/restore —
 // object *definitions* (stream settings/schemas, functions, pipelines,
 // dashboard folders/dashboards/panels/queries, alerts, templates,
-// destinations), not the count-only inventory the prior Stage 20 proof
+// destinations), not the count-only inventory the prior recovery proof
 // produced. Every object and object-group gets a SHA-256 over its
 // normalized (volatile-field-stripped) JSON, so two independent exports of
 // the same real state hash identically and a real drift is detectable.
@@ -16,8 +16,8 @@
 // Deliberately uses its own local `apiFetch(baseUrl, ...)` rather than
 // scripts/lab/{streams,dashboards,alerts}/admin-client.mjs, which all
 // hardcode the canonical main lab's 127.0.0.1:5080 — this module is reused
-// against disposable Stage 20 recovery targets on other ports
-// (scripts/recovery/run-stage20-proof.mjs), so every request must go
+// against disposable recovery targets on other ports
+// (scripts/recovery/verify-openobserve-recovery.mjs), so every request must go
 // through the caller-supplied `baseUrl`.
 import { createHash } from "node:crypto";
 

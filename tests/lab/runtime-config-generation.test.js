@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { validateRuntimeConfig } from "../../packages/contracts/src/validators.js";
+import { validateRuntimeConfig } from "../../packages/observability-contracts/src/validators.js";
 import { buildLabRuntimeConfig } from "../../scripts/lab/generate-runtime-config.mjs";
 import { ensureSecrets } from "../../scripts/lab/generate-secrets.mjs";
 import { generateRuntimeConfig } from "../../scripts/lab/generate-runtime-config.mjs";

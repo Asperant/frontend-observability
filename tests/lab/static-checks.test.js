@@ -63,10 +63,10 @@ describe("static compose safety checks (against the real infrastructure/docker/c
     expect(services["reverse-proxy"].networks).toContain("edge-publish");
     expect(services.openobserve.networks).toContain("edge-publish");
     expect(services.rabbitmq.networks).toContain("edge-publish");
-    expect(services["demo-frontend"].networks ?? []).not.toContain("edge-publish");
-    expect(services["mock-api"].networks ?? []).not.toContain("edge-publish");
-    expect(services["durable-ingest"].networks ?? []).not.toContain("edge-publish");
-    expect(services["delivery-worker"].networks ?? []).not.toContain("edge-publish");
+    expect(services["browser-app"].networks ?? []).not.toContain("edge-publish");
+    expect(services["http-test-service"].networks ?? []).not.toContain("edge-publish");
+    expect(services["telemetry-ingest"].networks ?? []).not.toContain("edge-publish");
+    expect(services["telemetry-delivery-worker"].networks ?? []).not.toContain("edge-publish");
 
     const publishedPorts = Object.values(services).flatMap((service) => service.ports ?? []);
     expect(new Set(publishedPorts)).toEqual(
@@ -74,15 +74,15 @@ describe("static compose safety checks (against the real infrastructure/docker/c
     );
   });
 
-  it("flags demo-frontend or mock-api if they join edge-publish", () => {
+  it("flags browser-app or http-test-service if they join edge-publish", () => {
     const doc = {
       services: {
         "reverse-proxy": {
           networks: ["app-internal", "edge-publish"],
           ports: ["127.0.0.1:8443:8443"],
         },
-        "demo-frontend": { networks: ["app-internal", "edge-publish"] },
-        "mock-api": { networks: ["app-internal", "edge-publish"] },
+        "browser-app": { networks: ["app-internal", "edge-publish"] },
+        "http-test-service": { networks: ["app-internal", "edge-publish"] },
         openobserve: {
           networks: ["observability-internal", "edge-publish"],
           ports: ["127.0.0.1:5080:5080"],
@@ -93,8 +93,8 @@ describe("static compose safety checks (against the real infrastructure/docker/c
     expect(result.pass).toBe(false);
     expect(result.findings).toEqual(
       expect.arrayContaining([
-        expect.stringContaining("demo-frontend"),
-        expect.stringContaining("mock-api"),
+        expect.stringContaining("browser-app"),
+        expect.stringContaining("http-test-service"),
       ]),
     );
   });
@@ -103,8 +103,8 @@ describe("static compose safety checks (against the real infrastructure/docker/c
     const doc = {
       services: {
         "reverse-proxy": { networks: ["app-internal"], ports: ["127.0.0.1:8443:8443"] },
-        "demo-frontend": { networks: ["app-internal"] },
-        "mock-api": { networks: ["app-internal"] },
+        "browser-app": { networks: ["app-internal"] },
+        "http-test-service": { networks: ["app-internal"] },
         openobserve: { networks: ["observability-internal"], ports: ["127.0.0.1:5080:5080"] },
       },
     };

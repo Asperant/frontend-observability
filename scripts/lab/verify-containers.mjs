@@ -20,11 +20,13 @@ function runInImage(image, args) {
 
 const NON_ROOT_USERS = {
   "reverse-proxy": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
-  "demo-frontend": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
-  "mock-api": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
-  "durable-ingest": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
+  "browser-app": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
+  "http-test-service": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
+  "telemetry-ingest": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
   rabbitmq: (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
-  "delivery-worker": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
+  "telemetry-delivery-worker": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
+  "observability-control-plane": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
+  "session-metadata-sync": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
   "alert-sink": (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
   openobserve: (user) => user !== "" && user !== "0" && !user.startsWith("0:"),
 };
@@ -35,7 +37,10 @@ export function checkContainerSecurity() {
   for (const service of SERVICES) {
     const name = containerName(service);
     const user = dockerInspect(name, "{{.Config.User}}");
-    if (!NON_ROOT_USERS[service](user)) {
+    const nonRootUser = NON_ROOT_USERS[service];
+    if (typeof nonRootUser !== "function") {
+      findings.push(`${service}: missing non-root user validator.`);
+    } else if (!nonRootUser(user)) {
       findings.push(`${service}: expected a non-root user, got "${user}".`);
     }
 
@@ -55,21 +60,27 @@ export function checkContainerSecurity() {
     }
   }
 
-  const nodeCheck = runInImage("chicek-lab/demo-frontend:6.0.0", "command -v node || echo MISSING");
+  const nodeCheck = runInImage(
+    "chicek-lab/browser-app-fixture:6.0.0",
+    "command -v node || echo MISSING",
+  );
   if (!nodeCheck.stdout.includes("MISSING")) {
-    findings.push("demo-frontend image contains a node executable.");
+    findings.push("browser-app image contains a node executable.");
   }
-  const pnpmCheck = runInImage("chicek-lab/demo-frontend:6.0.0", "command -v pnpm || echo MISSING");
+  const pnpmCheck = runInImage(
+    "chicek-lab/browser-app-fixture:6.0.0",
+    "command -v pnpm || echo MISSING",
+  );
   if (!pnpmCheck.stdout.includes("MISSING")) {
-    findings.push("demo-frontend image contains a pnpm executable.");
+    findings.push("browser-app image contains a pnpm executable.");
   }
 
   const mapCheck = runInImage(
-    "chicek-lab/demo-frontend:6.0.0",
+    "chicek-lab/browser-app-fixture:6.0.0",
     "grep -rl sourceMappingURL /usr/share/nginx/html || echo NO_MAPS",
   );
   if (!mapCheck.stdout.includes("NO_MAPS")) {
-    findings.push("demo-frontend image dist output contains a source map reference.");
+    findings.push("browser-app image dist output contains a source map reference.");
   }
 
   return { pass: findings.length === 0, findings };

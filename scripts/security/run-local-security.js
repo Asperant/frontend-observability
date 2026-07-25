@@ -34,7 +34,7 @@ step("secret scan (repo source and fixtures)", () => {
 step("bundle secret scan (dist output)", () => {
   const distDirs = [
     `${repoRoot}packages/browser-observability/dist`,
-    `${repoRoot}apps/demo-frontend/dist`,
+    `${repoRoot}tests/fixtures/apps/browser-app/dist`,
   ].filter((dir) => existsSync(dir));
 
   if (distDirs.length === 0) {

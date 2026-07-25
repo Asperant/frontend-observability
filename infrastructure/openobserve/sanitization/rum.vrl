@@ -13,6 +13,9 @@ if match(raw, r'(?i)(authorization|cookie|set-cookie|bearer\s+[a-z0-9._~+/=-]{16
 del(.usr)
 del(.user)
 del(.account)
+del(.ip)
+del(.client_ip)
+del(.remote_addr)
 del(.headers)
 del(.Headers)
 del(.request)
@@ -43,7 +46,7 @@ del(.chicek_correlation_trusted)
 # `WHERE session_has_replay IS NOT NULL`, so every real session still needs the
 # value present (false is accurate: replay never runs) to appear in the list.
 # Force-set (never "only if missing"): the RUM client token is a non-secret,
-# browser-exposed credential (Stage 8), so a direct, non-SDK POST to the
+# browser-exposed credential (OpenObserve integration), so a direct, non-SDK POST to the
 # ingestion endpoint could otherwise forge session.has_replay:true straight
 # through — has_replay must always be exactly the boolean false, regardless
 # of what a caller already sent, never a caller-controlled value.

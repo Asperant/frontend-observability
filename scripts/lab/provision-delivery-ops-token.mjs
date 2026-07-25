@@ -47,8 +47,7 @@ async function createToken() {
     method: "POST",
     body: {
       name: TOKEN_NAME,
-      description:
-        "CHICEK Stage 20.5 delivery operations aggregate ingestion only. Not a browser credential.",
+      description: "CHICEK delivery operations aggregate ingestion only. Not a browser credential.",
     },
   });
   const token = body?.data?.token;

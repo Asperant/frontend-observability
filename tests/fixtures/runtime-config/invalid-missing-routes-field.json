@@ -3,16 +3,24 @@
   "enabled": true,
   "issuedAt": "2026-07-19T00:00:00.000Z",
   "expiresAt": "2026-08-19T00:00:00.000Z",
-  "killSwitch": { "engaged": false },
+  "killSwitch": {
+    "engaged": false
+  },
   "privacyProfile": "strict",
-  "sampling": { "sessionSampleRate": 0.1 },
+  "sampling": {
+    "sessionSampleRate": 0.1
+  },
   "rum": {
     "site": "telemetry.example-test.invalid",
     "organizationIdentifier": "chicek-fixture-org",
-    "applicationId": "demo-frontend-fixture",
+    "applicationId": "browser-app-fixture",
     "clientToken": "fixture client token test value",
     "apiVersion": "v1"
   },
-  "browserLogs": { "enabled": true },
-  "sessionReplay": { "enabled": false }
+  "browserLogs": {
+    "enabled": true
+  },
+  "sessionReplay": {
+    "enabled": false
+  }
 }

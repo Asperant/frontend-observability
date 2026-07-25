@@ -1,6 +1,6 @@
 // Pure destructive-operation guard for OpenObserve stream lifecycle
 // operations. No I/O: callers (scripts/lab/streams-provision.mjs,
-// scripts/lab/verify-stage15-streams.mjs) are responsible for actually
+// scripts/lab/verify-streams.mjs) are responsible for actually
 // performing or refusing the HTTP call based on this module's verdict.
 
 export const CANONICAL_STREAMS = Object.freeze(["_rumdata", "_rumlog"]);
@@ -50,7 +50,7 @@ export function validateDestructiveTarget({ org, streamName, confirmed }) {
 
 // The only distinct_value_fields value (besides clearing to `[]`) automatic
 // provisioning may ever write. `service`/`env` are bounded, single-value
-// identity fields in this lab (apps/demo-frontend/src/identity.js), not
+// identity fields in this lab (tests/fixtures/apps/browser-app/src/identity.js), not
 // unbounded/high-cardinality data — see
 // docs/openobserve-stream-schema-lifecycle.md#index-and-partition-decision
 // for why this specific pair was allowlisted instead of the empty default.
@@ -60,7 +60,7 @@ export function validateDestructiveTarget({ org, streamName, confirmed }) {
 const LOW_CARDINALITY_DISTINCT_VALUE_FIELDS = Object.freeze(["service", "env"]);
 
 /**
- * True only for the exact settings fields Stage 15 provisioning is allowed
+ * True only for the exact settings fields stream-lifecycle provisioning is allowed
  * to change automatically (§5 of the roadmap task): a value can never
  * enable UDS/store_original_data, change a field's type (not representable
  * as a settings-only change at all), remove a field, or delete

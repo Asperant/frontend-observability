@@ -4,7 +4,7 @@
   "starterVersion": 1,
   "folderName": "CHICEK Starters",
   "title": "CHICEK Delivery Operations",
-  "description": "Aggregate durable telemetry delivery operations. This dashboard reads only _chicek_delivery_ops summaries emitted by internal services; it never displays queued RUM/log payloads.",
+  "description": "Aggregate telemetry delivery delivery operations. This dashboard reads only _chicek_delivery_ops summaries emitted by internal services; it never displays queued RUM/log payloads.",
   "tabs": [
     {
       "tabId": "delivery",
@@ -34,7 +34,7 @@
           "title": "Worker state",
           "description": "",
           "config": { "show_legends": false },
-          "queryRef": "delivery-worker-state",
+          "queryRef": "telemetry-delivery-worker-state",
           "layout": { "x": 0, "y": 16, "w": 48, "h": 10, "i": 3 }
         }
       ]

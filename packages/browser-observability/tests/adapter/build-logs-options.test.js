@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { buildLogsOptions } from "../../src/adapter/openobserve/build-logs-options.js";
 
 const identity = Object.freeze({
-  service: "demo-frontend",
+  service: "browser-app",
   environment: "production",
   version: "1.2.3",
 });
@@ -11,17 +11,17 @@ const policy = Object.freeze({
   rum: Object.freeze({
     site: "localhost:8443",
     organizationIdentifier: "default",
-    applicationId: "chicek-demo-frontend",
+    applicationId: "chicek-browser-app",
     clientToken: "a".repeat(48),
     apiVersion: "v1",
   }),
-  sampling: Object.freeze({ sessionSampleRate: 0.25, errorSampleRate: 1 }),
+  sampling: Object.freeze({ sessionSampleRate: 0.25 }),
 });
 
 describe("buildLogsOptions", () => {
   it("maps host identity and connection fields through (no applicationId — logs has none)", () => {
     const options = buildLogsOptions(identity, policy);
-    expect(options.service).toBe("demo-frontend");
+    expect(options.service).toBe("browser-app");
     expect(options.env).toBe("production");
     expect(options.version).toBe("1.2.3");
     expect(options.site).toBe("localhost:8443");

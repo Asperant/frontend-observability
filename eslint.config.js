@@ -87,8 +87,9 @@ export default [
                 "packages/browser-observability must not depend on React or any UI framework.",
             },
             {
-              group: ["**/apps/**", "**/demo-frontend/**", "**/mock-api/**"],
-              message: "packages/browser-observability must not import demo or mock-api code.",
+              group: ["**/apps/**", "**/browser-app-fixture/**", "**/http-test-service-fixture/**"],
+              message:
+                "packages/browser-observability must not import demo or http-test-service code.",
             },
           ],
         },
@@ -96,9 +97,9 @@ export default [
     },
   },
 
-  // packages/contracts: production package, Node + browser agnostic (pure JS).
+  // packages/observability-contracts: production package, Node + browser agnostic (pure JS).
   {
-    files: ["packages/contracts/src/**/*.js"],
+    files: ["packages/observability-contracts/src/**/*.js"],
     languageOptions: {
       globals: {
         ...globals.es2021,
@@ -111,7 +112,8 @@ export default [
           patterns: [
             {
               group: ["**/apps/**", "react", "react-dom"],
-              message: "packages/contracts must remain a framework-agnostic validation library.",
+              message:
+                "packages/observability-contracts must remain a framework-agnostic validation library.",
             },
           ],
         },
@@ -119,9 +121,9 @@ export default [
     },
   },
 
-  // packages/durable-telemetry: Node-only durable delivery primitives.
+  // packages/telemetry-delivery-core: Node-only durable delivery primitives.
   {
-    files: ["packages/durable-telemetry/src/**/*.js"],
+    files: ["packages/telemetry-delivery-core/src/**/*.js"],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -129,9 +131,12 @@ export default [
     },
   },
 
-  // apps/demo-frontend: React + browser, may only use the public package API.
+  // tests/fixtures/apps/browser-app: React + browser, may only use the public package API.
   {
-    files: ["apps/demo-frontend/src/**/*.js", "apps/demo-frontend/src/**/*.jsx"],
+    files: [
+      "tests/fixtures/apps/browser-app/src/**/*.js",
+      "tests/fixtures/apps/browser-app/src/**/*.jsx",
+    ],
     plugins: { react, "react-hooks": reactHooks },
     languageOptions: {
       globals: {
@@ -159,10 +164,10 @@ export default [
                 "openobserve*",
                 "@chicek/browser-observability/*",
                 "**/browser-observability/src/**",
-                "**/mock-api/**",
+                "**/http-test-service-fixture/**",
               ],
               message:
-                "demo-frontend may only import the public @chicek/browser-observability API, never OpenObserve packages, internal package paths, or mock-api source.",
+                "browser-app may only import the public @chicek/browser-observability API, never OpenObserve packages, internal package paths, or http-test-service source.",
             },
           ],
         },
@@ -170,9 +175,9 @@ export default [
     },
   },
 
-  // apps/mock-api: Node built-in HTTP only.
+  // tests/fixtures/apps/http-test-service: Node built-in HTTP only.
   {
-    files: ["apps/mock-api/src/**/*.js"],
+    files: ["tests/fixtures/apps/http-test-service/src/**/*.js"],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -183,9 +188,14 @@ export default [
     },
   },
 
-  // Stage 20.5 internal Node services.
+  // Internal Node product services.
   {
-    files: ["apps/durable-ingest/src/**/*.js", "apps/delivery-worker/src/**/*.js"],
+    files: [
+      "apps/telemetry-ingest/src/**/*.js",
+      "apps/telemetry-delivery-worker/src/**/*.js",
+      "apps/observability-control-plane/src/**/*.js",
+      "apps/session-metadata-sync/src/**/*.js",
+    ],
     languageOptions: {
       globals: {
         ...globals.node,

@@ -33,7 +33,7 @@
       "type": "Float64"
     }
   ],
-  "emptyDataSemantics": "No matching long_task records in the window -> an empty result set (zero rows/buckets). Native long_task capture is best-effort (see docs/openobserve-v0.91-stream-capabilities.md, Stage 15) so an empty result here is expected and not itself an error.",
+  "emptyDataSemantics": "No matching long_task records in the window -> an empty result set (zero rows/buckets). Native long_task capture is best-effort (see docs/openobserve-v0.91-stream-capabilities.md, stream-lifecycle) so an empty result here is expected and not itself an error.",
   "cardinalityClass": "BOUNDED_TABLE",
   "hasDivisionGuard": false
 }

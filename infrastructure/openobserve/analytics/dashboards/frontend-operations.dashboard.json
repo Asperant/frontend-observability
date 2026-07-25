@@ -184,7 +184,7 @@
           "id": "performance-trend",
           "type": "line",
           "title": "Long task trend (hourly)",
-          "description": "Native long_task capture is best-effort (see docs/openobserve-v0.91-stream-capabilities.md, Stage 15) \u2014 an empty trend is expected, not an error.",
+          "description": "Native long_task capture is best-effort (see docs/openobserve-v0.91-stream-capabilities.md, stream-lifecycle) \u2014 an empty trend is expected, not an error.",
           "config": {
             "show_legends": true
           },

@@ -3,8 +3,8 @@
   "notes": [
     "Every metric here is backed by exactly one query manifest in infrastructure/openobserve/analytics/queries/ (see queryId) — this catalog documents the metric's meaning and safety contract; the query manifest documents the SQL that computes it. See docs/openobserve-query-dashboard-governance.md for the full empty-data/cardinality/time-range rules these entries follow.",
     "'0 != NO_DATA': a metric whose query is a plain COUNT with no matching rows legitimately returns 0 (a real zero), not NO_DATA. A ratio metric whose denominator is 0 returns SQL NULL (via a CASE/NULLIF guard, verified in docs/openobserve-v0.91-dashboard-capabilities.md capability #15/#16) and must be rendered/interpreted as NO_DATA, never coerced to 0. A query execution error (non-200, or a caught SQL error) must never be displayed as 0 or NO_DATA — it is its own distinct state.",
-    "No metric here claims or depends on guaranteed delivery, storage, or purge behavior — see docs/telemetry-delivery-security-decision.md (Stage 13) and docs/session-replay-security-decision.md (Stage 11); these metrics only ever describe what OpenObserve has actually ingested and can currently query.",
-    "alertReady fields are placeholder metadata only (Stage 17 scope) — see docs/openobserve-query-dashboard-governance.md \"Stage 17 alert-ready boundary\". No alert is created, evaluated, or threshold-enforced by this stage."
+    "No metric here claims or depends on guaranteed delivery, storage, or purge behavior — see docs/telemetry-delivery-security-decision.md (telemetry-delivery-security) and docs/session-replay-security-decision.md (replay-disabled); these metrics only ever describe what OpenObserve has actually ingested and can currently query.",
+    "alertReady fields are placeholder metadata only (alert-governance scope) — see docs/openobserve-query-dashboard-governance.md \"alert-governance alert-ready boundary\". No alert is created, evaluated, or threshold-enforced by this stage."
   ],
   "metrics": [
     {
@@ -398,7 +398,7 @@
       "id": "delivery_queue_pressure",
       "queryId": "delivery-queue-depth",
       "displayName": "Durable delivery queue pressure",
-      "description": "Aggregate durable RUM/log queue and DLQ depth emitted by the delivery-worker into _chicek_delivery_ops.",
+      "description": "Aggregate durable RUM/log queue and DLQ depth emitted by the telemetry-delivery-worker into _chicek_delivery_ops.",
       "stream": "_chicek_delivery_ops",
       "eventScope": "aggregate operational summaries only",
       "numerator": "max queue and DLQ depth fields",
@@ -429,9 +429,9 @@
     },
     {
       "id": "delivery_ops_freshness",
-      "queryId": "delivery-worker-state",
+      "queryId": "telemetry-delivery-worker-state",
       "displayName": "Durable delivery ops freshness",
-      "description": "Freshness/state evidence from internal delivery-worker aggregate operational summaries.",
+      "description": "Freshness/state evidence from internal telemetry-delivery-worker aggregate operational summaries.",
       "stream": "_chicek_delivery_ops",
       "eventScope": "aggregate operational summaries only",
       "numerator": "latest aggregate operational event",
@@ -439,7 +439,7 @@
       "unit": "state",
       "aggregation": "latest",
       "requiredFilters": ["service", "environment"],
-      "emptyDataSemantics": "No rows means the delivery-worker has not emitted aggregate operational data in range.",
+      "emptyDataSemantics": "No rows means the telemetry-delivery-worker has not emitted aggregate operational data in range.",
       "timeRangeCeilingHours": 168,
       "cardinalityRisk": "LOW — bounded latest-state table.",
       "schemaDependencies": [

@@ -1,0 +1,298 @@
+import { useEffect, useState } from "react";
+import { getObservabilityStatus, recordError } from "@chicek/browser-observability";
+
+import * as scenarios from "./scenarios.js";
+
+const SCENARIO_GROUPS = [
+  {
+    title: "Lifecycle",
+    items: [
+      { id: "initialize", label: "Initialize", run: scenarios.initializeScenario },
+      {
+        id: "initialize-runtime-config",
+        label: "Initialize (runtime config)",
+        run: scenarios.initializeRuntimeConfigScenario,
+      },
+      {
+        id: "concurrent-init",
+        label: "Concurrent initialize",
+        run: scenarios.concurrentInitializeScenario,
+      },
+      {
+        id: "duplicate-init",
+        label: "Duplicate initialization",
+        run: scenarios.duplicateInitializeScenario,
+      },
+      {
+        id: "conflict-init",
+        label: "Conflicting initialize",
+        run: scenarios.conflictingInitializeScenario,
+      },
+      { id: "config-failure", label: "Config failure", run: scenarios.configFailureScenario },
+      { id: "invalid-config", label: "Invalid config", run: scenarios.invalidConfigScenario },
+      { id: "expired-config", label: "Expired config", run: scenarios.expiredConfigScenario },
+      { id: "config-timeout", label: "Config timeout", run: scenarios.configTimeoutScenario },
+      { id: "disabled-config", label: "Disabled config", run: scenarios.disabledConfigScenario },
+      { id: "shutdown", label: "Shutdown", run: scenarios.shutdownScenario },
+      { id: "reinitialize", label: "Reinitialize", run: scenarios.reinitializeScenario },
+    ],
+  },
+  {
+    title: "Consent",
+    items: [
+      { id: "consent-grant", label: "Grant consent", run: scenarios.grantConsentScenario },
+      { id: "consent-revoke", label: "Revoke consent", run: scenarios.revokeConsentScenario },
+    ],
+  },
+  {
+    title: "Errors",
+    items: [
+      { id: "record-action", label: "Record action", run: scenarios.recordActionScenario },
+      { id: "record-error", label: "Record error", run: scenarios.recordErrorScenario },
+      { id: "runtime-error", label: "Runtime error", run: scenarios.runtimeErrorScenario },
+      {
+        id: "unhandled-rejection",
+        label: "Unhandled promise rejection",
+        run: scenarios.unhandledRejectionScenario,
+      },
+      { id: "resource-error", label: "Resource error", run: scenarios.resourceErrorScenario },
+      { id: "long-task", label: "Long task", run: scenarios.longTaskScenario },
+    ],
+  },
+  {
+    title: "Network",
+    items: [
+      {
+        id: "success-request",
+        label: "Successful request",
+        run: scenarios.successfulRequestScenario,
+      },
+      { id: "client-error", label: "4xx response", run: scenarios.clientErrorScenario },
+      { id: "server-error", label: "5xx response", run: scenarios.serverErrorScenario },
+      { id: "timeout", label: "Timeout", run: scenarios.timeoutScenario },
+      { id: "abort", label: "Abort", run: scenarios.abortScenario },
+    ],
+  },
+  {
+    title: "Telemetry edge cases",
+    items: [
+      {
+        id: "telemetry-failure",
+        label: "Telemetry failure (no-op)",
+        run: scenarios.telemetryFailureScenario,
+      },
+      { id: "safe-action", label: "Safe action", run: scenarios.safeActionScenario },
+      {
+        id: "pii-redacted-action",
+        label: "PII redacted action",
+        run: scenarios.piiRedactedActionScenario,
+      },
+      {
+        id: "secret-dropped-action",
+        label: "Secret dropped action",
+        run: scenarios.secretDroppedActionScenario,
+      },
+      {
+        id: "pii-redacted-error",
+        label: "PII redacted error",
+        run: scenarios.piiRedactedErrorScenario,
+      },
+      {
+        id: "secret-dropped-error",
+        label: "Secret dropped error",
+        run: scenarios.secretDroppedErrorScenario,
+      },
+      {
+        id: "url-normalization",
+        label: "URL normalization",
+        run: scenarios.urlNormalizationScenario,
+      },
+      {
+        id: "unsafe-attributes",
+        label: "Unsafe attributes",
+        run: scenarios.unsafeAttributesScenario,
+      },
+      {
+        id: "network-url-sanitization",
+        label: "Network URL sanitization",
+        run: scenarios.networkUrlSanitizationScenario,
+      },
+      {
+        id: "sanitization-counters",
+        label: "Sanitization counters",
+        run: scenarios.sanitizationCountersScenario,
+      },
+    ],
+  },
+];
+
+function StatusPanel({ status }) {
+  return (
+    <dl data-testid="status-panel">
+      <dt>state</dt>
+      <dd>{status.state}</dd>
+      <dt>consent</dt>
+      <dd>{status.consent}</dd>
+      <dt>configVersion</dt>
+      <dd>{status.configVersion ?? "—"}</dd>
+      <dt>reasonCode</dt>
+      <dd>{status.reasonCode}</dd>
+      <dt>adapter</dt>
+      <dd>{status.adapter ?? "—"}</dd>
+      <dt>acceptedActions</dt>
+      <dd>{status.counters.acceptedActions}</dd>
+      <dt>droppedActions</dt>
+      <dd>{status.counters.droppedActions}</dd>
+      <dt>acceptedErrors</dt>
+      <dd>{status.counters.acceptedErrors}</dd>
+      <dt>droppedErrors</dt>
+      <dd>{status.counters.droppedErrors}</dd>
+      <dt>sanitizationAccepted</dt>
+      <dd>{status.sanitization?.accepted ?? 0}</dd>
+      <dt>sanitizationRedacted</dt>
+      <dd>{status.sanitization?.redacted ?? 0}</dd>
+      <dt>sanitizationDropped</dt>
+      <dd>{status.sanitization?.dropped ?? 0}</dd>
+      <dt>correlationState</dt>
+      <dd>{status.correlation?.state ?? "unavailable"}</dd>
+      <dt>correlationEnriched</dt>
+      <dd>{status.correlation?.counters?.enriched ?? 0}</dd>
+      <dt>correlationPartial</dt>
+      <dd>{status.correlation?.counters?.partial ?? 0}</dd>
+      <dt>correlationReservedRemoved</dt>
+      <dd>{status.correlation?.counters?.reservedFieldRemoved ?? 0}</dd>
+      <dt>runtimeControlState</dt>
+      <dd data-testid="runtime-control-state">{status.runtimeControl?.state ?? "—"}</dd>
+      <dt>runtimeControlRevision</dt>
+      <dd data-testid="runtime-control-revision">{status.runtimeControl?.revision ?? "—"}</dd>
+      <dt>killSwitchActive</dt>
+      <dd data-testid="kill-switch-active">
+        {String(status.runtimeControl?.killSwitch?.active ?? false)}
+      </dd>
+      <dt>killSwitchLatched</dt>
+      <dd data-testid="kill-switch-latched">
+        {String(status.runtimeControl?.killSwitch?.latched ?? false)}
+      </dd>
+    </dl>
+  );
+}
+
+export default function App() {
+  const [status, setStatus] = useState(() => getObservabilityStatus());
+  const [log, setLog] = useState([]);
+
+  useEffect(() => {
+    function handleWindowError(event) {
+      recordError(event.error ?? new Error(event.message), { scenario: "runtime-error" });
+      setStatus(getObservabilityStatus());
+    }
+    function handleUnhandledRejection(event) {
+      recordError(event.reason ?? new Error("Unhandled rejection"), {
+        scenario: "unhandled-rejection",
+      });
+      setStatus(getObservabilityStatus());
+    }
+    window.addEventListener("error", handleWindowError);
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+    return () => {
+      window.removeEventListener("error", handleWindowError);
+      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+    };
+  }, []);
+
+  useEffect(() => {
+    // The runtime-control runtime-control refresh loop runs entirely inside the
+    // package's own internal timer, with no public event to subscribe to —
+    // this keeps the visible status panel live (e.g. for the kill switch
+    // taking effect) without requiring a button click, purely for this
+    // fixture's own observability.
+    const interval = setInterval(() => setStatus(getObservabilityStatus()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  async function run(item) {
+    const result = await item.run();
+    setStatus(getObservabilityStatus());
+    setLog((previous) =>
+      [{ id: `${item.id}-${Date.now()}`, label: item.label, result }, ...previous].slice(0, 20),
+    );
+  }
+
+  return (
+    <main>
+      <header>
+        <h1>Chicek Frontend Observability — Demo Test Fixture</h1>
+        <p role="note">
+          Bu sayfa bir üretim uygulaması değildir. Yalnızca{" "}
+          <code>@chicek/browser-observability</code> paketinin senaryo testleri için kullanılan bir
+          test fixture&apos;ıdır. Gerçek şirket verisi veya gerçek OpenObserve bağlantısı içermez.
+        </p>
+      </header>
+
+      <section aria-label="status">
+        <h2>Status</h2>
+        <StatusPanel status={status} />
+      </section>
+
+      {SCENARIO_GROUPS.map((group) => (
+        <section key={group.title} aria-label={group.title}>
+          <h2>{group.title}</h2>
+          <div>
+            {group.items.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                data-testid={`scenario-${item.id}`}
+                onClick={() => run(item)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </section>
+      ))}
+
+      <section aria-label="session-replay-fields">
+        <h2>Session replay — mask/block field examples</h2>
+        <p>
+          Session replay bu aşamada devre dışıdır. Aşağıdaki alanlar yalnızca gelecekteki
+          maskeleme/engelleme kurallarının hangi seçicilere uygulanacağını göstermek için örnektir;
+          şu an herhangi bir replay mantığı çalışmaz.
+        </p>
+        <form>
+          <label htmlFor="demo-full-name">
+            Full name (mask)
+            <input
+              id="demo-full-name"
+              type="text"
+              name="fullName"
+              data-chicek-privacy="mask"
+              defaultValue="Jane Example"
+            />
+          </label>
+          <label htmlFor="demo-password">
+            Password (block)
+            <input
+              id="demo-password"
+              type="password"
+              name="password"
+              data-chicek-privacy="block"
+              defaultValue="not-a-real-secret"
+            />
+          </label>
+        </form>
+      </section>
+
+      <section aria-label="activity-log">
+        <h2>Activity log</h2>
+        <ul data-testid="activity-log">
+          {log.map((entry) => (
+            <li key={entry.id}>
+              {entry.label}: {JSON.stringify(entry.result)}
+            </li>
+          ))}
+        </ul>
+      </section>
+    </main>
+  );
+}

@@ -21,28 +21,28 @@ const BASE_MANIFEST = Object.freeze({
 describe("renderQueryTemplate", () => {
   it("renders required variables and an omitted optional clause", () => {
     const sql = renderQueryTemplate(BASE_MANIFEST, {
-      service: "demo-frontend",
+      service: "browser-app",
       environment: "lab",
     });
     expect(sql).toBe(
-      "select count(*) as sessions from _rumdata where service = 'demo-frontend' and env = 'lab'",
+      "select count(*) as sessions from _rumdata where service = 'browser-app' and env = 'lab'",
     );
   });
 
   it("renders an optional variable's clause when provided", () => {
     const sql = renderQueryTemplate(BASE_MANIFEST, {
-      service: "demo-frontend",
+      service: "browser-app",
       environment: "lab",
       version: "2026.07.1",
     });
     expect(sql).toBe(
-      "select count(*) as sessions from _rumdata where service = 'demo-frontend' and env = 'lab' and version = '2026.07.1'",
+      "select count(*) as sessions from _rumdata where service = 'browser-app' and env = 'lab' and version = '2026.07.1'",
     );
   });
 
   it("throws MISSING_REQUIRED_VARIABLE when a required variable is absent", () => {
     try {
-      renderQueryTemplate(BASE_MANIFEST, { service: "demo-frontend" });
+      renderQueryTemplate(BASE_MANIFEST, { service: "browser-app" });
       expect.unreachable();
     } catch (error) {
       expect(error).toBeInstanceOf(TemplateError);
@@ -75,7 +75,7 @@ describe("renderQueryTemplate", () => {
     // logic is dead code only reachable if the charset ever changes, by
     // exercising the escape path through a value that IS in-charset.
     const sql = renderQueryTemplate(BASE_MANIFEST, {
-      service: "demo-frontend",
+      service: "browser-app",
       environment: "lab",
     });
     expect(sql).not.toContain("''");

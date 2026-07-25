@@ -1,5 +1,5 @@
-// Pure classification logic for the Stage 19 end-to-end notification
-// readiness probe. No network I/O here — scripts/performance/verify-stage19-resilience.mjs
+// Pure classification logic for the resilience end-to-end notification
+// readiness probe. No network I/O here — scripts/performance/verify-resilience.mjs
 // (and lab:alerts:test-notification-style helpers it reuses) fire the real
 // probe against the lab and pass the observed timings/events through this
 // module. 100%-coverage-gated (see vitest.config.js's "scripts/performance/lib/**" entry).
@@ -13,12 +13,12 @@ export const NOTIFICATION_READINESS_STATUS = Object.freeze({
 
 /** Generates a probe id unique enough to unambiguously match its own events back out of alert-sink's event log. */
 export function buildProbeId(randomUuid = crypto.randomUUID()) {
-  return `stage19-notification-probe-${randomUuid}`;
+  return `resilience-notification-probe-${randomUuid}`;
 }
 
 /**
  * Finds this probe's firing/resolved events inside an alert-sink events
- * array (apps/mock-api's `GET /alert-sink/events` shape: `{ receivedAt,
+ * array (tests/fixtures/apps/http-test-service's `GET /alert-sink/events` shape: `{ receivedAt,
  * body: { dedupKey, status, ... } }`), matched by dedupKey === probeId.
  */
 export function parseProbeEvents(events, probeId) {

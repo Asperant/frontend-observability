@@ -53,7 +53,10 @@ function parseArgs(argv) {
 async function findOrCreateFolder(auth, name) {
   const existing = (await listFolders(auth)).find((folder) => folder.name === name);
   if (existing) return existing.folderId;
-  const result = await createFolder(auth, { name, description: "Stage 16 import target" });
+  const result = await createFolder(auth, {
+    name,
+    description: "dashboard-governance import target",
+  });
   if (result.status === 200) return result.body.folderId;
   const retry = (await listFolders(auth)).find((folder) => folder.name === name);
   if (retry) return retry.folderId;

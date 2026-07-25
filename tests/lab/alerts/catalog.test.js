@@ -15,8 +15,8 @@ import {
   loadMetricCatalog,
 } from "../../../scripts/lab/dashboards/catalog.mjs";
 
-describe("Stage 17 alert catalog", () => {
-  it("validates all starter policies against Stage 16 catalogs", () => {
+describe("alert-governance alert catalog", () => {
+  it("validates all starter policies against dashboard-governance catalogs", () => {
     const catalog = loadAlertPolicyCatalog();
     const policies = loadAllAlertPolicies();
     const metrics = new Set(loadMetricCatalog().metrics.map((metric) => metric.id));

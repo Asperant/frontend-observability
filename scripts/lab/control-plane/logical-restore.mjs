@@ -1,10 +1,10 @@
 // Companion to logical-export.mjs: applies a captured logical export to a
 // target OpenObserve environment. Idempotent by existence check (matches
-// this module's only real use: restoring into a disposable Stage 20
+// this module's only real use: restoring into a disposable recovery
 // recovery target) — an object already present by name/id is left alone
 // and reported NO_CHANGE; only a missing object is created. Running the
 // same restore twice against the same target therefore yields NO_CHANGE on
-// the second run, which is what Stage 20's recovery proof asserts.
+// the second run, which is what recovery proof asserts.
 //
 // Secrets: destinations are restored only with a caller-supplied
 // `destinationSecrets` map (`{ [destinationName]: { url } }`); a
@@ -14,7 +14,7 @@
 //
 // Like logical-export.mjs, this uses its own local `apiFetch(baseUrl, ...)`
 // rather than the admin-client modules, which hardcode the main lab's
-// 127.0.0.1:5080 — this module always targets a disposable Stage 20
+// 127.0.0.1:5080 — this module always targets a disposable recovery
 // recovery environment on its own port.
 import { canonicalJson, DEFAULT_BASE_URL } from "./logical-export.mjs";
 
@@ -51,7 +51,7 @@ function normalizeCurrentStreamSettings(settings = {}) {
 
 // Streams are lazily created by OpenObserve on first ingest — there is no
 // explicit "create stream" API (matches scripts/lab/streams-provision.mjs's
-// own SKIPPED_STREAM_DOES_NOT_EXIST outcome). In the real Stage 20 recovery
+// own SKIPPED_STREAM_DOES_NOT_EXIST outcome). In the real recovery
 // chain the cold data-volume restore always runs first and already brings
 // the stream (and its real documents) into existence. When logical restore
 // runs in isolation (no data volume — e.g. a pure round-trip hash-equality

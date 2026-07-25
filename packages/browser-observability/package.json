@@ -1,7 +1,10 @@
 {
   "name": "@chicek/browser-observability",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0-rc.1",
+  "private": false,
+  "publishConfig": {
+    "access": "restricted"
+  },
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -12,7 +15,9 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "vite build"

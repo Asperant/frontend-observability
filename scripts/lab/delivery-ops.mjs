@@ -82,7 +82,7 @@ export function drainDelivery() {
     schemaVersion: 1,
     action: "drain",
     startedAt: new Date().toISOString(),
-    note: "delivery-worker resumes consumers; queue depth is inspected via RabbitMQ Management UI or Stage 20.5 gates",
+    note: "telemetry-delivery-worker resumes consumers; queue depth is inspected via RabbitMQ Management UI or durable-delivery gates",
   };
 }
 

@@ -9,9 +9,9 @@ export default defineConfig({
           environment: "jsdom",
           include: [
             "packages/browser-observability/tests/**/*.test.js",
-            "packages/contracts/tests/**/*.test.js",
-            "packages/durable-telemetry/tests/**/*.test.js",
-            "apps/mock-api/tests/**/*.test.js",
+            "packages/observability-contracts/tests/**/*.test.js",
+            "packages/telemetry-delivery-core/tests/**/*.test.js",
+            "tests/fixtures/apps/http-test-service/tests/**/*.test.js",
           ],
           exclude: ["**/node_modules/**", "**/dist/**"],
         },
@@ -41,7 +41,7 @@ export default defineConfig({
           // part of `pnpm verify` — run explicitly via `pnpm test:lab`.
           name: "lab",
           environment: "node",
-          include: ["tests/lab/**/*.test.js", "tests/performance/stage19/unit/**/*.test.js"],
+          include: ["tests/lab/**/*.test.js", "tests/performance/resilience/unit/**/*.test.js"],
           exclude: ["**/node_modules/**", "**/dist/**"],
         },
       },
@@ -66,8 +66,8 @@ export default defineConfig({
       // include list: `pnpm test:coverage` (--project unit) never touches
       // it, so folding it in here would dilute/break the existing global
       // thresholds below with 0%-covered files the "unit" project never
-      // runs. It is only measured when `pnpm test:stage15:streams`
-      // (scripts/lab/verify-stage15-streams.mjs) explicitly runs vitest
+      // runs. It is only measured when `pnpm test:streams`
+      // (scripts/lab/verify-streams.mjs) explicitly runs vitest
       // with a --coverage.include override scoped to just that path — see
       // the "scripts/lab/streams/**" entry in `thresholds` below, which
       // stays dormant here and only applies to that scoped run.

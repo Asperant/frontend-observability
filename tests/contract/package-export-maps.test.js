@@ -42,8 +42,8 @@ describe("@chicek/browser-observability package.json export map", () => {
   });
 });
 
-describe("@chicek/contracts package.json export map", () => {
-  const pkg = readJson("../../packages/contracts/package.json");
+describe("@chicek/observability-contracts package.json export map", () => {
+  const pkg = readJson("../../packages/observability-contracts/package.json");
 
   it("exposes only the documented entry points", () => {
     expect(Object.keys(pkg.exports).sort()).toEqual(

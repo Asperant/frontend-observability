@@ -1,6 +1,7 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "tests/fixtures/apps/*"
 
 catalog:
   react: 19.2.7

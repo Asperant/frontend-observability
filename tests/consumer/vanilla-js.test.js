@@ -75,12 +75,11 @@ globalThis.fetch = () => Promise.resolve(new Response(JSON.stringify({
   expiresAt: "2099-01-01T00:00:00.000Z",
   killSwitch: { engaged: true },
   privacyProfile: "strict",
-  sampling: { sessionSampleRate: 0, errorSampleRate: 0 },
+  sampling: { sessionSampleRate: 0},
   rum: {},
   browserLogs: { enabled: false },
   sessionReplay: { enabled: false },
-  allowedRoutes: [],
-  allowedSelectors: [],
+  sensitiveRoutes: [],
 }), { status: 200, headers: { "content-type": "application/json" } }));
 
 const initResult = await initializeObservability({

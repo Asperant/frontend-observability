@@ -1,17 +1,17 @@
-// I/O wrapper that fires a real Stage 19 notification-readiness probe
+// I/O wrapper that fires a real resilience notification-readiness probe
 // against the lab and classifies the result through
 // scripts/performance/lib/notification-readiness.js's pure logic. Not
 // coverage-gated (pure I/O), mirrors scripts/lab/alerts-test-notification.mjs,
 // whose exact "test destination" primitive this reuses — that is the same
 // real HTTP path (OpenObserve admin API -> real webhook destination call ->
-// real alert-sink container) Stage 17 already validated, just wrapped with a
+// real alert-sink container) alert-governance already validated, just wrapped with a
 // unique dedupKey per call, bounded polling, and HEALTHY/DEGRADED/FAILED/
 // NOT_CONFIGURED classification instead of a boolean pass/fail.
 //
 // Leaves no persistent OpenObserve-side artifact: "test destination" posts
 // directly to the destination URL without creating an alert/rule object.
 // The only trace is one entry in alert-sink's own bounded in-memory event
-// ring buffer (apps/mock-api's MAX_ALERT_SINK_EVENTS=100), which rolls off
+// ring buffer (tests/fixtures/apps/http-test-service's MAX_ALERT_SINK_EVENTS=100), which rolls off
 // on its own — there is nothing to explicitly delete.
 
 import { LOCAL_DESTINATION_NAME } from "../../lab/alerts-install-starters.mjs";

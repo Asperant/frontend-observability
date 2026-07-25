@@ -8,6 +8,8 @@ import {
   isWorldOrGroupReadableSecret,
   openObserveDeliveryOpsIngestTokenSecretPath,
   openObserveRumIngestTokenSecretPath,
+  openObserveSessionReadTokenSecretPath,
+  openObserveSessionWriteTokenSecretPath,
   passwordSecretPath,
   rabbitmqAdminPasswordSecretPath,
   rabbitmqAdminUsernameSecretPath,
@@ -117,6 +119,8 @@ export function ensureSecrets() {
     rumClientTokenCreated: false,
     openObserveRumIngestTokenCreated: false,
     openObserveDeliveryOpsIngestTokenCreated: false,
+    openObserveSessionReadTokenCreated: false,
+    openObserveSessionWriteTokenCreated: false,
     rabbitmqAdminUsernameCreated: false,
     rabbitmqAdminPasswordCreated: false,
     rabbitmqIngestUsernameCreated: false,
@@ -141,6 +145,18 @@ export function ensureSecrets() {
     generateRumClientToken,
     results,
     "openObserveDeliveryOpsIngestTokenCreated",
+  );
+  ensureSecret(
+    openObserveSessionReadTokenSecretPath,
+    generateRumClientToken,
+    results,
+    "openObserveSessionReadTokenCreated",
+  );
+  ensureSecret(
+    openObserveSessionWriteTokenSecretPath,
+    generateRumClientToken,
+    results,
+    "openObserveSessionWriteTokenCreated",
   );
   ensureSecret(
     rabbitmqAdminUsernameSecretPath,

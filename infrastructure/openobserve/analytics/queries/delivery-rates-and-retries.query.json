@@ -6,7 +6,7 @@
   "title": "Delivery rates and retries",
   "queryClass": "OVERVIEW",
   "stream": "_chicek_delivery_ops",
-  "sqlTemplate": "select max(counters_delivered) as delivered_total, max(counters_retried) as retried_total, max(counters_deadlettered) as dead_lettered_total, max(counters_duplicateobserved) as duplicate_observed_total from _chicek_delivery_ops where service = 'delivery-worker'",
+  "sqlTemplate": "select max(counters_delivered) as delivered_total, max(counters_retried) as retried_total, max(counters_deadlettered) as dead_lettered_total, max(counters_duplicateobserved) as duplicate_observed_total from _chicek_delivery_ops where service = 'telemetry-delivery-worker'",
   "requiredVariables": ["service", "environment"],
   "optionalVariables": [],
   "drilldownVariables": [],
@@ -19,7 +19,7 @@
     { "name": "dead_lettered_total", "type": "Int64" },
     { "name": "duplicate_observed_total", "type": "Int64" }
   ],
-  "emptyDataSemantics": "No delivery-worker aggregate events in range renders NO_DATA; do not coerce to zero.",
+  "emptyDataSemantics": "No telemetry-delivery-worker aggregate events in range renders NO_DATA; do not coerce to zero.",
   "cardinalityClass": "LOW_CARDINALITY_OVERVIEW",
   "hasDivisionGuard": false
 }

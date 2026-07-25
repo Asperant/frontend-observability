@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { validateRuntimeConfig } from "../../packages/contracts/src/validators.js";
+import { validateRuntimeConfig } from "../../packages/observability-contracts/src/validators.js";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -58,7 +58,7 @@ describe("session replay stays disabled by design (OpenObserve OSS v0.91.0 secur
         expiresAt: "2099-01-01T00:00:00.000Z",
         killSwitch: { engaged: false },
         privacyProfile: "strict",
-        sampling: { sessionSampleRate: 1, errorSampleRate: 1 },
+        sampling: { sessionSampleRate: 1 },
         rum: {
           site: "localhost:8443",
           organizationIdentifier: "default",
@@ -68,8 +68,7 @@ describe("session replay stays disabled by design (OpenObserve OSS v0.91.0 secur
         },
         browserLogs: { enabled: true },
         sessionReplay: { enabled: false },
-        allowedRoutes: [],
-        allowedSelectors: [],
+        sensitiveRoutes: [],
       };
     }
   });
@@ -151,8 +150,8 @@ describe("session replay stays disabled by design (OpenObserve OSS v0.91.0 secur
       expect(catchAll[1]).not.toContain("proxy_pass");
     });
 
-    it("contains no proxy_pass to openobserve outside the two allowlisted exact locations", () => {
-      const proxyPassCount = (source.match(/proxy_pass \$openobserve_upstream\$uri\?/g) ?? [])
+    it("contains no browser-facing telemetry proxy outside the two allowlisted exact locations", () => {
+      const proxyPassCount = (source.match(/proxy_pass \$telemetry_ingest_upstream\$uri/g) ?? [])
         .length;
       expect(proxyPassCount).toBe(2);
     });

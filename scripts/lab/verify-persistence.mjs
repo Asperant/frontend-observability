@@ -64,7 +64,7 @@ async function searchWithRetry(canaryId, authHeader, { attempts = 5, delayMs = 1
  */
 export async function checkPersistence() {
   const findings = [];
-  const canaryId = `stage6-canary-${randomUUID()}`;
+  const canaryId = `reference-lab-canary-${randomUUID()}`;
   const authHeader = basicAuthHeader();
 
   const ingest = await requestHttp(`/api/default/${STREAM}/_json`, {

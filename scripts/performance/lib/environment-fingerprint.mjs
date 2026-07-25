@@ -1,5 +1,5 @@
 // I/O helper that assembles the environment fingerprint required on every
-// Stage 19 benchmark/soak report (infrastructure/performance/stage19-environment-schema.json).
+// resilience benchmark/soak report (infrastructure/performance/resilience-environment-schema.json).
 // Pure I/O, not coverage-gated — mirrors scripts/lab/streams/admin-client.mjs's
 // own split between pure logic (gated) and thin I/O wrappers (not gated).
 // Never reads or emits username/hostname/IP/credential/secret/token/private-path.

@@ -8,7 +8,7 @@ const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 //   - `pnpm install --frozen-lockfile` (installs deps) is a prerequisite,
 //     run before this script, not by it.
 //   - Playwright browsers are likewise a provisioned prerequisite
-//     (`playwright install [--with-deps] chromium firefox webkit`, run
+//     (`playwright install [--with-deps] chromium firefox`, run
 //     once per machine/CI runner); `test:e2e` fails fast with a clear
 //     error if they are missing rather than silently downloading them.
 //   - `sbom` only reads the local dependency graph via `pnpm list`, which

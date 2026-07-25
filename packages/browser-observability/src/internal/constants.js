@@ -17,7 +17,7 @@ export const CONSENT = Object.freeze({
   UNKNOWN: "not-granted",
 });
 
-export const PRIVACY_PROFILES = Object.freeze(["strict", "balanced"]);
+export const PRIVACY_PROFILES = Object.freeze(["strict"]);
 
 export const MAX_DIAGNOSTICS = 50;
 export const MAX_ACTION_NAME_LENGTH = 64;

@@ -42,7 +42,7 @@ export async function labVerify() {
   }
 
   if (overallPass) {
-    log("\n✔ lab:verify PASSED — all Stage 6 acceptance checks succeeded.");
+    log("\n✔ lab:verify PASSED — all reference-lab acceptance checks succeeded.");
   } else {
     logError("\n✖ lab:verify FAILED.");
   }

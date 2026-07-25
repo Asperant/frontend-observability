@@ -6,7 +6,7 @@ import {
 } from "../../src/adapter/openobserve/sdk-fingerprint.js";
 
 const identity = Object.freeze({
-  service: "demo-frontend",
+  service: "browser-app",
   environment: "lab",
   version: "2026.07.1",
 });
@@ -14,7 +14,7 @@ const identity = Object.freeze({
 const rumConfig = Object.freeze({
   site: "localhost:8443",
   organizationIdentifier: "default",
-  applicationId: "chicek-demo-frontend",
+  applicationId: "chicek-browser-app",
   clientToken: "a".repeat(48),
   apiVersion: "v1",
 });

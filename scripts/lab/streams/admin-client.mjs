@@ -7,7 +7,7 @@
 // This module is intentionally not unit-coverage-gated (it is pure I/O,
 // mirroring scripts/lab/provision-sanitization.mjs's own admin-API
 // helpers); its correctness is exercised by the live
-// scripts/lab/streams-*.mjs commands and scripts/lab/verify-stage15-streams.mjs
+// scripts/lab/streams-*.mjs commands and scripts/lab/verify-streams.mjs
 // against the real lab.
 
 import { readFileSync } from "node:fs";

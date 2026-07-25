@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Native OpenObserve web UI smoke (Stage 20 closeout, Section 3.2):
+// Native OpenObserve web UI smoke (native OpenObserve UI, Section 3.2):
 // tests/e2e/native-ui-lab.spec.js. Split out of playwright-lab.config.js
 // deliberately — its real-scheduler alert-evaluation probe
 // (scripts/lab/alerts/real-evaluation-probe.mjs) takes minutes per run, so

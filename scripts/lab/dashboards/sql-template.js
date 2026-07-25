@@ -2,7 +2,7 @@
 // queries/*.query.json. No I/O. Never concatenates raw caller-supplied text
 // into SQL: every value is validated against a fixed safe charset and
 // single-quote-escaped before substitution (mirroring
-// scripts/lab/verify-stage15-streams.mjs's own escapeSqlLiteral), and only a
+// scripts/lab/verify-streams.mjs's own escapeSqlLiteral), and only a
 // fixed, closed set of placeholder tokens is ever recognized — an unresolved
 // or unrecognized `{{...}}` token is always a hard error, never silently
 // left in the SQL text or passed through as-is.

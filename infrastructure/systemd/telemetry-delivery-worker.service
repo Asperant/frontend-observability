@@ -1,0 +1,32 @@
+[Unit]
+Description=Chicek Telemetry Delivery Worker
+After=network-online.target rabbitmq-server.service openobserve.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=chicek-telemetry-delivery
+Group=chicek-telemetry-delivery
+WorkingDirectory=/opt/chicek-observability/current
+EnvironmentFile=/etc/chicek-observability/telemetry-delivery-worker.env
+ExecStart=/usr/bin/node apps/telemetry-delivery-worker/src/worker.js
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=20s
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/chicek-observability/telemetry-delivery-worker
+ReadOnlyPaths=/etc/chicek-observability
+CapabilityBoundingSet=
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

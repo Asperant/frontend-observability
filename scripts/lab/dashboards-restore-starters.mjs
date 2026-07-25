@@ -27,14 +27,14 @@ import { parseMarker } from "./dashboards/marker.js";
 import { extractDashboardBody } from "./dashboards/normalize.js";
 import { buildStarterDashboardBody } from "./dashboards/panel-builder.js";
 import { DashboardVariableToken } from "./dashboards/sql-template.js";
-import { DEMO_IDENTITY } from "../../apps/demo-frontend/src/identity.js";
+import { DEMO_IDENTITY } from "../../tests/fixtures/apps/browser-app/src/identity.js";
 
 async function findOrCreateFolder(auth, name) {
   const existing = (await listFolders(auth)).find((folder) => folder.name === name);
   if (existing) return existing.folderId;
   const result = await createFolder(auth, {
     name,
-    description: "CHICEK Stage 16 starter dashboards",
+    description: "CHICEK dashboard-governance starter dashboards",
   });
   if (result.status === 200) return result.body.folderId;
   const retry = (await listFolders(auth)).find((folder) => folder.name === name);

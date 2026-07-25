@@ -33,7 +33,6 @@ services:
       # leaf cert/key live here; the CA private key stays in .runtime/certs,
       # which is never mounted into any container.
       - ../../.runtime/generated/tls-leaf:/etc/chicek/tls:ro
-      - ../../.runtime/generated/runtime-config.json:/etc/chicek/runtime-config.json:ro
       # A directory bind mount, not two single-file mounts: the kill switch
       # must take effect on an `nginx -s reload` alone, and single-file
       # binds pin an already-running container to the inode they saw at
@@ -66,11 +65,13 @@ services:
       start_period: 10s
       retries: 6
     depends_on:
-      demo-frontend:
+      browser-app:
         condition: service_healthy
-      mock-api:
+      http-test-service:
         condition: service_healthy
-      durable-ingest:
+      telemetry-ingest:
+        condition: service_healthy
+      observability-control-plane:
         condition: service_healthy
     deploy:
       resources:
@@ -83,11 +84,11 @@ services:
     logging: *default-logging
     restart: *default-restart
 
-  demo-frontend:
+  browser-app:
     build:
       context: ../../
-      dockerfile: infrastructure/docker/demo-frontend/Dockerfile
-    image: chicek-lab/demo-frontend:6.0.0
+      dockerfile: infrastructure/docker/browser-app-fixture/Dockerfile
+    image: chicek-lab/browser-app-fixture:6.0.0
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -116,11 +117,11 @@ services:
     logging: *default-logging
     restart: *default-restart
 
-  mock-api:
+  http-test-service:
     build:
-      context: ../../apps/mock-api
-      dockerfile: ../../infrastructure/docker/mock-api/Dockerfile
-    image: chicek-lab/mock-api:6.0.0
+      context: ../../tests/fixtures/apps/http-test-service
+      dockerfile: ../../../../infrastructure/docker/http-test-service-fixture/Dockerfile
+    image: chicek-lab/http-test-service-fixture:6.0.0
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -155,13 +156,13 @@ services:
     logging: *default-logging
     restart: *default-restart
 
-  durable-ingest:
+  telemetry-ingest:
     build:
       context: ../../
-      dockerfile: infrastructure/docker/durable-node/Dockerfile
-    image: chicek-lab/durable-ingest:6.0.0
+      dockerfile: infrastructure/docker/telemetry-node/Dockerfile
+    image: chicek-lab/telemetry-ingest:6.0.0
     user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
-    command: ["node", "apps/durable-ingest/src/server.js"]
+    command: ["node", "apps/telemetry-ingest/src/server.js"]
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -182,13 +183,15 @@ services:
       RUM_MAX_BYTES: "65536"
       LOGS_MAX_BYTES: "32768"
       PUBLISH_CONFIRM_TIMEOUT_MS: "5000"
+      OBSERVABILITY_CONTROL_URL: "http://observability-control-plane:4314/observability/control.json"
+      OBSERVABILITY_CONTROL_TIMEOUT_MS: "1000"
     healthcheck:
       test:
         [
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:4313/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:4313/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s
@@ -196,6 +199,8 @@ services:
       retries: 12
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      observability-control-plane:
         condition: service_healthy
     deploy:
       resources:
@@ -262,13 +267,13 @@ services:
     logging: *default-logging
     restart: *default-restart
 
-  delivery-worker:
+  telemetry-delivery-worker:
     build:
       context: ../../
-      dockerfile: infrastructure/docker/durable-node/Dockerfile
-    image: chicek-lab/delivery-worker:6.0.0
+      dockerfile: infrastructure/docker/telemetry-node/Dockerfile
+    image: chicek-lab/telemetry-delivery-worker:6.0.0
     user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
-    command: ["node", "apps/delivery-worker/src/worker.js"]
+    command: ["node", "apps/telemetry-delivery-worker/src/worker.js"]
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -286,6 +291,7 @@ services:
     networks:
       - observability-internal
     environment:
+      PORT: "4316"
       RABBITMQ_HOST: "rabbitmq"
       RABBITMQ_WORKER_USERNAME_FILE: "/run/secrets/rabbitmq_worker_username"
       RABBITMQ_WORKER_PASSWORD_FILE: "/run/secrets/rabbitmq_worker_password"
@@ -293,13 +299,17 @@ services:
       OPENOBSERVE_RUM_TOKEN_FILE: "/run/secrets/openobserve_rum_ingest_token"
       OPENOBSERVE_DELIVERY_OPS_TOKEN_FILE: "/run/secrets/openobserve_delivery_ops_ingest_token"
       DELIVERY_CONTROL_FILE: "/etc/chicek/dynamic/delivery-control.json"
-      WORKER_TEST_FAULT_FILE: "/etc/chicek/dynamic/worker-fault.json"
-      CHICEK_ENABLE_WORKER_TEST_FAULTS: "stage20_5_lab_only"
       WORKER_PREFETCH: "16"
       OPENOBSERVE_DELIVERY_TIMEOUT_MS: "10000"
       OPS_EMIT_INTERVAL_MS: "30000"
     healthcheck:
-      test: ["CMD", "node", "-e", "process.exit(0)"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4316/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       start_period: 20s
@@ -320,11 +330,111 @@ services:
     logging: *default-logging
     restart: *default-restart
 
+  observability-control-plane:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/telemetry-node/Dockerfile
+    image: chicek-lab/observability-control-plane:6.0.0
+    user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
+    command: ["node", "apps/observability-control-plane/src/server.js"]
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    volumes:
+      - ../../.runtime/control-plane:/var/lib/chicek-control-plane
+    networks:
+      - observability-internal
+    environment:
+      PORT: "4314"
+      OBSERVABILITY_CONTROL_STATE_DIR: "/var/lib/chicek-control-plane"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4314/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 6
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+          pids: 96
+        reservations:
+          memory: 32M
+    logging: *default-logging
+    restart: *default-restart
+
+  session-metadata-sync:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/telemetry-node/Dockerfile
+    image: chicek-lab/session-metadata-sync:6.0.0
+    user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
+    command: ["node", "apps/session-metadata-sync/src/server.js"]
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    volumes:
+      - ../../.runtime/session-metadata-state:/var/lib/chicek-session-metadata
+    secrets:
+      - openobserve_session_read_token
+      - openobserve_session_write_token
+    networks:
+      - observability-internal
+    environment:
+      PORT: "4315"
+      OPENOBSERVE_INTERNAL_URL: "http://openobserve:5080"
+      OPENOBSERVE_SESSION_READ_USERNAME: "chicek-session-metadata-read@chicek-lab.invalid"
+      OPENOBSERVE_SESSION_WRITE_USERNAME: "chicek-session-metadata-write@chicek-lab.invalid"
+      OPENOBSERVE_SESSION_READ_TOKEN_FILE: "/run/secrets/openobserve_session_read_token"
+      OPENOBSERVE_SESSION_WRITE_TOKEN_FILE: "/run/secrets/openobserve_session_write_token"
+      SESSION_METADATA_WATERMARK_PATH: "/var/lib/chicek-session-metadata/watermark.json"
+      SESSION_METADATA_SYNC_INTERVAL_MS: "60000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4315/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 6
+    depends_on:
+      openobserve:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+          pids: 96
+        reservations:
+          memory: 48M
+    logging: *default-logging
+    restart: *default-restart
+
   alert-sink:
     build:
-      context: ../../apps/mock-api
-      dockerfile: ../../infrastructure/docker/mock-api/Dockerfile
-    image: chicek-lab/mock-api:6.0.0
+      context: ../../tests/fixtures/apps/http-test-service
+      dockerfile: ../../../../infrastructure/docker/http-test-service-fixture/Dockerfile
+    image: chicek-lab/http-test-service-fixture:6.0.0
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -333,17 +443,17 @@ services:
     tmpfs:
       - /tmp:size=16m,mode=1777
     # OpenObserve v0.91.0 blocks private-IP destinations by default and has
-    # no allowlist besides ZO_SSRF_ALLOW_LOOPBACK (verified in Stage 19 by
+    # no allowlist besides ZO_SSRF_ALLOW_LOOPBACK (verified in resilience by
     # extracting the pinned v0.91.0 binary's own config-key strings — no
     # ZO_SSRF_ALLOWED_HOSTS/CIDR equivalent exists in this version). Given
     # "no OpenObserve upgrade" and "no custom gateway/transport" are both
     # out of scope for this lab, alert-sink reaching OpenObserve only via
     # loopback is a hard constraint, not a design preference — full network
     # namespace independence is not achievable here without breaking alert
-    # delivery outright. See docs/stage19-performance-resilience.md "Alert
+    # delivery outright. See docs/operations-runbook.md "Alert
     # sink architecture" for the full writeup.
     #
-    # Stage 18 finding (residual risk, now closed): restarting (not
+    # security-acceptance finding (residual risk, now closed): restarting (not
     # recreating) the openobserve container alone previously left
     # alert-sink unable to reach 127.0.0.1:4312 from openobserve's side
     # afterward, even though both containers' own healthchecks stayed green
@@ -351,7 +461,7 @@ services:
     # `depends_on.openobserve.restart: true` below closes this: Compose
     # itself now restarts alert-sink automatically whenever openobserve is
     # restarted, so the shared-namespace coupling can no longer silently
-    # go stale. This is belt-and-suspenders — Stage 19's end-to-end
+    # go stale. This is belt-and-suspenders — resilience's end-to-end
     # notification-readiness probe (scripts/performance/lib/
     # notification-readiness.mjs) is the layer that actually detects a
     # silent break, independent of this auto-restart or of either
@@ -416,7 +526,7 @@ services:
       ZO_MMDB_DISABLE_DOWNLOAD: "true"
       ZO_HTTP_PORT: "5080"
       # Do not enable OpenObserve's own web-UI RUM instrumentation here.
-      # The lab observes apps/demo-frontend through the browser package and
+      # The lab observes tests/fixtures/apps/browser-app through the browser package and
       # the reverse-proxy ingestion allowlist; instrumenting the OpenObserve
       # admin UI itself makes it emit /rum and /replay requests to the
       # browser-facing self-signed endpoint, which can freeze the operator UI
@@ -468,7 +578,7 @@ networks:
     internal: true
   # Not internal: true by necessity, not by choice. Docker refuses to
   # publish a host port for a container whose only networks are `internal:
-  # true` (verified empirically — see the Stage 6 final report). Only
+  # true` (verified empirically — see the reference-lab final report). Only
   # reverse-proxy and openobserve join this network, and only to make their
   # two loopback-bound host ports reachable; all inter-service traffic
   # still flows over app-internal/observability-internal.
@@ -489,6 +599,10 @@ secrets:
     file: ../../.runtime/secrets/openobserve-rum-ingest-token
   openobserve_delivery_ops_ingest_token:
     file: ../../.runtime/secrets/openobserve-delivery-ops-ingest-token
+  openobserve_session_read_token:
+    file: ../../.runtime/secrets/openobserve-session-read-token
+  openobserve_session_write_token:
+    file: ../../.runtime/secrets/openobserve-session-write-token
   rabbitmq_admin_username:
     file: ../../.runtime/secrets/rabbitmq-admin-username
   rabbitmq_admin_password:

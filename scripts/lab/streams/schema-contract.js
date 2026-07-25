@@ -2,12 +2,12 @@
 // hit — plain object of fieldName -> scalar value) against a
 // schema-contract document (infrastructure/openobserve/streams/*.schema-contract.json).
 // No I/O, no network: this is deliberately reusable both by the live
-// Chromium/Firefox canary (scripts/lab/verify-stage15-streams.mjs) and by
+// Chromium/Firefox canary (scripts/lab/verify-streams.mjs) and by
 // unit tests with hand-built fixtures.
 
 const CHICEK_UNCONTROLLED_PATTERN = /^_?chicek[_.]/i;
 
-// The manifests/contracts share a `(?i)case-insensitive` prefix convention
+// The manifests/observability-contracts share a `(?i)case-insensitive` prefix convention
 // with this repo's VRL sources (infrastructure/openobserve/sanitization/
 // *.vrl) for readability, but JS RegExp has no inline `(?i)` group — every
 // pattern here is case-insensitive by convention, so the prefix (if

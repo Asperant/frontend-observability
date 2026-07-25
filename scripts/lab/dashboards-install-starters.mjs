@@ -31,10 +31,10 @@ import { parseMarker } from "./dashboards/marker.js";
 import { extractDashboardBody } from "./dashboards/normalize.js";
 import { buildStarterDashboardBody } from "./dashboards/panel-builder.js";
 import { DashboardVariableToken } from "./dashboards/sql-template.js";
-import { DEMO_IDENTITY } from "../../apps/demo-frontend/src/identity.js";
+import { DEMO_IDENTITY } from "../../tests/fixtures/apps/browser-app/src/identity.js";
 
 const FOLDER_DESCRIPTION =
-  "CHICEK Stage 16 starter dashboards — see docs/openobserve-query-dashboard-governance.md";
+  "CHICEK dashboard-governance starter dashboards — see docs/openobserve-query-dashboard-governance.md";
 
 async function findOrCreateFolder(auth, name) {
   const existing = (await listFolders(auth)).find((folder) => folder.name === name);

@@ -21,7 +21,7 @@ const RUM_PATH = "/rum/v1/default/rum";
 const LOGS_PATH = "/rum/v1/default/logs";
 const RUM_LIMIT = 64 * 1024;
 const LOGS_LIMIT = 32 * 1024;
-const SAFE_CANARY = `stage12-canary-${crypto.randomUUID()}`;
+const SAFE_CANARY = `proxy-security-canary-${crypto.randomUUID()}`;
 
 function ingestionHeaders(extra = {}) {
   return {
@@ -35,21 +35,27 @@ function ingestionHeaders(extra = {}) {
 function jsonPayload(size, stream) {
   const base =
     stream === "rum"
-      ? {
-          date: Date.now(),
-          type: "view",
-          application_id: "chicek-demo-frontend",
-          service: "chicek-demo-frontend",
-          env: "lab",
-          version: "2026.07.1",
-          view: { id: crypto.randomUUID(), url: `${PROXY_ORIGIN}/stage12` },
-          session: { id: crypto.randomUUID() },
-        }
+      ? (() => {
+          const sessionId = crypto.randomUUID();
+          const viewId = crypto.randomUUID();
+          return {
+            date: Date.now(),
+            type: "view",
+            application_id: "chicek-browser-app",
+            service: "chicek-browser-app",
+            env: "lab",
+            version: "2026.07.1",
+            session_id: sessionId,
+            view_id: viewId,
+            view: { id: viewId, url: `${PROXY_ORIGIN}/proxy-security` },
+            session: { id: sessionId },
+          };
+        })()
       : {
           date: Date.now(),
-          message: "stage12-log",
+          message: "proxy-security-log",
           status: "info",
-          service: "chicek-demo-frontend",
+          service: "chicek-browser-app",
           env: "lab",
           version: "2026.07.1",
         };
@@ -578,7 +584,7 @@ async function checkOutageIsolation(findings) {
   runDockerCompose(["stop", "openobserve"]);
   try {
     const ingest = await requestProxy(LOGS_PATH, { body: jsonPayload(512, "logs") });
-    expectStatus(findings, "OpenObserve stopped durable admission", ingest.statusCode, 202);
+    expectStatus(findings, "OpenObserve stopped telemetry admission", ingest.statusCode, 202);
     const root = await requestProxy("/", {
       method: "GET",
       headers: { Host: PROXY_HOST },
@@ -613,7 +619,7 @@ async function checkSlowUpstreamIsolation(findings) {
       statusCode: 0,
     }));
     const elapsed = Date.now() - started;
-    expectStatus(findings, "OpenObserve paused durable admission", ingest.statusCode, 202);
+    expectStatus(findings, "OpenObserve paused telemetry admission", ingest.statusCode, 202);
     if (elapsed > 13_000)
       findings.push(`OpenObserve paused timeout exceeded budget: ${elapsed}ms.`);
     const root = await requestProxy("/", {
@@ -700,32 +706,32 @@ function summarizeMeasurements(measurements) {
 export async function verifyProxySecurity() {
   const findings = [];
 
-  log("stage12: rendered nginx config...");
+  log("proxy-security: rendered nginx config...");
   checkRenderedNginx(findings);
   checkTmpfsBuffering(findings);
 
-  log("stage12: positive SDK traffic and request-size measurement...");
+  log("proxy-security: positive SDK traffic and request-size measurement...");
   const measurements = await measureBrowserSdkTraffic(findings);
 
-  log("stage12: method/content-type/encoding/origin/host policy...");
+  log("proxy-security: method/content-type/encoding/origin/host policy...");
   await checkPositiveAndPolicy(findings);
 
-  log("stage12: body, chunking, timeout, rate, and connection limits...");
+  log("proxy-security: body, chunking, timeout, rate, and connection limits...");
   await checkBodyLimits(findings);
   await checkRateAndConnectionLimits(findings);
 
-  log("stage12: protocol probes...");
+  log("proxy-security: protocol probes...");
   await checkProtocolProbes(findings);
 
-  log("stage12: path and management isolation...");
+  log("proxy-security: path and management isolation...");
   await checkPathIsolation(findings);
 
-  log("stage12: OpenObserve failure isolation...");
+  log("proxy-security: OpenObserve failure isolation...");
   await checkOutageIsolation(findings);
   await checkBrowserSuppliedTokenIsolation(findings);
   await checkSlowUpstreamIsolation(findings);
 
-  log("stage12: privacy-safe ingestion logs...");
+  log("proxy-security: privacy-safe ingestion logs...");
   await requestProxy(LOGS_PATH, {
     headers: ingestionHeaders({
       Authorization: `Bearer ${SAFE_CANARY}`,
@@ -747,19 +753,19 @@ export async function verifyProxySecurity() {
 const isMainModule = process.argv[1] === new URL(import.meta.url).pathname;
 if (isMainModule) {
   try {
-    assertExactLabToolchain("test:stage12:proxy-security");
+    assertExactLabToolchain("test:proxy-security");
     const result = await verifyProxySecurity();
     if (result.pass) {
-      log("\nStage 12 proxy-security verification PASSED.");
+      log("\nproxy-security verification PASSED.");
       log(`Measured SDK request bytes: ${JSON.stringify(result.measurements)}`);
       log(`Configured body limits: ${JSON.stringify(result.limits)}`);
     } else {
-      logError("\nStage 12 proxy-security verification FAILED:");
+      logError("\nproxy-security verification FAILED:");
       for (const finding of result.findings) logError(`  - ${finding}`);
     }
     process.exit(result.pass ? 0 : 1);
   } catch (error) {
-    logError(`test:stage12:proxy-security FAILED: ${error.message}`);
+    logError(`test:proxy-security FAILED: ${error.message}`);
     process.exit(1);
   }
 }

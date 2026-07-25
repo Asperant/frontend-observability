@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 
-import { DEMO_IDENTITY } from "../../apps/demo-frontend/src/identity.js";
+import { DEMO_IDENTITY } from "../../tests/fixtures/apps/browser-app/src/identity.js";
 import { LOCAL_DESTINATION_NAME, alertsInstallStarters } from "./alerts-install-starters.mjs";
 import { assertExactLabToolchain, emailSecretPath, log, logError } from "./common.mjs";
 import {

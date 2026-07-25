@@ -69,33 +69,71 @@ const ERROR_STATUS_FALLBACK = Object.freeze({
 });
 
 /**
- * Initializes the observability package for the current page. Never throws;
- * inspect the returned { ok, reason } instead.
+ * Initializes browser observability for the current page.
+ *
+ * @param {{configUrl?: string, service: string, environment: "development"|"test"|"staging"|"production"|"lab", version: string}} options
+ * Host application identity and optional same-origin runtime config URL.
+ * @returns {Promise<{ok: boolean, reason?: string, reasonCode?: string}>}
+ * Resolves with an outcome object. It never throws; invalid options, disabled
+ * config, expired config, runtime-control HOLD, missing consent, SDK load
+ * failure, or internal failures are reported through reason/reasonCode.
  */
 export const initializeObservability = (options) =>
   safeCall(() => _initializeObservability(options), Promise.resolve(publicFallback()));
 
 /**
- * Records the visitor's tracking consent decision ("granted" | "not-granted").
- * Any other value (including legacy callers passing "denied" or "unknown")
- * fails closed to "not-granted" — see src/internal/constants.js and
- * src/consent/consent-manager.js. Never throws.
+ * Records the visitor's tracking consent decision.
+ *
+ * @param {"granted"|"not-granted"|string} consent
+ * Only `"granted"` enables collection. Any other value fails closed to
+ * `"not-granted"`.
+ * @returns {{ok: boolean, reason?: string, reasonCode?: string}}
+ * Outcome object. Never throws.
  */
 export const setTrackingConsent = (consent) =>
   safeCall(() => _setTrackingConsent(consent), publicFallback());
 
-/** Records a bounded, sanitized custom action. Never throws. */
+/**
+ * Records a bounded, sanitized custom action.
+ *
+ * @param {string} name Dot-delimited low-cardinality action name.
+ * @param {Record<string, string|number|boolean|null|undefined>=} attributes
+ * Optional primitive attributes. Sensitive keys/values are dropped or rejected.
+ * @returns {{ok: boolean, reason?: string, reasonCode?: string}}
+ * Outcome object. Never throws, and never captures DOM, form, canvas, video, or replay payloads.
+ */
 export const recordAction = (name, attributes) =>
   safeCall(() => _recordAction(name, attributes), publicFallback());
 
-/** Records a bounded, sanitized error. Never throws. */
+/**
+ * Records a bounded, sanitized error.
+ *
+ * @param {unknown} error Error-like value to sanitize.
+ * @param {Record<string, string|number|boolean|null|undefined>=} context
+ * Optional primitive context. Headers, bodies, cookies, tokens, identity, raw IP
+ * and URL query/fragment values are removed or rejected.
+ * @returns {{ok: boolean, reason?: string, reasonCode?: string}}
+ * Outcome object. Never throws.
+ */
 export const recordError = (error, context) =>
   safeCall(() => _recordError(error, context), publicFallback());
 
-/** Returns a read-only snapshot of the current package status. Never throws. */
+/**
+ * Returns a read-only snapshot of the current package status.
+ *
+ * @returns {Readonly<Record<string, unknown>>}
+ * Status snapshot with lifecycle, consent, counters, sanitization,
+ * correlation, and runtime-control state. Never throws.
+ */
 export const getObservabilityStatus = () =>
   safeCall(() => _getObservabilityStatus(), ERROR_STATUS_FALLBACK);
 
-/** Stops all collection and resets internal state. Never throws. */
+/**
+ * Stops collection for the current page and resets local runtime state.
+ *
+ * @returns {Promise<{ok: boolean, reason?: string, reasonCode?: string}>}
+ * Outcome object. Never throws; a later initialize call may resume only with
+ * the same SDK connection identity.
+ */
 export const shutdownObservability = () =>
   safeCall(() => _shutdownObservability(), Promise.resolve(publicFallback()));

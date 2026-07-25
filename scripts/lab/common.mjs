@@ -28,6 +28,12 @@ export const runtimeDir = join(repoRoot, ".runtime");
 export const secretsDir = join(runtimeDir, "secrets");
 export const certsDir = join(runtimeDir, "certs");
 export const generatedDir = join(runtimeDir, "generated");
+export const sessionMetadataStateDir = join(runtimeDir, "session-metadata-state");
+export const controlPlaneStateDir = join(runtimeDir, "control-plane");
+export const controlPlaneActiveConfigPath = join(controlPlaneStateDir, "active-config.json");
+export const controlPlaneActiveControlPath = join(controlPlaneStateDir, "active-control.json");
+export const controlPlaneAuditPath = join(controlPlaneStateDir, "audit.jsonl");
+export const controlPlaneConfigHistoryPath = join(controlPlaneStateDir, "config-history.json");
 
 export const emailSecretPath = join(secretsDir, "openobserve-root-email");
 export const passwordSecretPath = join(secretsDir, "openobserve-root-password");
@@ -36,6 +42,14 @@ export const openObserveRumIngestTokenSecretPath = join(secretsDir, "openobserve
 export const openObserveDeliveryOpsIngestTokenSecretPath = join(
   secretsDir,
   "openobserve-delivery-ops-ingest-token",
+);
+export const openObserveSessionReadTokenSecretPath = join(
+  secretsDir,
+  "openobserve-session-read-token",
+);
+export const openObserveSessionWriteTokenSecretPath = join(
+  secretsDir,
+  "openobserve-session-write-token",
 );
 export const rabbitmqAdminUsernameSecretPath = join(secretsDir, "rabbitmq-admin-username");
 export const rabbitmqAdminPasswordSecretPath = join(secretsDir, "rabbitmq-admin-password");
@@ -80,7 +94,6 @@ export const proxyDynamicDir = join(generatedDir, "proxy-dynamic");
 export const runtimeControlPath = join(proxyDynamicDir, "runtime-control.json");
 export const proxyGatePath = join(proxyDynamicDir, "proxy-gate.conf");
 export const deliveryControlPath = join(proxyDynamicDir, "delivery-control.json");
-export const workerFaultPath = join(proxyDynamicDir, "worker-fault.json");
 export const killSwitchLockPath = join(generatedDir, "kill-switch.lock");
 export const runtimeControlDaemonPidPath = join(generatedDir, "runtime-control-daemon.pid");
 export const sessionMetadataDaemonPidPath = join(generatedDir, "session-metadata-daemon.pid");
@@ -89,11 +102,13 @@ export const COMPOSE_PROJECT_NAME = "chicek-lab";
 
 export const SERVICES = [
   "reverse-proxy",
-  "demo-frontend",
-  "mock-api",
-  "durable-ingest",
+  "browser-app",
+  "http-test-service",
+  "telemetry-ingest",
   "rabbitmq",
-  "delivery-worker",
+  "telemetry-delivery-worker",
+  "observability-control-plane",
+  "session-metadata-sync",
   "openobserve",
   "alert-sink",
 ];
@@ -252,7 +267,7 @@ export function fileMode(path) {
  * CLI invocations racing each other — unlike an in-process JS mutex, which
  * only protects concurrent calls within a single Node process).
  *
- * Stage 18 finding: `killSwitchOn()`/`killSwitchOff()` each perform
+ * security-acceptance finding: `killSwitchOn()`/`killSwitchOff()` each perform
  * multiple non-atomic steps (write proxy gate, reload nginx, publish a
  * runtime-control document); running one of each concurrently (e.g. two
  * separate `pnpm lab:kill-switch:*` invocations, or two automation scripts)

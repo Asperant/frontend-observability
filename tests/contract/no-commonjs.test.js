@@ -13,9 +13,9 @@ describe("no CommonJS anywhere in the workspace", () => {
   it.each([
     "package.json",
     "packages/browser-observability/package.json",
-    "packages/contracts/package.json",
-    "apps/demo-frontend/package.json",
-    "apps/mock-api/package.json",
+    "packages/observability-contracts/package.json",
+    "tests/fixtures/apps/browser-app/package.json",
+    "tests/fixtures/apps/http-test-service/package.json",
   ])("%s declares type: module", (relativePath) => {
     expect(readJson(relativePath).type).toBe("module");
   });

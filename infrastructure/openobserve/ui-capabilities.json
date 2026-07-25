@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "1.0.0",
+  "supported": [
+    "Logs / _rumdata",
+    "Logs / _rumlog",
+    "RUM Performance",
+    "RUM Error Tracking",
+    "Metadata-only Sessions list/tags",
+    "Product dashboards",
+    "Delivery Operations dashboard",
+    "Product alerts",
+    "Delivery alerts",
+    "Streams/functions/pipelines"
+  ],
+  "unsupported": [
+    "Session Replay",
+    "DOM/video playback",
+    "Backend traces",
+    "Safari/WebKit acceptance",
+    "User identity tracking",
+    "Source Maps baseline",
+    "Breadcrumbs when native replay payloads are required"
+  ],
+  "metadataOnlySessions": {
+    "session_has_replay": false,
+    "breadcrumbs": "unsupported_when_replay_payload_required",
+    "investigationPath": "Session Investigation dashboard and session_id Logs queries"
+  },
+  "starterAlerts": {
+    "productIds": [
+      "error-session-rate",
+      "errors-per-thousand-views",
+      "resource-failure-rate",
+      "web-vital-degradation",
+      "telemetry-freshness"
+    ],
+    "deliveryIds": ["delivery-ops-freshness", "delivery-queue-pressure"],
+    "product": [
+      "Error Session Rate",
+      "Errors per Thousand Views",
+      "Resource Failure Rate",
+      "Web Vital Degradation",
+      "Telemetry Freshness"
+    ],
+    "delivery": ["Delivery Operations Freshness", "Delivery Queue Pressure"]
+  }
+}

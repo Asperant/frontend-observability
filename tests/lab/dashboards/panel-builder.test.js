@@ -31,7 +31,7 @@ const PANEL_MANIFEST = Object.freeze({
 describe("buildPanel", () => {
   it("builds a real OpenObserve panel body from a panel manifest + query manifest", () => {
     const panel = buildPanel(PANEL_MANIFEST, QUERY_MANIFEST, {
-      service: "demo-frontend",
+      service: "browser-app",
       environment: "lab",
     });
     expect(panel).toEqual({
@@ -44,7 +44,7 @@ describe("buildPanel", () => {
       queries: [
         {
           query:
-            "select count(*) as sessions from _rumdata where service = 'demo-frontend' and env = 'lab'",
+            "select count(*) as sessions from _rumdata where service = 'browser-app' and env = 'lab'",
           customQuery: true,
           fields: {
             stream: "_rumdata",
@@ -64,7 +64,7 @@ describe("buildPanel", () => {
   it("defaults description/config when the panel manifest omits them", () => {
     const { description: _description, config: _config, ...rest } = PANEL_MANIFEST;
     const panel = buildPanel(rest, QUERY_MANIFEST, {
-      service: "demo-frontend",
+      service: "browser-app",
       environment: "lab",
     });
     expect(panel.description).toBe("");
@@ -80,7 +80,7 @@ describe("buildPanel", () => {
       ],
     };
     const panel = buildPanel(PANEL_MANIFEST, queryManifestWithColumns, {
-      service: "demo-frontend",
+      service: "browser-app",
       environment: "lab",
     });
     expect(panel.queries[0].fields.y).toEqual([
@@ -120,7 +120,7 @@ describe("buildPanel", () => {
       ],
     };
     const linePanel = buildPanel({ ...PANEL_MANIFEST, type: "line" }, trendQueryManifest, {
-      service: "demo-frontend",
+      service: "browser-app",
       environment: "lab",
     });
     expect(linePanel.queries[0].fields.x).toEqual([
@@ -140,7 +140,7 @@ describe("buildPanel", () => {
     expect(linePanel.queries[0].fields.y.map((field) => field.label)).toEqual(["error_count"]);
 
     const tablePanel = buildPanel({ ...PANEL_MANIFEST, type: "table" }, trendQueryManifest, {
-      service: "demo-frontend",
+      service: "browser-app",
       environment: "lab",
     });
     expect(tablePanel.queries[0].fields.x).toEqual([]);
@@ -159,7 +159,7 @@ describe("buildPanel", () => {
       ],
     };
     const barPanel = buildPanel({ ...PANEL_MANIFEST, type: "bar" }, trendQueryManifest, {
-      service: "demo-frontend",
+      service: "browser-app",
       environment: "lab",
     });
     expect(barPanel.queries[0].fields.x.map((field) => field.label)).toEqual(["bucket"]);
@@ -172,7 +172,7 @@ describe("buildTab", () => {
     const tab = buildTab(
       { tabId: "default", name: "Overview", panels: [PANEL_MANIFEST] },
       new Map([["sessions-count", QUERY_MANIFEST]]),
-      { service: "demo-frontend", environment: "lab" },
+      { service: "browser-app", environment: "lab" },
     );
     expect(tab.tabId).toBe("default");
     expect(tab.panels).toHaveLength(1);
@@ -271,7 +271,7 @@ describe("buildDashboardContent", () => {
         ],
       },
       new Map([["sessions-count", QUERY_MANIFEST]]),
-      { service: "demo-frontend", environment: "lab" },
+      { service: "browser-app", environment: "lab" },
     );
     expect(content.tabs).toHaveLength(1);
     expect(content.variables.list).toHaveLength(1);
@@ -290,7 +290,7 @@ describe("buildStarterDashboardBody", () => {
         variables: [],
       },
       new Map([["sessions-count", QUERY_MANIFEST]]),
-      { service: "demo-frontend", environment: "lab" },
+      { service: "browser-app", environment: "lab" },
       { owner: "admin@example.com", createdAt: "2026-07-20T00:00:00.000Z" },
     );
     expect(body.version).toBe(8);

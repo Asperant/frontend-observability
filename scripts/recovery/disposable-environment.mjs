@@ -1,9 +1,9 @@
-// Shared disposable-OpenObserve-environment infrastructure for Stage 20
-// recovery proofs: pinned source/target image refs, a throwaway compose
+// Shared disposable-OpenObserve-environment infrastructure for recovery
+// proofs: pinned source/target image refs, a throwaway compose
 // project writer (non-root, read-only, loopback-only, matching the real
 // lab's own compose.yaml security posture), cold-volume tar backup/restore,
 // and start/stop helpers. Extracted from the original single-file
-// run-stage20-proof.mjs so logical-export/restore round-trip tests and the
+// verify-openobserve-recovery.mjs so logical-export/restore round-trip tests and the
 // full recovery chain proof can both reuse exactly the same disposable
 // environment mechanics.
 import { createHash } from "node:crypto";
@@ -95,7 +95,7 @@ export function writeCompose(runDir, name, version, port) {
     build:
       context: ${JSON.stringify(contextDir)}
       dockerfile: Dockerfile
-    image: chicek-stage20/${name}-openobserve:${version === "source" ? SOURCE.tag : TARGET.tag}
+    image: chicek-recovery/${name}-openobserve:${version === "source" ? SOURCE.tag : TARGET.tag}
     user: "${process.getuid?.() ?? 10001}:${process.getgid?.() ?? 10001}"
     read_only: true
     security_opt:
@@ -127,7 +127,7 @@ export function writeCompose(runDir, name, version, port) {
       start_period: 30s
       retries: 6
   alert-sink:
-    image: chicek-lab/mock-api:6.0.0
+    image: chicek-lab/http-test-service-fixture:6.0.0
     read_only: true
     security_opt:
       - no-new-privileges:true

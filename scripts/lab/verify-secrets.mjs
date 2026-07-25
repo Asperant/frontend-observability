@@ -12,6 +12,8 @@ import {
   leafKeyPath,
   openObserveDeliveryOpsIngestTokenSecretPath,
   openObserveRumIngestTokenSecretPath,
+  openObserveSessionReadTokenSecretPath,
+  openObserveSessionWriteTokenSecretPath,
   passwordSecretPath,
   rabbitmqAdminPasswordSecretPath,
   rabbitmqAdminUsernameSecretPath,
@@ -46,6 +48,11 @@ function readSecrets() {
       openObserveDeliveryOpsIngestTokenSecretPath,
       "utf8",
     ).trim(),
+    openObserveSessionReadToken: readFileSync(openObserveSessionReadTokenSecretPath, "utf8").trim(),
+    openObserveSessionWriteToken: readFileSync(
+      openObserveSessionWriteTokenSecretPath,
+      "utf8",
+    ).trim(),
   };
 }
 
@@ -73,6 +80,8 @@ export function checkSecretSecurity() {
     rumClientTokenSecretPath,
     openObserveRumIngestTokenSecretPath,
     openObserveDeliveryOpsIngestTokenSecretPath,
+    openObserveSessionReadTokenSecretPath,
+    openObserveSessionWriteTokenSecretPath,
     rabbitmqAdminUsernameSecretPath,
     rabbitmqAdminPasswordSecretPath,
     rabbitmqIngestUsernameSecretPath,
@@ -98,6 +107,8 @@ export function checkSecretSecurity() {
     rumClientToken,
     openObserveRumIngestToken,
     openObserveDeliveryOpsIngestToken,
+    openObserveSessionReadToken,
+    openObserveSessionWriteToken,
   } = readSecrets();
   const secretHashes = new Set([sha256(email), sha256(password)]);
 
@@ -116,6 +127,19 @@ export function checkSecretSecurity() {
     findings.push(
       "Delivery ops ingest token must be distinct from browser, RUM, and root secrets.",
     );
+  }
+  if (
+    new Set([
+      email,
+      password,
+      rumClientToken,
+      openObserveRumIngestToken,
+      openObserveDeliveryOpsIngestToken,
+      openObserveSessionReadToken,
+      openObserveSessionWriteToken,
+    ]).size !== 7
+  ) {
+    findings.push("Session metadata read/write tokens must be dedicated and distinct.");
   }
 
   const composeConfig = spawnSync("docker", composeArgs(["config"]), {
@@ -167,6 +191,12 @@ export function checkSecretSecurity() {
     }
     if (runtimeConfigText.includes(openObserveDeliveryOpsIngestToken)) {
       findings.push("The delivery ops ingest token appears in runtime config.");
+    }
+    if (
+      runtimeConfigText.includes(openObserveSessionReadToken) ||
+      runtimeConfigText.includes(openObserveSessionWriteToken)
+    ) {
+      findings.push("A session metadata sync token appears in runtime config.");
     }
   } else {
     findings.push("Generated runtime config is missing.");

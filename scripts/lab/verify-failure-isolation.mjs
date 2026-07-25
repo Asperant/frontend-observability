@@ -37,25 +37,28 @@ export async function checkFailureIsolation() {
   if (!openobserveBackHealthy.healthy)
     findings.push("openobserve did not return to healthy after restart.");
 
-  log("  failure isolation: stopping mock-api...");
-  runDockerCompose(["stop", "mock-api"]);
+  log("  failure isolation: stopping http-test-service...");
+  runDockerCompose(["stop", "http-test-service"]);
   const rootWithoutMockApi = await requestHttps("/");
   if (rootWithoutMockApi.statusCode !== 200) {
     findings.push(
-      `With mock-api stopped, GET / returned ${rootWithoutMockApi.statusCode}, expected 200 (demo shell).`,
+      `With http-test-service stopped, GET / returned ${rootWithoutMockApi.statusCode}, expected 200 (demo shell).`,
     );
   }
   const mockProxyWhileDown = await requestHttps("/mock/status/200");
   if (![502, 503, 504].includes(mockProxyWhileDown.statusCode)) {
     findings.push(
-      `With mock-api stopped, GET /mock/status/200 returned ${mockProxyWhileDown.statusCode}, ` +
+      `With http-test-service stopped, GET /mock/status/200 returned ${mockProxyWhileDown.statusCode}, ` +
         "expected a graceful 502/503/504 (not a hang or crash).",
     );
   }
-  runDockerCompose(["start", "mock-api"]);
-  const mockApiBackHealthy = await waitForHealthy({ services: ["mock-api"], timeoutMs: 60_000 });
-  if (!mockApiBackHealthy.healthy)
-    findings.push("mock-api did not return to healthy after restart.");
+  runDockerCompose(["start", "http-test-service"]);
+  const httpTestServiceBackHealthy = await waitForHealthy({
+    services: ["http-test-service"],
+    timeoutMs: 60_000,
+  });
+  if (!httpTestServiceBackHealthy.healthy)
+    findings.push("http-test-service did not return to healthy after restart.");
 
   const finalHealth = await waitForHealthy({ timeoutMs: 90_000 });
   if (!finalHealth.healthy) {

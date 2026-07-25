@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { runDockerCompose } from "../../scripts/lab/common.mjs";
 import { waitForHealthy } from "../../scripts/lab/wait.mjs";
 
-test.describe("Stage 6 Docker reference lab (requires `pnpm lab:up` already running)", () => {
+test.describe("reference-lab Docker reference lab (requires `pnpm lab:up` already running)", () => {
   test("https://localhost:8443 loads the demo test fixture", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Demo Test Fixture");
@@ -38,9 +38,9 @@ test.describe("Stage 6 Docker reference lab (requires `pnpm lab:up` already runn
 
   // Section 3.1 closeout fix: /observability/timeout.json is a real,
   // narrowly-scoped lab fixture endpoint (infrastructure/docker/
-  // reverse-proxy/conf.d/app.conf, proxied to mock-api's pre-existing
+  // reverse-proxy/conf.d/app.conf, proxied to http-test-service's pre-existing
   // /timeout route) that never sends a response — unlike the non-lab
-  // demo-frontend.spec.js suite, which fakes this with a Playwright route
+  // browser-app.spec.js suite, which fakes this with a Playwright route
   // mock, this exercises the real Docker reverse-proxy and a real client
   // AbortController timeout end to end.
   test("config timeout state is shown against a real never-completing lab endpoint", async ({

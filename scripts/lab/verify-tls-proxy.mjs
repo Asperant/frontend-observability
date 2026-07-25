@@ -55,7 +55,9 @@ export async function checkTlsAndProxy() {
     findings.push("GET /observability/config.json: response body is not valid JSON.");
   }
   if (parsedConfig && parsedConfig.enabled !== true) {
-    findings.push("GET /observability/config.json: expected enabled=true in the Stage 8 lab.");
+    findings.push(
+      "GET /observability/config.json: expected enabled=true in the OpenObserve integration lab.",
+    );
   }
   if (parsedConfig) {
     if (parsedConfig.sessionReplay?.enabled !== false) {
@@ -105,8 +107,8 @@ export async function checkTlsAndProxy() {
   expectStatus(findings, "POST /mock/status/200 (method not allowed)", postDenied.statusCode, 405);
 
   // Exact RUM/browser-logs ingestion allowlist. These probes exercise
-  // genuine durable admission through the queryless browser-facing proxy;
-  // Stage 20.5 returns 202 only after RabbitMQ publisher confirm.
+  // genuine telemetry admission through the queryless browser-facing proxy;
+  // Durable admission returns 202 only after RabbitMQ publisher confirm.
   const ingestionHeaders = {
     Host: "localhost:8443",
     Origin: "https://localhost:8443",
@@ -118,9 +120,11 @@ export async function checkTlsAndProxy() {
     body: JSON.stringify({
       date: Date.now(),
       type: "view",
-      service: "chicek-demo-frontend",
+      service: "chicek-browser-app",
       env: "lab",
       version: "2026.07.1",
+      session_id: "tls-proxy-smoke-session",
+      view_id: "tls-proxy-smoke-view",
       view: { id: "tls-proxy-smoke-view", url: "https://localhost:8443/tls-proxy-smoke" },
     }),
   });
@@ -132,7 +136,7 @@ export async function checkTlsAndProxy() {
       date: Date.now(),
       message: "tls proxy smoke log",
       status: "info",
-      service: "chicek-demo-frontend",
+      service: "chicek-browser-app",
       env: "lab",
       version: "2026.07.1",
     }),

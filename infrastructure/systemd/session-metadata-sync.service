@@ -1,0 +1,32 @@
+[Unit]
+Description=Chicek Session Metadata Sync
+After=network-online.target openobserve.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=chicek-session-metadata
+Group=chicek-session-metadata
+WorkingDirectory=/opt/chicek-observability/current
+EnvironmentFile=/etc/chicek-observability/session-metadata-sync.env
+ExecStart=/usr/bin/node apps/session-metadata-sync/src/server.js
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=15s
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/chicek-observability/session-metadata
+ReadOnlyPaths=/etc/chicek-observability
+CapabilityBoundingSet=
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

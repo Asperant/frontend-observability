@@ -3,9 +3,9 @@
   "streamName": "_rumdata",
   "derivedFrom": [
     "Real Chromium/Firefox @openobserve/browser-rum output ingested into this lab's own _rumdata stream (docs/openobserve-v0.91-stream-capabilities.md capability #5).",
-    "scripts/lab/verify-stage8-openobserve.mjs's existing regression assertions (service/env/version/application_id present on every RUM record type).",
-    "infrastructure/openobserve/sanitization/rum.vrl and cleanup.vrl (Stage 9 — forbidden-field deletions and controlled chicek.* field allow-list).",
-    "infrastructure/openobserve/correlation/correlation-contract.json (Stage 10 — chicek.correlation.* logical/flattened field names)."
+    "scripts/lab/verify-openobserve-ingestion.mjs's existing regression assertions (service/env/version/application_id present on every RUM record type).",
+    "infrastructure/openobserve/sanitization/rum.vrl and cleanup.vrl (sanitization — forbidden-field deletions and controlled chicek.* field allow-list).",
+    "infrastructure/openobserve/correlation/correlation-contract.json (correlation — chicek.correlation.* logical/flattened field names)."
   ],
   "requiredNativeFields": [
     "_timestamp",
@@ -272,7 +272,7 @@
     "user_agent_user_agent_family": "Utf8",
     "version": "Utf8",
     "view_action_count": "Int64",
-    "view_cumulative_layout_shift": "Int64",
+    "view_cumulative_layout_shift": "Float64",
     "view_dom_complete": "Int64",
     "view_dom_content_loaded": "Int64",
     "view_dom_interactive": "Int64",
@@ -359,8 +359,8 @@
   ],
   "urlFieldsMustNotContainQueryOrFragment": ["view_url", "resource_url"],
   "notes": [
-    "requiredNativeFields is intentionally short: only fields observed present on every RUM record type (view/action/error/resource) in this repo's own Stage 8 regression. Everything else is conditionalNativeFieldGroups, keyed by the record's own 'type' field, because OpenObserve's stream schema is additive-only and cannot itself prove a field is still produced by the current SDK (docs/openobserve-v0.91-stream-capabilities.md capability #5) — only a fresh canary can.",
+    "requiredNativeFields is intentionally short: only fields observed present on every RUM record type (view/action/error/resource) in this repo's own OpenObserve integration regression. Everything else is conditionalNativeFieldGroups, keyed by the record's own 'type' field, because OpenObserve's stream schema is additive-only and cannot itself prove a field is still produced by the current SDK (docs/openobserve-v0.91-stream-capabilities.md capability #5) — only a fresh canary can.",
     "This contract intentionally does NOT freeze the native schema as a strict allow-list: new optional native fields from a future @openobserve/browser-rum version are expected and are SAFE_ADDITIVE_NATIVE_DRIFT, not a failure, as long as they are not in forbiddenFieldNames/forbiddenFieldNamePatterns and do not change an existing required field's type.",
-    "'_rumreplay' (or any other session-replay stream) is not a canonical stream and must never receive data — see docs/session-replay-security-decision.md (Stage 11, still Security Blocked)."
+    "'_rumreplay' (or any other session-replay stream) is not a canonical stream and must never receive data — see docs/session-replay-security-decision.md (replay-disabled, still Security Blocked)."
   ]
 }

@@ -1,8 +1,8 @@
-// Pure decision logic for every write-capable Stage 16 dashboard operation
+// Pure decision logic for every write-capable dashboard-governance dashboard operation
 // (install-starters, restore-starters, import). No I/O: callers
 // (scripts/lab/dashboards-*.mjs) are responsible for actually performing or
 // refusing the API call based on this module's verdict — mirroring
-// scripts/lab/streams/guard.js's own split for Stage 15.
+// scripts/lab/streams/guard.js's own split for stream-lifecycle.
 
 import { parseMarker } from "./marker.js";
 

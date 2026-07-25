@@ -3,9 +3,9 @@
   "streamName": "_rumlog",
   "derivedFrom": [
     "Real Chromium/Firefox @openobserve/browser-logs output ingested into this lab's own _rumlog stream (docs/openobserve-v0.91-stream-capabilities.md capability #5).",
-    "scripts/lab/verify-stage8-openobserve.mjs's existing regression assertions (message/status/service/env/version/application_id present on the browser-log canary).",
-    "infrastructure/openobserve/sanitization/rumlog.vrl and cleanup.vrl (Stage 9 — forbidden-field deletions and controlled chicek.* field allow-list).",
-    "infrastructure/openobserve/correlation/correlation-contract.json (Stage 10 — chicek.correlation.* logical/flattened field names)."
+    "scripts/lab/verify-openobserve-ingestion.mjs's existing regression assertions (message/status/service/env/version/application_id present on the browser-log canary).",
+    "infrastructure/openobserve/sanitization/rumlog.vrl and cleanup.vrl (sanitization — forbidden-field deletions and controlled chicek.* field allow-list).",
+    "infrastructure/openobserve/correlation/correlation-contract.json (correlation — chicek.correlation.* logical/flattened field names)."
   ],
   "requiredNativeFields": [
     "_timestamp",
@@ -136,8 +136,8 @@
   ],
   "urlFieldsMustNotContainQueryOrFragment": ["view_url"],
   "notes": [
-    "requiredNativeFields is intentionally short: only fields observed present on every browser-log record in this repo's own Stage 8 regression. 'component'/'outcome'/'view_*' are conditional because they are only populated on some log entries.",
+    "requiredNativeFields is intentionally short: only fields observed present on every browser-log record in this repo's own OpenObserve integration regression. 'component'/'outcome'/'view_*' are conditional because they are only populated on some log entries.",
     "This contract intentionally does NOT freeze the native schema as a strict allow-list: new optional native fields from a future @openobserve/browser-logs version are expected and are SAFE_ADDITIVE_NATIVE_DRIFT, not a failure, as long as they are not in forbiddenFieldNames/forbiddenFieldNamePatterns and do not change an existing required field's type.",
-    "'http'/'http_url' are listed as forbidden field NAMES here because rumlog.vrl only ever normalizes them in place (strips query/fragment) rather than deleting them outright, but this repo's actual browser-logs usage (apps/demo-frontend) never sets a raw HTTP context object on a log — if one ever appears un-normalized it indicates a bypass of the sanitization pipeline and must be treated as SECURITY_DRIFT, not silently allowed through as a new conditional field."
+    "'http'/'http_url' are listed as forbidden field NAMES here because rumlog.vrl only ever normalizes them in place (strips query/fragment) rather than deleting them outright, but this repo's actual browser-logs usage (tests/fixtures/apps/browser-app) never sets a raw HTTP context object on a log — if one ever appears un-normalized it indicates a bypass of the sanitization pipeline and must be treated as SECURITY_DRIFT, not silently allowed through as a new conditional field."
   ]
 }

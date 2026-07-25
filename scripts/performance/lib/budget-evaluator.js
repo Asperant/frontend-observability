@@ -1,4 +1,4 @@
-// Pure evaluation of measured values against infrastructure/performance/stage19-performance-budgets.json
+// Pure evaluation of measured values against infrastructure/performance/resilience-performance-budgets.json
 // budget definitions. No file I/O here — callers read the JSON file and pass
 // the parsed `budgets` array in. 100%-coverage-gated (see vitest.config.js's
 // "scripts/performance/lib/**" entry).
@@ -95,7 +95,7 @@ export function evaluateAllBudgets(budgets, measurements) {
  * Diffs two budget-file `budgets` arrays (old vs. new) by metricId, listing
  * every field that changed. Used to make any operator edit to baselineValue
  * (or anything else in the budgets file) visible as an explicit diff rather
- * than a silent change — see generate-stage19-report.mjs.
+ * than a silent change — see generate-resilience-report.mjs.
  */
 export function diffBudgetBaselines(oldBudgets, newBudgets) {
   const oldById = new Map(oldBudgets.map((budget) => [budget.metricId, budget]));

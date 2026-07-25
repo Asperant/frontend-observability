@@ -83,9 +83,9 @@ function acceptedRepoSpellings({ registry, repository }) {
 
 const DOCKERFILE_PATHS = {
   openobserve: join(dockerDir, "openobserve/Dockerfile"),
-  "durable-node": join(dockerDir, "durable-node/Dockerfile"),
-  "demo-frontend": join(dockerDir, "demo-frontend/Dockerfile"),
-  "mock-api": join(dockerDir, "mock-api/Dockerfile"),
+  "telemetry-node": join(dockerDir, "telemetry-node/Dockerfile"),
+  "browser-app-fixture": join(dockerDir, "browser-app-fixture/Dockerfile"),
+  "http-test-service-fixture": join(dockerDir, "http-test-service-fixture/Dockerfile"),
   rabbitmq: join(dockerDir, "rabbitmq/Dockerfile"),
   "reverse-proxy": join(dockerDir, "reverse-proxy/Dockerfile"),
 };
@@ -194,7 +194,7 @@ function serviceNetworkNames(service) {
  * `edge-publish` exists only to make the two loopback-bound host ports
  * reachable (Docker's `internal: true` networks refuse to publish any host
  * port for their member containers). It must stay narrowly scoped: only
- * reverse-proxy and openobserve may join it, demo-frontend and mock-api
+ * reverse-proxy and openobserve may join it, browser-app and http-test-service
  * must not, and no port besides 127.0.0.1:8443 and 127.0.0.1:5080 may be
  * published anywhere in the compose file.
  */
@@ -314,7 +314,7 @@ export function checkNamedOpenobserveVolume(doc) {
 
 /**
  * The lab must not enable OpenObserve's own web-UI RUM instrumentation.
- * Browser telemetry for this project is produced only by apps/demo-frontend
+ * Browser telemetry for this project is produced only by tests/fixtures/apps/browser-app
  * through @chicek/browser-observability. If the admin UI instruments itself,
  * it sends noisy /rum and /replay requests to the browser-facing self-signed
  * endpoint and can make dashboard UX appear frozen.

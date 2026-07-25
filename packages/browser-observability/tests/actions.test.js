@@ -131,7 +131,7 @@ function validEnabledConfig() {
     expiresAt: "2099-01-01T00:00:00.000Z",
     killSwitch: { engaged: false },
     privacyProfile: "strict",
-    sampling: { sessionSampleRate: 0.5, errorSampleRate: 0.5 },
+    sampling: { sessionSampleRate: 0.5 },
     rum: {
       site: "observability.example.invalid",
       organizationIdentifier: "org",
@@ -141,8 +141,7 @@ function validEnabledConfig() {
     },
     browserLogs: { enabled: false },
     sessionReplay: { enabled: false },
-    allowedRoutes: [],
-    allowedSelectors: [],
+    sensitiveRoutes: [],
   };
 }
 

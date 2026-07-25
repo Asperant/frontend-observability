@@ -1,6 +1,6 @@
 // Pure aggregation over parsed docker-stats snapshots (see docker-stats-parser.js)
 // plus optional file-descriptor counts. No process/network/filesystem I/O —
-// scripts/performance/collect-container-metrics.mjs and run-stage19-soak.mjs
+// scripts/performance/collect-container-metrics.mjs and run-resilience-soak.mjs
 // own sampling and feed timestamped samples through this module.
 // 100%-coverage-gated (see vitest.config.js's "scripts/performance/lib/**" entry).
 
@@ -114,7 +114,7 @@ export function computeFdDelta(beforeCount, afterCount) {
 
 /**
  * Runs computeSeriesTrend across successive load→recovery cycles' peak
- * values (at least 3, per Stage 19 Section 14) to flag a persistent
+ * values (at least 3, per resilience Section 14) to flag a persistent
  * monotonic climb across cycles, distinct from within-cycle noise.
  */
 export function detectCrossCycleLeak(cyclePeakValues, options) {

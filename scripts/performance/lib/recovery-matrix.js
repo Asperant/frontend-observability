@@ -1,6 +1,6 @@
 // Pure timing/classification/drift logic for restart-recovery scenarios
-// (infrastructure/performance/stage19-recovery-matrix.json). No process
-// spawning here — scripts/performance/verify-stage19-resilience.mjs records
+// (infrastructure/performance/resilience-recovery-matrix.json). No process
+// spawning here — scripts/performance/verify-resilience.mjs records
 // raw timestamps/state snapshots and passes them through this module.
 // 100%-coverage-gated (see vitest.config.js's "scripts/performance/lib/**" entry).
 

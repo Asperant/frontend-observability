@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chicek.internal/schemas/runtime-config.schema.json",
+  "title": "ChicekRuntimeConfig",
+  "description": "Remote runtime configuration accepted by @chicek/browser-observability. Every field is closed and cannot be used to weaken the privacy baseline: no session replay, no insecure transport, no arbitrary endpoints, and no legacy aliases.",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "rumSite": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?(:[0-9]{1,5})?$",
+      "description": "Bare host[:port] of the OpenObserve RUM ingestion endpoint the SDK will call over HTTPS, e.g. 'localhost:8443'. Never a full URL: no scheme, path, query, credentials, or whitespace, so an insecure 'http://' (or any other) scheme can never be smuggled in through this field."
+    },
+    "rumOrganizationIdentifier": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "rumApplicationId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "rumClientToken": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 256,
+      "description": "OpenObserve RUM ingestion token. This is a browser-exposed client credential, not an admin/root credential, and carries no search/management authority."
+    },
+    "rumApiVersion": { "type": "string", "enum": ["v1"] }
+  },
+  "required": [
+    "schemaVersion",
+    "enabled",
+    "issuedAt",
+    "expiresAt",
+    "killSwitch",
+    "privacyProfile",
+    "sampling",
+    "rum",
+    "browserLogs",
+    "sessionReplay",
+    "sensitiveRoutes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["1.0.0"],
+      "description": "Version of this schema the payload was authored against."
+    },
+    "configVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Operational runtime config version shown in status snapshots."
+    },
+    "enabled": {
+      "type": "boolean",
+      "description": "Global on/off switch for the entire observability package."
+    },
+    "issuedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "killSwitch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["engaged"],
+      "properties": {
+        "engaged": {
+          "type": "boolean",
+          "description": "When true, the SDK must stop all data collection immediately, regardless of other fields."
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 256
+        }
+      }
+    },
+    "privacyProfile": {
+      "type": "string",
+      "enum": ["strict"],
+      "description": "Strict is the only production privacy profile. Compatibility aliases are rejected fail-closed."
+    },
+    "sampling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionSampleRate"],
+      "properties": {
+        "sessionSampleRate": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "rum": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Connection fields are only required when the top-level `enabled` flag is true (see the root-level `allOf`/`if`/`then` below); a disabled config must be expressible without real or fake connection fields.",
+      "properties": {
+        "site": { "$ref": "#/$defs/rumSite" },
+        "organizationIdentifier": { "$ref": "#/$defs/rumOrganizationIdentifier" },
+        "applicationId": { "$ref": "#/$defs/rumApplicationId" },
+        "clientToken": { "$ref": "#/$defs/rumClientToken" },
+        "apiVersion": { "$ref": "#/$defs/rumApiVersion" }
+      }
+    },
+    "browserLogs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    },
+    "sessionReplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "const": false,
+          "description": "Session replay is off by default and cannot be enabled through this schema version."
+        }
+      }
+    },
+    "sensitiveRoutes": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "type": "string", "minLength": 1, "maxLength": 256 },
+      "description": "Routes excluded/redacted from telemetry capture."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "enabled": { "const": true } },
+        "required": ["enabled"]
+      },
+      "then": {
+        "properties": {
+          "rum": {
+            "type": "object",
+            "required": [
+              "site",
+              "organizationIdentifier",
+              "applicationId",
+              "clientToken",
+              "apiVersion"
+            ],
+            "properties": {
+              "site": { "$ref": "#/$defs/rumSite" },
+              "organizationIdentifier": { "$ref": "#/$defs/rumOrganizationIdentifier" },
+              "applicationId": { "$ref": "#/$defs/rumApplicationId" },
+              "clientToken": { "$ref": "#/$defs/rumClientToken" },
+              "apiVersion": { "$ref": "#/$defs/rumApiVersion" }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

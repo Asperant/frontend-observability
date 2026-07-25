@@ -1,4 +1,4 @@
-// Pure translation from Stage 16's own starter-dashboard manifest shape
+// Pure translation from dashboard-governance's own starter-dashboard manifest shape
 // (infrastructure/openobserve/analytics/dashboards/*.dashboard.json) plus
 // the query catalog into a real OpenObserve v3 dashboard body
 // (docs/openobserve-v0.91-dashboard-capabilities.md capability #10/#11). No

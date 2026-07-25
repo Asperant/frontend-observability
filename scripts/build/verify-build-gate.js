@@ -32,7 +32,10 @@ const FORBIDDEN_CONTENT_PATTERNS = [
     name: "JSX pragma / dev runtime",
     pattern: /jsx-runtime|_jsxDEV|(?<!document\.)createElement\(/,
   },
-  { name: "mock API reference", pattern: /mock-api|127\.0\.0\.1:4311/i },
+  {
+    name: "HTTP test service fixture reference",
+    pattern: /http-test-service-fixture|127\.0\.0\.1:4311/i,
+  },
   // OpenObserve/RUM management-plane surface (search, users, orgs, streams,
   // dashboards, alerts, source maps) must never be reachable from the
   // browser bundle — only the ingestion paths the adapter itself calls.

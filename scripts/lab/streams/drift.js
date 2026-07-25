@@ -1,6 +1,6 @@
 // Pure drift classification, combining schema-contract.js's per-record
 // validation output, manifest.js's settings diff output, and a pipeline
-// destination check into the closed set of drift classes the Stage 15
+// destination check into the closed set of drift classes the stream-lifecycle
 // roadmap task defines. No I/O.
 
 export const DRIFT_CLASS = Object.freeze({

@@ -9,7 +9,7 @@ import {
 
 // openobserve's own management API, reached over its loopback-only
 // published port (127.0.0.1:5080 — already exposed for the OpenObserve UI
-// since Stage 6). Never proxied through the public reverse-proxy: the
+// since reference-lab). Never proxied through the public reverse-proxy: the
 // reverse-proxy's /api/ path is denied by design (see
 // infrastructure/docker/reverse-proxy/conf.d/ingestion.conf), and this is a
 // host-operator, root-credential admin call, not browser traffic.

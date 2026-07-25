@@ -9,7 +9,7 @@ export async function alertsTestNotification() {
   const auth = readAdminAuthHeader();
   alertSinkControl("reset");
   const firing = await testLocalDestination(auth, {
-    alert: "stage17-notification-probe",
+    alert: "alert-governance-notification-probe",
     severity: "low",
     status: "firing",
     service: "probe",
@@ -25,7 +25,7 @@ export async function alertsTestNotification() {
     dedupKey: "probe",
   });
   const resolved = await testLocalDestination(auth, {
-    alert: "stage17-notification-probe",
+    alert: "alert-governance-notification-probe",
     severity: "low",
     status: "resolved",
     service: "probe",
@@ -35,7 +35,7 @@ export async function alertsTestNotification() {
   const events = alertSinkControl("events");
   alertSinkControl("disable");
   const failed = await testLocalDestination(auth, {
-    alert: "stage17-notification-probe",
+    alert: "alert-governance-notification-probe",
     status: "firing",
   });
   alertSinkControl("enable");

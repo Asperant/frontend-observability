@@ -4,7 +4,7 @@ function quote(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
-function renderStage16Sql(queryManifest, { service, environment, version = null }) {
+function renderAlertSql(queryManifest, { service, environment, version = null }) {
   let sql = queryManifest.sqlTemplate
     .replaceAll("{{service}}", quote(service))
     .replaceAll("{{environment}}", quote(environment));
@@ -49,7 +49,7 @@ function thresholdGuard(policy) {
 }
 
 function buildCandidateSql(policy, queryManifest, scope) {
-  const sourceSql = renderStage16Sql(queryManifest, scope);
+  const sourceSql = renderAlertSql(queryManifest, scope);
   return `select ${metricColumn(policy)} as zo_sql_val from (${sourceSql}) where ${sampleGuard(policy)} and ${thresholdGuard(policy)} limit 1`;
 }
 

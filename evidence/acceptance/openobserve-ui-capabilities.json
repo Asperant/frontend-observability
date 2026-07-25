@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0.0",
+  "supported": [
+    "Logs / _rumdata",
+    "Logs / _rumlog",
+    "RUM Performance",
+    "RUM Error Tracking",
+    "Metadata-only Sessions list/tags",
+    "Product dashboards",
+    "Delivery Operations dashboard",
+    "Product alerts",
+    "Delivery alerts",
+    "Streams/functions/pipelines"
+  ],
+  "unsupported": [
+    "Session Replay",
+    "DOM/video playback",
+    "Backend traces",
+    "Safari/WebKit acceptance",
+    "User identity tracking",
+    "Source Maps baseline",
+    "Breadcrumbs when native replay payloads are required"
+  ],
+  "dashboardCount": 5,
+  "alertCount": 7,
+  "productAlertCount": 5,
+  "deliveryAlertCount": 2
+}

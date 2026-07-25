@@ -1,7 +1,7 @@
 // `pnpm lab:streams:dry-run` — read current settings for both canonical
 // streams, normalize, diff against the desired manifests, and print the
 // result. Never writes. Exits 0 in all cases (this is an informational
-// report, not a gate) — pnpm test:stage15:streams is what turns
+// report, not a gate) — pnpm test:streams is what turns
 // "unexpected diff" into a hard failure.
 
 import { assertExactLabToolchain, log, logError } from "./common.mjs";

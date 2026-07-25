@@ -23,7 +23,7 @@ function overviewPanel(sql, overrides = {}) {
 }
 
 const OK_SQL =
-  "select count(*) as sessions from _rumdata where service = 'demo-frontend' and env = 'lab' and type = 'view'";
+  "select count(*) as sessions from _rumdata where service = 'browser-app' and env = 'lab' and type = 'view'";
 
 describe("auditDashboard — PASS", () => {
   it("returns PASS with no findings for a clean overview query", () => {
@@ -96,8 +96,7 @@ describe("auditDashboard — PASS", () => {
 
 describe("auditDashboard — PRIVACY_RISK", () => {
   it("flags a forbidden field name in query text", () => {
-    const sql =
-      "select user from _rumdata where service = 'demo-frontend' and env = 'lab' limit 10";
+    const sql = "select user from _rumdata where service = 'browser-app' and env = 'lab' limit 10";
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.overall).toBe(RISK_CLASS.PRIVACY_RISK);
   });
@@ -128,7 +127,7 @@ describe("auditDashboard — PRIVACY_RISK", () => {
 describe("auditDashboard — SECURITY_RISK", () => {
   it("flags a credential-shaped field pattern in SQL", () => {
     const sql =
-      "select auth_token from _rumdata where service = 'demo-frontend' and env = 'lab' limit 10";
+      "select auth_token from _rumdata where service = 'browser-app' and env = 'lab' limit 10";
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.overall).toBe(RISK_CLASS.SECURITY_RISK);
   });
@@ -141,7 +140,7 @@ describe("auditDashboard — SECURITY_RISK", () => {
   });
 
   it("flags Session Replay referenced in SQL", () => {
-    const sql = "select * from _rumreplay where service = 'demo-frontend' and env = 'lab' limit 10";
+    const sql = "select * from _rumreplay where service = 'browser-app' and env = 'lab' limit 10";
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.findings.some((f) => f.message.includes("Session Replay"))).toBe(true);
   });
@@ -157,14 +156,14 @@ describe("auditDashboard — SECURITY_RISK", () => {
 
   it("flags a guaranteed-delivery claim in SQL", () => {
     const sql =
-      "select 'guaranteed delivery' as note from _rumdata where service = 'demo-frontend' and env = 'lab' limit 10";
+      "select 'guaranteed delivery' as note from _rumdata where service = 'browser-app' and env = 'lab' limit 10";
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.findings.some((f) => f.message.includes("guaranteed-delivery"))).toBe(true);
   });
 
   it("flags a statement separator in SQL", () => {
     const sql =
-      "select count(*) as c from _rumdata where service = 'demo-frontend' and env = 'lab'; drop table x";
+      "select count(*) as c from _rumdata where service = 'browser-app' and env = 'lab'; drop table x";
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.findings.some((f) => f.message.includes("statement separator"))).toBe(true);
   });
@@ -178,14 +177,14 @@ describe("auditDashboard — SECURITY_RISK", () => {
 
   it("flags a SQL comment marker", () => {
     const sql =
-      "select count(*) as c from _rumdata where service = 'demo-frontend' and env = 'lab' -- sneaky";
+      "select count(*) as c from _rumdata where service = 'browser-app' and env = 'lab' -- sneaky";
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.findings.some((f) => f.message.includes("comment marker"))).toBe(true);
   });
 
   it("flags a block-comment marker", () => {
     const sql =
-      "select count(*) as c from _rumdata where service = 'demo-frontend' /* x */ and env = 'lab'";
+      "select count(*) as c from _rumdata where service = 'browser-app' /* x */ and env = 'lab'";
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.findings.some((f) => f.message.includes("comment marker"))).toBe(true);
   });
@@ -239,7 +238,7 @@ describe("auditDashboard — SECURITY_RISK", () => {
 
 describe("auditDashboard — QUERY_RISK", () => {
   it("flags SELECT * on a non-drilldown query", () => {
-    const sql = "select * from _rumdata where service = 'demo-frontend' and env = 'lab' limit 10";
+    const sql = "select * from _rumdata where service = 'browser-app' and env = 'lab' limit 10";
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.findings.some((f) => f.message.includes("SELECT *"))).toBe(true);
   });
@@ -253,7 +252,7 @@ describe("auditDashboard — QUERY_RISK", () => {
   });
 
   it("flags a missing environment filter", () => {
-    const sql = "select count(*) as c from _rumdata where service = 'demo-frontend' limit 10";
+    const sql = "select count(*) as c from _rumdata where service = 'browser-app' limit 10";
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.findings.some((f) => f.message.includes("service/environment filter"))).toBe(
       true,
@@ -270,7 +269,7 @@ describe("auditDashboard — QUERY_RISK", () => {
   });
 
   it("flags a non-aggregate query with no LIMIT", () => {
-    const sql = "select error_type from _rumdata where service = 'demo-frontend' and env = 'lab'";
+    const sql = "select error_type from _rumdata where service = 'browser-app' and env = 'lab'";
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.findings.some((f) => f.message.includes("no row LIMIT"))).toBe(true);
   });
@@ -317,14 +316,14 @@ describe("auditDashboard — QUERY_RISK", () => {
 describe("auditDashboard — CARDINALITY_RISK", () => {
   it("flags GROUP BY on a high-cardinality field", () => {
     const sql =
-      "select session_id, count(*) as c from _rumdata where service = 'demo-frontend' and env = 'lab' group by session_id order by c limit 20";
+      "select session_id, count(*) as c from _rumdata where service = 'browser-app' and env = 'lab' group by session_id order by c limit 20";
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.findings.some((f) => f.class === RISK_CLASS.CARDINALITY_RISK)).toBe(true);
   });
 
   it("does not flag GROUP BY on a low-cardinality field", () => {
     const sql =
-      "select status, count(*) as c from _rumlog where service = 'demo-frontend' and env = 'lab' group by status order by c limit 20";
+      "select status, count(*) as c from _rumlog where service = 'browser-app' and env = 'lab' group by status order by c limit 20";
     const result = auditDashboard(dashboardWithPanel(overviewPanel(sql)));
     expect(result.findings.some((f) => f.class === RISK_CLASS.CARDINALITY_RISK)).toBe(false);
   });

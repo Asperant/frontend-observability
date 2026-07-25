@@ -31,10 +31,10 @@
 // — both hardcode OPENOBSERVE_ADMIN_URL to the canonical main lab's
 // 127.0.0.1:5080, which is correct for every other lab script (there is
 // only ever one main lab) but wrong here: this module is reused against
-// disposable Stage 20 recovery targets on other ports
-// (scripts/recovery/run-stage20-proof.mjs), so every request must go
+// disposable recovery targets on other ports
+// (scripts/recovery/verify-openobserve-recovery.mjs), so every request must go
 // through the caller-supplied `baseUrl`.
-import { DEMO_IDENTITY } from "../../../apps/demo-frontend/src/identity.js";
+import { DEMO_IDENTITY } from "../../../tests/fixtures/apps/browser-app/src/identity.js";
 import { loadAlertTemplates } from "./catalog.mjs";
 
 function sleep(ms) {
@@ -224,7 +224,7 @@ function buildProbeAlertBody({ destinationName, service, environment, neverMatch
     destinations: [destinationName],
     context_attributes: {},
     enabled: true,
-    description: `Stage 20 closeout real-evaluation probe — disposable, deleted by this same run. runId=${runId}`,
+    description: `native OpenObserve UI real-evaluation probe — disposable, deleted by this same run. runId=${runId}`,
     folder_id: "default",
   };
 }
@@ -234,7 +234,7 @@ function buildProbeAlertBody({ destinationName, service, environment, neverMatch
  * @param {string} params.auth Basic auth header value
  * @param {string} [params.baseUrl] OpenObserve admin API base URL — defaults
  *   to the canonical main lab; pass a disposable recovery target's own
- *   `http://127.0.0.1:<port>` when reusing this against Stage 20 recovery
+ *   `http://127.0.0.1:<port>` when reusing this against recovery
  *   environments.
  * @param {string} [params.service]
  * @param {string} [params.environment]
@@ -264,10 +264,31 @@ export async function runRealAlertEvaluationProbe({
   beforeCleanup,
 }) {
   const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const schemaSeedMarker = `real-eval-schema-seed-${runId}`;
   const neverMatchMarker = `real-eval-never-${runId}`;
   const breachingMarker = `real-eval-breach-${runId}`;
   const destination = await ensureDestination(baseUrl, auth);
   alertSinkControl("reset");
+
+  const seedResult = await ingestJson(baseUrl, auth, "_rumdata", [
+    {
+      _timestamp: Date.now() * 1000,
+      service,
+      env: environment,
+      version: DEMO_IDENTITY.version,
+      session_id: `real-eval-probe-session-${schemaSeedMarker}`,
+      view_id: `real-eval-probe-view-${schemaSeedMarker}`,
+      type: "view",
+      marker: schemaSeedMarker,
+      message: `real evaluation probe schema seed ${schemaSeedMarker}`,
+      level: "info",
+      error_type: "None",
+      error_source_type: "real-eval-probe",
+    },
+  ]);
+  if (!seedResult.ok) {
+    throw new Error(`real-evaluation-probe: marker schema seed failed (${seedResult.status})`);
+  }
 
   const create = await createAlert(
     baseUrl,

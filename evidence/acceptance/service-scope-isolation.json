@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "runIdHash": "d032e503c44676b2003aed899a1d076a1c56fb26da1678b1cd88bf819d37e208",
+  "primaryMarkerHash": "f87888bd5727f78ffc74c57eb10659b30880c9cd0a0339f19f1a00e12f16e78f",
+  "alternateMarkerHash": "243400a21e218808d8b15f556432a30ee43d776f69e022f7865557a3ba1a755a",
+  "primaryStatus": 202,
+  "alternateStatus": 202,
+  "primaryRows": 1,
+  "alternateRows": 1,
+  "scopedDisable": {
+    "primaryControlStatus": 200,
+    "alternateControlStatus": 200,
+    "blockedPrimaryStatus": 503,
+    "allowedAlternateStatus": 202,
+    "deliveryHeld": true
+  },
+  "pass": true
+}

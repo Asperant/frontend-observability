@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0.0",
+  "artifact": "/home/asrin/Desktop/workspace/chicek-frontend-observability/.artifacts/browser-package/chicek-browser-observability-1.0.0-rc.1.tgz",
+  "sha256": "95a59ed81b3924f485c93efead09a4da8041e01a86cad0a20329a024344bb276",
+  "entries": [
+    "package/LICENSE",
+    "package/README.md",
+    "package/dist/adapter-openobserve.js",
+    "package/dist/artifact-manifest.json",
+    "package/dist/index.js",
+    "package/package.json"
+  ]
+}

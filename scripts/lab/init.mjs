@@ -4,7 +4,14 @@ import { generateRuntimeConfig } from "./generate-runtime-config.mjs";
 import { generateRuntimeControl } from "./generate-runtime-control.mjs";
 import { writeDeliveryControl } from "./delivery-ops.mjs";
 import { writeProxyGate } from "./proxy-gate.mjs";
-import { assertExactLabToolchain, atomicWriteFile, log, workerFaultPath } from "./common.mjs";
+import { createControlPlaneState } from "../../apps/observability-control-plane/src/state.js";
+import {
+  assertExactLabToolchain,
+  controlPlaneStateDir,
+  log,
+  sessionMetadataStateDir,
+} from "./common.mjs";
+import { mkdirSync } from "node:fs";
 
 export function labInit() {
   log("lab:init — ensuring runtime secrets, TLS certificates, and runtime config...");
@@ -26,8 +33,9 @@ export function labInit() {
       `leaf ${certResult.leafCreated ? "generated" : "reused"} (DNS:localhost, IP:127.0.0.1)`,
   );
 
-  generateRuntimeConfig();
+  const runtimeConfig = generateRuntimeConfig();
   log("  runtime config: written to .runtime/generated/runtime-config.json (enabled=true)");
+  mkdirSync(sessionMetadataStateDir, { recursive: true, mode: 0o700 });
 
   // Kill switch starts fully open: a normal, inactive control document and
   // an open proxy gate. The reverse-proxy container is not running yet at
@@ -38,14 +46,24 @@ export function labInit() {
   });
   writeProxyGate(false);
   writeDeliveryControl({ hold: false, reason: "lab-init" });
-  atomicWriteFile(
-    workerFaultPath,
-    `${JSON.stringify({ schemaVersion: 1, enabled: false, updatedAt: new Date().toISOString() }, null, 2)}\n`,
-    { mode: 0o644 },
-  );
+  const controlPlane = createControlPlaneState(controlPlaneStateDir);
+  const configPublish = controlPlane.publishConfig(JSON.stringify(runtimeConfig), {
+    actor: "lab:init",
+  });
+  if (!configPublish.ok) {
+    throw new Error(`control-plane runtime config publish failed: ${configPublish.reason}`);
+  }
+  const controlPublish = controlPlane.publishControl({
+    active: controlDocument.killSwitch.active,
+    reasonCode: controlDocument.killSwitch.reasonCode,
+    actor: "lab:init",
+  });
+  if (!controlPublish.ok) {
+    throw new Error(`control-plane runtime control publish failed: ${controlPublish.reason}`);
+  }
   log(
     `  runtime control: written to .runtime/generated/runtime-control.json ` +
-      `(revision=${controlDocument.revision}, killSwitch inactive); proxy gate open; delivery resumed; worker fault disabled`,
+      `(revision=${controlDocument.revision}, killSwitch inactive); control-plane active documents published; proxy gate open; delivery resumed`,
   );
 
   log("lab:init complete.");

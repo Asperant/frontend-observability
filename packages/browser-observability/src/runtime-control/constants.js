@@ -1,5 +1,5 @@
 // Same-origin, exact canonical endpoint for the narrow runtime-control
-// overlay document (Stage 14) — deliberately distinct from the immutable
+// overlay document (runtime-control) — deliberately distinct from the immutable
 // SDK-initialization runtime config served at /observability/config.json.
 export const CONTROL_ENDPOINT_PATH = "/observability/control.json";
 

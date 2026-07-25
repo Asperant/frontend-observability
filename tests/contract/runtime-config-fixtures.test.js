@@ -6,7 +6,7 @@ import {
   validateCustomAction,
   validateDiagnosticEvent,
   validateRuntimeConfig,
-} from "../../packages/contracts/src/validators.js";
+} from "../../packages/observability-contracts/src/validators.js";
 
 const fixturesRoot = fileURLToPath(new URL("../fixtures/", import.meta.url));
 
