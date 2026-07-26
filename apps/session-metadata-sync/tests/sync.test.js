@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createSessionMetadataSync } from "../src/sync.js";
+import { aggregateSessionMetadataRows, createSessionMetadataSync } from "../src/sync.js";
 
 const SCHEMA_FIELDS = [
   "_timestamp",
@@ -181,5 +181,69 @@ describe("createSessionMetadataSync readiness state machine", () => {
     expect(result.ok).toBe(true);
     expect(service.ready().ready).toBe(true);
     expect(service.ready().lastErrorCode).toBeNull();
+  });
+});
+
+describe("aggregateSessionMetadataRows", () => {
+  // Regression coverage for a live-observed bug: OpenObserve's native RUM
+  // Sessions feature reads `start`/`end` straight out of _sessionreplay and
+  // renders "Time Spent" by treating their difference as milliseconds, but
+  // _rumdata._timestamp (and this aggregation's own internal math) is in
+  // microseconds throughout this pipeline. A real ~3.06s session used to be
+  // written with duration=3063444 (raw microseconds) and rendered as
+  // "51.06 min"; a session spanning ~32 real minutes rendered as
+  // "22.40 days".
+  it("writes start/end/duration in milliseconds, not the source microseconds", () => {
+    const startUs = 1_700_000_000_000_000;
+    const endUs = startUs + 3_063_444; // ~3.06 real seconds of activity
+    const rows = [
+      { _timestamp: startUs, type: "view", session_id: "s1", view_id: "v1" },
+      { _timestamp: endUs, type: "action", session_id: "s1", action_id: "a1" },
+    ];
+
+    const { records } = aggregateSessionMetadataRows(rows, endUs + 1_000_000);
+
+    expect(records).toHaveLength(1);
+    const [record] = records;
+    expect(record.duration).toBe(3063);
+    expect(record.start).toBe(Math.round(startUs / 1000));
+    expect(record.end).toBe(record.start + record.duration);
+  });
+
+  // Regression coverage for a second, compounding live-observed bug: this
+  // record's `_timestamp` used to be the sync cycle's own "now" rather than
+  // the session's real activity time. OpenObserve's native Sessions page,
+  // Breadcrumbs tab and Tags tab all scope their underlying queries to a
+  // time window around the session's *own* start/end; syncOnce() runs on a
+  // periodic delay after the fact, so a "now" `_timestamp` fell outside
+  // that window and every one of those views found zero rows even though
+  // this record existed and _rumdata held the real breadcrumb events.
+  it("stamps _timestamp with the session's own last activity time, not the sync cycle's now", () => {
+    const startUs = 1_700_000_000_000_000;
+    const endUs = startUs + 5_000_000;
+    const syncRanTenRealMinutesLaterUs = endUs + 10 * 60 * 1_000_000;
+    const rows = [
+      { _timestamp: startUs, type: "view", session_id: "s1", view_id: "v1" },
+      { _timestamp: endUs, type: "view", session_id: "s1", view_id: "v2" },
+    ];
+
+    const { records } = aggregateSessionMetadataRows(rows, syncRanTenRealMinutesLaterUs);
+
+    expect(records).toHaveLength(1);
+    expect(records[0]._timestamp).toBe(endUs);
+    expect(records[0]._timestamp).not.toBe(syncRanTenRealMinutesLaterUs);
+  });
+
+  it("clamps an implausibly long span to MAX_SESSION_DURATION_US before converting to milliseconds", () => {
+    const startUs = 1_700_000_000_000_000;
+    const endUs = startUs + 24 * 60 * 60 * 1_000_000; // 24 real hours
+    const rows = [
+      { _timestamp: startUs, type: "view", session_id: "s1", view_id: "v1" },
+      { _timestamp: endUs, type: "view", session_id: "s1", view_id: "v2" },
+    ];
+
+    const { records } = aggregateSessionMetadataRows(rows, endUs);
+
+    expect(records[0].duration).toBe(8 * 60 * 60 * 1000); // capped at 8 hours, in ms
   });
 });

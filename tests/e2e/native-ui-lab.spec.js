@@ -87,6 +87,24 @@ test.describe("native OpenObserve v0.91.2 UI (requires `pnpm lab:up` already run
     const firstRow = page.locator("table tbody tr").first();
     await expect(firstRow).toBeVisible();
 
+    // Regression guard for apps/session-metadata-sync/src/sync.js's
+    // toRecord(): OpenObserve's native RUM Sessions feature reads
+    // _sessionreplay's `start`/`end` directly (its own generated query is
+    // `SELECT min(start) AS start_time, max(end) AS end_time, ... FROM
+    // _sessionreplay GROUP BY session_id`) and renders this row's "Time
+    // Spent" column by treating that difference as milliseconds. This
+    // project's own `_rumdata`/`_sessionreplay` `_timestamp` convention is
+    // microseconds everywhere else, and toRecord() used to write
+    // `start`/`end`/`duration` in that same microsecond scale -- inflating
+    // every displayed duration by exactly 1000x (live-observed on this
+    // exact build: this test's own few-seconds-long session used to show
+    // "51.06 min"; a longer-lived session spanning ~32 real minutes showed
+    // "22.40 days"). The session this test just drove above lasted at most
+    // a few seconds, so its row must never read in hours or days.
+    const firstRowText = await firstRow.innerText();
+    expect(firstRowText).not.toMatch(/\bday(s)?\b/i);
+    expect(firstRowText).not.toMatch(/\bhr\b/i);
+
     // Only a generic "reading getAttribute of null" Vue quirk observed
     // consistently across this OpenObserve build's pages is tolerated here
     // (phrased differently per engine: Chromium "Cannot read properties of

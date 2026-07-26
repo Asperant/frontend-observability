@@ -223,21 +223,43 @@ export function aggregateSessionMetadataRows(rows, nowUs) {
       session.tags = row.tags.filter((tag) => typeof tag === "string").slice(0, 20);
     sessions.set(row.session_id, session);
   }
-  const records = [...sessions.values()].map((session) => toRecord(session, nowUs)).filter(Boolean);
+  const records = [...sessions.values()].map((session) => toRecord(session)).filter(Boolean);
   return { records, diagnostics, unsafeRejections };
 }
 
-function toRecord(session, nowUs) {
+function toRecord(session) {
   if (!Number.isFinite(session.start) || !Number.isFinite(session.end)) return null;
-  const duration = Math.max(0, Math.min(session.end - session.start, MAX_SESSION_DURATION_US));
+  const durationUs = Math.max(0, Math.min(session.end - session.start, MAX_SESSION_DURATION_US));
+  // OpenObserve's native RUM Sessions feature reads `start`/`end` directly
+  // from this stream (its own generated query is
+  // `SELECT min(start) AS start_time, max(end) AS end_time, ... FROM
+  // _sessionreplay GROUP BY session_id`) and renders "Time Spent" by
+  // treating (end_time - start_time) as milliseconds -- not the
+  // microseconds every _rumdata/_sessionreplay `_timestamp` uses elsewhere
+  // in this pipeline. Writing raw microseconds here inflated every
+  // displayed duration by exactly 1000x (live-observed: a real ~3.06s
+  // session showed "51.06 min"; a session spanning ~32 real minutes showed
+  // "22.40 days"). Convert once, at this storage boundary, so the
+  // aggregation above keeps microsecond precision throughout.
+  const startMs = Math.round(session.start / 1000);
+  const durationMs = Math.round(durationUs / 1000);
   const record = {
-    _timestamp: nowUs,
+    // The session's own last real activity time, in the microseconds
+    // `_timestamp` convention every other stream uses here -- never the
+    // sync cycle's "now". Native Sessions/Breadcrumbs/Tags all scope their
+    // underlying queries to a time window around the session's *own*
+    // start/end; syncOnce() runs on a periodic delay after the fact, so a
+    // "now" `_timestamp` fell outside that window and those views found
+    // zero rows even though this record existed (live-observed: OpenObserve
+    // computed degenerate query bounds like start_time=-1/end_time=1 once
+    // its own per-session metadata lookup came back empty).
+    _timestamp: session.end,
     type: "session-metadata",
     metadata_schema_version: METADATA_SCHEMA_VERSION,
     session_id: session.sessionId,
-    start: session.start,
-    end: session.start + duration,
-    duration,
+    start: startMs,
+    end: startMs + durationMs,
+    duration: durationMs,
     error_count: session.errorIds.size,
     view_count: session.viewIds.size,
     action_count: session.actionIds.size,
