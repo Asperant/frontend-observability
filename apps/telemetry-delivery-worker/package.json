@@ -1,5 +1,5 @@
 {
-  "name": "@chicek/telemetry-delivery-worker",
+  "name": "@frontend-observability/telemetry-delivery-worker",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,6 +7,6 @@
     "start": "node src/worker.js"
   },
   "dependencies": {
-    "@chicek/telemetry-delivery-core": "workspace:*"
+    "@frontend-observability/telemetry-delivery-core": "workspace:*"
   }
 }

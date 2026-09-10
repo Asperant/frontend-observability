@@ -1,5 +1,5 @@
 {
-  "name": "@chicek/browser-app-fixture",
+  "name": "@frontend-observability/browser-app-fixture",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@chicek/browser-observability": "workspace:*",
+    "@frontend-observability/browser-observability": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

@@ -72,7 +72,7 @@ export function generatePassword() {
 
 export function generateEmail() {
   const suffix = randomInt(1_000_000, 9_999_999).toString(36);
-  return `root-${suffix}@chicek-lab.invalid`;
+  return `root-${suffix}@frontend-observability-lab.invalid`;
 }
 
 function ensureSecret(path, valueFactory, results, key) {
@@ -160,7 +160,7 @@ export function ensureSecrets() {
   );
   ensureSecret(
     rabbitmqAdminUsernameSecretPath,
-    () => fixedUsername("chicek_admin"),
+    () => fixedUsername("frontend_observability_admin"),
     results,
     "rabbitmqAdminUsernameCreated",
   );
@@ -172,7 +172,7 @@ export function ensureSecrets() {
   );
   ensureSecret(
     rabbitmqIngestUsernameSecretPath,
-    () => fixedUsername("chicek_ingest"),
+    () => fixedUsername("frontend_observability_ingest"),
     results,
     "rabbitmqIngestUsernameCreated",
   );
@@ -184,7 +184,7 @@ export function ensureSecrets() {
   );
   ensureSecret(
     rabbitmqWorkerUsernameSecretPath,
-    () => fixedUsername("chicek_worker"),
+    () => fixedUsername("frontend_observability_worker"),
     results,
     "rabbitmqWorkerUsernameCreated",
   );
@@ -196,7 +196,7 @@ export function ensureSecrets() {
   );
   ensureSecret(
     rabbitmqMonitoringUsernameSecretPath,
-    () => fixedUsername("chicek_monitoring"),
+    () => fixedUsername("frontend_observability_monitor"),
     results,
     "rabbitmqMonitoringUsernameCreated",
   );

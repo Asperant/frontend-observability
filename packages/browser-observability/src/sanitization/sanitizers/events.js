@@ -48,7 +48,7 @@ export function sanitizeRumEvent(event, { counters, policy } = {}) {
 
     if (results.some(isDrop)) return results.find(isDrop);
     event.context = buildSafeContext(event.context, results);
-    event._chicek_sanitization_policy = SANITIZATION_POLICY_VERSION;
+    event._frontend_observability_sanitization_policy = SANITIZATION_POLICY_VERSION;
     return { decision: mergeDecision(results), value: event, reasons: uniqueReasons(results) };
   });
 }
@@ -74,7 +74,7 @@ export function sanitizeLogEvent(event, { counters, policy } = {}) {
     delete event.usr;
     delete event.account;
     event.context = buildSafeContext(event.context, results);
-    event._chicek_sanitization_policy = SANITIZATION_POLICY_VERSION;
+    event._frontend_observability_sanitization_policy = SANITIZATION_POLICY_VERSION;
     return { decision: mergeDecision(results), value: event, reasons: uniqueReasons(results) };
   });
 }

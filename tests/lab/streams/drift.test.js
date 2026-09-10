@@ -13,7 +13,7 @@ const CLEAN_VALIDATION = Object.freeze({
   missingRequired: [],
   forbiddenPresent: [],
   forbiddenPatternMatches: [],
-  uncontrolledChicek: [],
+  uncontrolledFrontendObservability: [],
   unknownAdditive: [],
   urlLeaks: [],
   valuePatternMatches: [],
@@ -81,8 +81,11 @@ describe("classifySchemaFindings", () => {
     expect(classifySchemaFindings(validation)).toEqual([DRIFT_CLASS.BREAKING_SCHEMA_DRIFT]);
   });
 
-  it("classifies an uncontrolled chicek.* field as BREAKING_SCHEMA_DRIFT", () => {
-    const validation = { ...CLEAN_VALIDATION, uncontrolledChicek: ["chicek_experimental"] };
+  it("classifies an uncontrolled frontend-observability.* field as BREAKING_SCHEMA_DRIFT", () => {
+    const validation = {
+      ...CLEAN_VALIDATION,
+      uncontrolledFrontendObservability: ["frontend_observability_experimental"],
+    };
     expect(classifySchemaFindings(validation)).toEqual([DRIFT_CLASS.BREAKING_SCHEMA_DRIFT]);
   });
 

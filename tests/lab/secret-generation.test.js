@@ -20,7 +20,7 @@ describe("generatePassword", () => {
 
 describe("generateEmail", () => {
   it("uses the reserved .invalid TLD so it can never resolve to a real mailbox", () => {
-    expect(generateEmail()).toMatch(/^root-[a-z0-9]+@chicek-lab\.invalid$/);
+    expect(generateEmail()).toMatch(/^root-[a-z0-9]+@frontend-observability-lab\.invalid$/);
   });
 
   it("never repeats across generations", () => {

@@ -5,7 +5,7 @@
 // Chromium/Firefox canary (scripts/lab/verify-streams.mjs) and by
 // unit tests with hand-built fixtures.
 
-const CHICEK_UNCONTROLLED_PATTERN = /^_?chicek[_.]/i;
+const FRONTEND_OBSERVABILITY_UNCONTROLLED_PATTERN = /^_?frontend_observability[_.]/i;
 
 // The manifests/observability-contracts share a `(?i)case-insensitive` prefix convention
 // with this repo's VRL sources (infrastructure/openobserve/sanitization/
@@ -49,7 +49,7 @@ export function validateRecord(contract, record) {
   const missingRequired = [...required].filter((field) => !recordFields.includes(field));
   const forbiddenPresent = [];
   const forbiddenPatternMatches = [];
-  const uncontrolledChicek = [];
+  const uncontrolledFrontendObservability = [];
   const unknownAdditive = [];
   const urlLeaks = [];
   const valuePatternMatches = [];
@@ -61,8 +61,8 @@ export function validateRecord(contract, record) {
       forbiddenPresent.push(field);
     } else if (namePatterns.some((pattern) => pattern.test(field))) {
       forbiddenPatternMatches.push(field);
-    } else if (CHICEK_UNCONTROLLED_PATTERN.test(field) && !controlled.has(field)) {
-      uncontrolledChicek.push(field);
+    } else if (FRONTEND_OBSERVABILITY_UNCONTROLLED_PATTERN.test(field) && !controlled.has(field)) {
+      uncontrolledFrontendObservability.push(field);
     } else if (!required.has(field) && !conditional.has(field) && !controlled.has(field)) {
       unknownAdditive.push(field);
     }
@@ -81,7 +81,7 @@ export function validateRecord(contract, record) {
     missingRequired,
     forbiddenPresent,
     forbiddenPatternMatches,
-    uncontrolledChicek,
+    uncontrolledFrontendObservability,
     unknownAdditive,
     urlLeaks,
     valuePatternMatches,
@@ -93,7 +93,7 @@ export function isRecordClean(validation) {
     validation.missingRequired.length === 0 &&
     validation.forbiddenPresent.length === 0 &&
     validation.forbiddenPatternMatches.length === 0 &&
-    validation.uncontrolledChicek.length === 0 &&
+    validation.uncontrolledFrontendObservability.length === 0 &&
     validation.urlLeaks.length === 0 &&
     validation.valuePatternMatches.length === 0
   );
@@ -106,7 +106,7 @@ export function isRecordClean(validation) {
  * longer matches what was verified when the contract was written. A field
  * present in the live schema but absent from knownFieldTypes is not a type
  * change (it's new — handled by validateRecord's unknownAdditive/
- * uncontrolledChicek instead, which need an actual record, not just a
+ * uncontrolledFrontendObservability instead, which need an actual record, not just a
  * schema listing, to classify correctly).
  */
 export function detectTypeChanges(contract, liveSchema) {

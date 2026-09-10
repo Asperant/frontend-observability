@@ -1,4 +1,4 @@
-import { AdmissionError } from "@chicek/telemetry-delivery-core";
+import { AdmissionError } from "@frontend-observability/telemetry-delivery-core";
 
 const CONTROL_SCHEMA_VERSION = 1;
 const MAX_REASON_CODE_LENGTH = 64;

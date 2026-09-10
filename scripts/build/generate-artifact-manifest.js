@@ -26,7 +26,7 @@ export function buildManifest(dir) {
 
   return {
     schemaVersion: "1.0.0",
-    package: "@chicek/browser-observability",
+    package: "@frontend-observability/browser-observability",
     builtWithNode: process.version.replace(/^v/, ""),
     algorithm: "sha256",
     files: files.map((name) => ({

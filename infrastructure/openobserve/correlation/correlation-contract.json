@@ -1,24 +1,24 @@
 {
   "schemaVersion": 1,
-  "namespace": "chicek.correlation",
+  "namespace": "frontend-observability.correlation",
   "logicalFields": [
-    "chicek.correlation.schema_version",
-    "chicek.correlation.epoch_id",
-    "chicek.correlation.session_id",
-    "chicek.correlation.view_id",
-    "chicek.correlation.action_id"
+    "frontend-observability.correlation.schema_version",
+    "frontend-observability.correlation.epoch_id",
+    "frontend-observability.correlation.session_id",
+    "frontend-observability.correlation.view_id",
+    "frontend-observability.correlation.action_id"
   ],
   "expectedFlattenedFields": [
-    "chicek_correlation_schema_version",
-    "chicek_correlation_epoch_id",
-    "chicek_correlation_session_id",
-    "chicek_correlation_view_id",
-    "chicek_correlation_action_id",
-    "context_chicek_correlation_schema_version",
-    "context_chicek_correlation_epoch_id",
-    "context_chicek_correlation_session_id",
-    "context_chicek_correlation_view_id",
-    "context_chicek_correlation_action_id"
+    "frontend_observability_correlation_schema_version",
+    "frontend_observability_correlation_epoch_id",
+    "frontend_observability_correlation_session_id",
+    "frontend_observability_correlation_view_id",
+    "frontend_observability_correlation_action_id",
+    "context_frontend_observability_correlation_schema_version",
+    "context_frontend_observability_correlation_epoch_id",
+    "context_frontend_observability_correlation_session_id",
+    "context_frontend_observability_correlation_view_id",
+    "context_frontend_observability_correlation_action_id"
   ],
   "trustedOnDirectIngestion": false,
   "usesArrivalOrder": false,

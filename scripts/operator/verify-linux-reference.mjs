@@ -7,30 +7,30 @@ import { assertExactLabToolchain, log, logError, repoRoot } from "../lab/common.
 const SERVICES = Object.freeze([
   {
     file: "telemetry-ingest.service",
-    user: "chicek-telemetry-ingest",
-    env: "/etc/chicek-observability/telemetry-ingest.env",
-    state: "/var/lib/chicek-observability/telemetry-ingest",
+    user: "frontend-observability-telemetry-ingest",
+    env: "/etc/frontend-observability/telemetry-ingest.env",
+    state: "/var/lib/frontend-observability/telemetry-ingest",
     exec: "apps/telemetry-ingest/src/server.js",
   },
   {
     file: "telemetry-delivery-worker.service",
-    user: "chicek-telemetry-delivery",
-    env: "/etc/chicek-observability/telemetry-delivery-worker.env",
-    state: "/var/lib/chicek-observability/telemetry-delivery-worker",
+    user: "frontend-observability-telemetry-delivery",
+    env: "/etc/frontend-observability/telemetry-delivery-worker.env",
+    state: "/var/lib/frontend-observability/telemetry-delivery-worker",
     exec: "apps/telemetry-delivery-worker/src/worker.js",
   },
   {
     file: "observability-control-plane.service",
-    user: "chicek-control-plane",
-    env: "/etc/chicek-observability/observability-control-plane.env",
-    state: "/var/lib/chicek-observability/control-plane",
+    user: "frontend-observability-control-plane",
+    env: "/etc/frontend-observability/observability-control-plane.env",
+    state: "/var/lib/frontend-observability/control-plane",
     exec: "apps/observability-control-plane/src/server.js",
   },
   {
     file: "session-metadata-sync.service",
-    user: "chicek-session-metadata",
-    env: "/etc/chicek-observability/session-metadata-sync.env",
-    state: "/var/lib/chicek-observability/session-metadata",
+    user: "frontend-observability-session-metadata",
+    env: "/etc/frontend-observability/session-metadata-sync.env",
+    state: "/var/lib/frontend-observability/session-metadata",
     exec: "apps/session-metadata-sync/src/server.js",
   },
 ]);
@@ -48,7 +48,7 @@ function verifyLinuxReference() {
     const required = [
       `User=${service.user}`,
       `Group=${service.user}`,
-      "WorkingDirectory=/opt/chicek-observability/current",
+      "WorkingDirectory=/opt/frontend-observability/current",
       `EnvironmentFile=${service.env}`,
       `ExecStart=/usr/bin/node ${service.exec}`,
       "Restart=on-failure",
@@ -60,7 +60,7 @@ function verifyLinuxReference() {
       "PrivateTmp=true",
       "PrivateDevices=true",
       `ReadWritePaths=${service.state}`,
-      "ReadOnlyPaths=/etc/chicek-observability",
+      "ReadOnlyPaths=/etc/frontend-observability",
       "CapabilityBoundingSet=",
       "RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX",
     ];
@@ -79,9 +79,9 @@ function verifyLinuxReference() {
       exec,
     })),
     directories: {
-      install: "/opt/chicek-observability/current",
-      config: "/etc/chicek-observability",
-      stateRoot: "/var/lib/chicek-observability",
+      install: "/opt/frontend-observability/current",
+      config: "/etc/frontend-observability",
+      stateRoot: "/var/lib/frontend-observability",
     },
     logging: "journald",
   };

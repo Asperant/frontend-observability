@@ -65,7 +65,7 @@ function createIsolatedPythonVenv(root) {
 
 async function verifyFlaskJinjaConsumer() {
   const findings = [];
-  const root = mkdtempSync(join(tmpdir(), "chicek-flask-jinja-consumer-"));
+  const root = mkdtempSync(join(tmpdir(), "frontend-observability-flask-jinja-consumer-"));
   let server;
   try {
     const venvPython = createIsolatedPythonVenv(root);
@@ -218,7 +218,7 @@ function writeFixture(root, tarballPath) {
         type: "module",
         scripts: { build: "vite build" },
         devDependencies: { vite: "8.1.5" },
-        dependencies: { "@chicek/browser-observability": `file:${tarballPath}` },
+        dependencies: { "@frontend-observability/browser-observability": `file:${tarballPath}` },
       },
       null,
       2,
@@ -238,7 +238,7 @@ function writeFixture(root, tarballPath) {
   recordError,
   getObservabilityStatus,
   shutdownObservability,
-} from "@chicek/browser-observability";
+} from "@frontend-observability/browser-observability";
 
 const sessionKey = "flask-jinja-session-id";
 sessionStorage.setItem(sessionKey, sessionStorage.getItem(sessionKey) || crypto.randomUUID());

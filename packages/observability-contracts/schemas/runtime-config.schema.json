@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://chicek.internal/schemas/runtime-config.schema.json",
-  "title": "ChicekRuntimeConfig",
-  "description": "Remote runtime configuration accepted by @chicek/browser-observability. Every field is closed and cannot be used to weaken the privacy baseline: no session replay, no insecure transport, no arbitrary endpoints, and no legacy aliases.",
+  "$id": "https://frontend-observability.internal/schemas/runtime-config.schema.json",
+  "title": "FrontendObservabilityRuntimeConfig",
+  "description": "Remote runtime configuration accepted by @frontend-observability/browser-observability. Every field is closed and cannot be used to weaken the privacy baseline: no session replay, no insecure transport, no arbitrary endpoints, and no legacy aliases.",
   "type": "object",
   "additionalProperties": false,
   "$defs": {

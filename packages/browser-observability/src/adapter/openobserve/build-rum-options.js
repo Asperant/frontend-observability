@@ -30,7 +30,7 @@ export function buildRumOptions(identity, policy, beforeSend) {
     defaultPrivacyLevel: "mask-user-input",
     enablePrivacyForActionName: true,
     trackUserInteractions: true,
-    actionNameAttribute: "data-chicek-action",
+    actionNameAttribute: "data-frontend-observability-action",
     sessionReplaySampleRate: 0,
     startSessionReplayRecordingManually: true,
     telemetrySampleRate: 0,

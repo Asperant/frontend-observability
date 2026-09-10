@@ -13,8 +13,8 @@
   "policies": [
     {
       "vhost": "/",
-      "name": "chicek-frontend-telemetry-bounds",
-      "pattern": "^chicek\\.frontend\\.",
+      "name": "frontend-observability-frontend-telemetry-bounds",
+      "pattern": "^frontend-observability\\.frontend\\.",
       "apply-to": "queues",
       "definition": {
         "max-length": 25000,
@@ -26,8 +26,8 @@
     },
     {
       "vhost": "/",
-      "name": "chicek-frontend-telemetry-dlq-bounds",
-      "pattern": "^chicek\\.frontend\\..*\\.dlq$",
+      "name": "frontend-observability-frontend-telemetry-dlq-bounds",
+      "pattern": "^frontend-observability\\.frontend\\..*\\.dlq$",
       "apply-to": "queues",
       "definition": {
         "max-length": 5000,
@@ -39,14 +39,14 @@
   ],
   "queues": [
     {
-      "name": "chicek.frontend.rum.q",
+      "name": "frontend-observability.frontend.rum.q",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
       "arguments": {
         "x-queue-type": "quorum",
         "x-delivery-limit": 16,
-        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-exchange": "frontend-observability.frontend.telemetry",
         "x-dead-letter-routing-key": "frontend.rum.dlq",
         "x-overflow": "reject-publish",
         "x-max-length": 25000,
@@ -54,14 +54,14 @@
       }
     },
     {
-      "name": "chicek.frontend.log.q",
+      "name": "frontend-observability.frontend.log.q",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
       "arguments": {
         "x-queue-type": "quorum",
         "x-delivery-limit": 16,
-        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-exchange": "frontend-observability.frontend.telemetry",
         "x-dead-letter-routing-key": "frontend.log.dlq",
         "x-overflow": "reject-publish",
         "x-max-length": 25000,
@@ -69,7 +69,7 @@
       }
     },
     {
-      "name": "chicek.frontend.rum.dlq",
+      "name": "frontend-observability.frontend.rum.dlq",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
@@ -81,7 +81,7 @@
       }
     },
     {
-      "name": "chicek.frontend.log.dlq",
+      "name": "frontend-observability.frontend.log.dlq",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
@@ -93,14 +93,14 @@
       }
     },
     {
-      "name": "chicek.frontend.rum.retry.1.q",
+      "name": "frontend-observability.frontend.rum.retry.1.q",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
       "arguments": {
         "x-queue-type": "quorum",
         "x-message-ttl": 30000,
-        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-exchange": "frontend-observability.frontend.telemetry",
         "x-dead-letter-routing-key": "frontend.rum",
         "x-overflow": "reject-publish",
         "x-max-length": 25000,
@@ -108,14 +108,14 @@
       }
     },
     {
-      "name": "chicek.frontend.rum.retry.2.q",
+      "name": "frontend-observability.frontend.rum.retry.2.q",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
       "arguments": {
         "x-queue-type": "quorum",
         "x-message-ttl": 120000,
-        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-exchange": "frontend-observability.frontend.telemetry",
         "x-dead-letter-routing-key": "frontend.rum",
         "x-overflow": "reject-publish",
         "x-max-length": 25000,
@@ -123,14 +123,14 @@
       }
     },
     {
-      "name": "chicek.frontend.rum.retry.3.q",
+      "name": "frontend-observability.frontend.rum.retry.3.q",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
       "arguments": {
         "x-queue-type": "quorum",
         "x-message-ttl": 300000,
-        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-exchange": "frontend-observability.frontend.telemetry",
         "x-dead-letter-routing-key": "frontend.rum",
         "x-overflow": "reject-publish",
         "x-max-length": 25000,
@@ -138,14 +138,14 @@
       }
     },
     {
-      "name": "chicek.frontend.log.retry.1.q",
+      "name": "frontend-observability.frontend.log.retry.1.q",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
       "arguments": {
         "x-queue-type": "quorum",
         "x-message-ttl": 30000,
-        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-exchange": "frontend-observability.frontend.telemetry",
         "x-dead-letter-routing-key": "frontend.log",
         "x-overflow": "reject-publish",
         "x-max-length": 25000,
@@ -153,14 +153,14 @@
       }
     },
     {
-      "name": "chicek.frontend.log.retry.2.q",
+      "name": "frontend-observability.frontend.log.retry.2.q",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
       "arguments": {
         "x-queue-type": "quorum",
         "x-message-ttl": 120000,
-        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-exchange": "frontend-observability.frontend.telemetry",
         "x-dead-letter-routing-key": "frontend.log",
         "x-overflow": "reject-publish",
         "x-max-length": 25000,
@@ -168,14 +168,14 @@
       }
     },
     {
-      "name": "chicek.frontend.log.retry.3.q",
+      "name": "frontend-observability.frontend.log.retry.3.q",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
       "arguments": {
         "x-queue-type": "quorum",
         "x-message-ttl": 300000,
-        "x-dead-letter-exchange": "chicek.frontend.telemetry",
+        "x-dead-letter-exchange": "frontend-observability.frontend.telemetry",
         "x-dead-letter-routing-key": "frontend.log",
         "x-overflow": "reject-publish",
         "x-max-length": 25000,
@@ -185,7 +185,7 @@
   ],
   "exchanges": [
     {
-      "name": "chicek.frontend.telemetry",
+      "name": "frontend-observability.frontend.telemetry",
       "vhost": "/",
       "type": "direct",
       "durable": true,
@@ -196,81 +196,81 @@
   ],
   "bindings": [
     {
-      "source": "chicek.frontend.telemetry",
+      "source": "frontend-observability.frontend.telemetry",
       "vhost": "/",
-      "destination": "chicek.frontend.rum.q",
+      "destination": "frontend-observability.frontend.rum.q",
       "destination_type": "queue",
       "routing_key": "frontend.rum",
       "arguments": {}
     },
     {
-      "source": "chicek.frontend.telemetry",
+      "source": "frontend-observability.frontend.telemetry",
       "vhost": "/",
-      "destination": "chicek.frontend.log.q",
+      "destination": "frontend-observability.frontend.log.q",
       "destination_type": "queue",
       "routing_key": "frontend.log",
       "arguments": {}
     },
     {
-      "source": "chicek.frontend.telemetry",
+      "source": "frontend-observability.frontend.telemetry",
       "vhost": "/",
-      "destination": "chicek.frontend.rum.dlq",
+      "destination": "frontend-observability.frontend.rum.dlq",
       "destination_type": "queue",
       "routing_key": "frontend.rum.dlq",
       "arguments": {}
     },
     {
-      "source": "chicek.frontend.telemetry",
+      "source": "frontend-observability.frontend.telemetry",
       "vhost": "/",
-      "destination": "chicek.frontend.log.dlq",
+      "destination": "frontend-observability.frontend.log.dlq",
       "destination_type": "queue",
       "routing_key": "frontend.log.dlq",
       "arguments": {}
     },
     {
-      "source": "chicek.frontend.telemetry",
+      "source": "frontend-observability.frontend.telemetry",
       "vhost": "/",
-      "destination": "chicek.frontend.rum.retry.1.q",
+      "destination": "frontend-observability.frontend.rum.retry.1.q",
       "destination_type": "queue",
       "routing_key": "frontend.rum.retry.1",
       "arguments": {}
     },
     {
-      "source": "chicek.frontend.telemetry",
+      "source": "frontend-observability.frontend.telemetry",
       "vhost": "/",
-      "destination": "chicek.frontend.rum.retry.2.q",
+      "destination": "frontend-observability.frontend.rum.retry.2.q",
       "destination_type": "queue",
       "routing_key": "frontend.rum.retry.2",
       "arguments": {}
     },
     {
-      "source": "chicek.frontend.telemetry",
+      "source": "frontend-observability.frontend.telemetry",
       "vhost": "/",
-      "destination": "chicek.frontend.rum.retry.3.q",
+      "destination": "frontend-observability.frontend.rum.retry.3.q",
       "destination_type": "queue",
       "routing_key": "frontend.rum.retry.3",
       "arguments": {}
     },
     {
-      "source": "chicek.frontend.telemetry",
+      "source": "frontend-observability.frontend.telemetry",
       "vhost": "/",
-      "destination": "chicek.frontend.log.retry.1.q",
+      "destination": "frontend-observability.frontend.log.retry.1.q",
       "destination_type": "queue",
       "routing_key": "frontend.log.retry.1",
       "arguments": {}
     },
     {
-      "source": "chicek.frontend.telemetry",
+      "source": "frontend-observability.frontend.telemetry",
       "vhost": "/",
-      "destination": "chicek.frontend.log.retry.2.q",
+      "destination": "frontend-observability.frontend.log.retry.2.q",
       "destination_type": "queue",
       "routing_key": "frontend.log.retry.2",
       "arguments": {}
     },
     {
-      "source": "chicek.frontend.telemetry",
+      "source": "frontend-observability.frontend.telemetry",
       "vhost": "/",
-      "destination": "chicek.frontend.log.retry.3.q",
+      "destination": "frontend-observability.frontend.log.retry.3.q",
       "destination_type": "queue",
       "routing_key": "frontend.log.retry.3",
       "arguments": {}

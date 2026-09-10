@@ -157,7 +157,7 @@ export function checkSecretSecurity() {
 
   const containerEnv = spawnSync(
     "docker",
-    ["inspect", "chicek-lab-openobserve-1", "--format", "{{.Config.Env}}"],
+    ["inspect", "frontend-observability-lab-openobserve-1", "--format", "{{.Config.Env}}"],
     { encoding: "utf8" },
   ).stdout;
   if (containerEnv.includes(password) || containerEnv.includes(email)) {
@@ -169,7 +169,9 @@ export function checkSecretSecurity() {
   // The RUM client token is checked by the dedicated proxy-security gate:
   // browser-facing ingestion is queryless, and reverse-proxy metadata logs
   // must not contain token values.
-  const logs = spawnSync("docker", ["logs", "chicek-lab-openobserve-1"], { encoding: "utf8" });
+  const logs = spawnSync("docker", ["logs", "frontend-observability-lab-openobserve-1"], {
+    encoding: "utf8",
+  });
   const logText = `${logs.stdout ?? ""}${logs.stderr ?? ""}`;
   if (logText.includes(password) || logText.includes(email)) {
     findings.push("A root secret value literal appears in openobserve container logs.");

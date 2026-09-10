@@ -93,7 +93,7 @@ const AGGREGATE_FUNCTION_PATTERN =
 const MAX_TIME_RANGE_US = 168 * 60 * 60 * 1_000_000;
 
 function isExactDrilldownQuery(sql) {
-  return /\bsession_id\s*=|\bview_id\s*=|\bchicek_correlation_(session|view|epoch)_id\s*=/i.test(
+  return /\bsession_id\s*=|\bview_id\s*=|\bfrontend_observability_correlation_(session|view|epoch)_id\s*=/i.test(
     sql,
   );
 }

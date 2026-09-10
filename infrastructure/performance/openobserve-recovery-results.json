@@ -518,63 +518,63 @@
           "action": "NO_CHANGE"
         },
         {
-          "id": "_chicek_delivery_ops",
+          "id": "_frontend_observability_delivery_ops",
           "action": "NO_CHANGE"
         }
       ],
       "functions": [
         {
-          "id": "chicek_rumlog_sanitize_v1",
+          "id": "frontend_observability_rumlog_sanitize_v1",
           "action": "NO_CHANGE"
         },
         {
-          "id": "chicek_rum_sanitize_v1",
+          "id": "frontend_observability_rum_sanitize_v1",
           "action": "NO_CHANGE"
         },
         {
-          "id": "chicek_correlation_normalize_v1",
+          "id": "frontend_observability_correlation_normalize_v1",
           "action": "NO_CHANGE"
         },
         {
-          "id": "chicek_sanitization_cleanup_v1",
+          "id": "frontend_observability_sanitization_cleanup_v1",
           "action": "NO_CHANGE"
         }
       ],
       "pipelines": [
         {
-          "id": "chicek_rumdata_sanitize_pipeline_v1",
+          "id": "frontend_observability_rumdata_sanitize_pipeline_v1",
           "action": "NO_CHANGE"
         },
         {
-          "id": "chicek_rumlog_sanitize_pipeline_v1",
+          "id": "frontend_observability_rumlog_sanitize_pipeline_v1",
           "action": "NO_CHANGE"
         }
       ],
       "dashboards": [
         {
-          "id": "CHICEK Starters::CHICEK Delivery Operations",
+          "id": "FRONTEND_OBSERVABILITY Starters::FRONTEND_OBSERVABILITY Delivery Operations",
           "action": "CREATED"
         },
         {
-          "id": "CHICEK Starters::Error Analysis",
+          "id": "FRONTEND_OBSERVABILITY Starters::Error Analysis",
           "action": "CREATED"
         },
         {
-          "id": "CHICEK Starters::Frontend Operations",
+          "id": "FRONTEND_OBSERVABILITY Starters::Frontend Operations",
           "action": "CREATED"
         },
         {
-          "id": "CHICEK Starters::Performance and Resources",
+          "id": "FRONTEND_OBSERVABILITY Starters::Performance and Resources",
           "action": "CREATED"
         },
         {
-          "id": "CHICEK Starters::Session Investigation",
+          "id": "FRONTEND_OBSERVABILITY Starters::Session Investigation",
           "action": "CREATED"
         }
       ],
       "templates": [
         {
-          "id": "chicek-alert-governance-local-aggregate",
+          "id": "frontend-observability-alert-governance-local-aggregate",
           "action": "NO_CHANGE"
         },
         {
@@ -612,7 +612,7 @@
       ],
       "destinations": [
         {
-          "id": "chicek-alert-governance-local-alert-sink",
+          "id": "frontend-observability-alert-governance-local-alert-sink",
           "action": "CREATED",
           "status": 200
         }

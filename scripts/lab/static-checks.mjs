@@ -52,10 +52,10 @@ function allImageRefs(doc) {
 export function checkNoFloatingImages(doc) {
   const findings = [];
   for (const { service, image } of allImageRefs(doc)) {
-    // Compose-managed local build images (chicek-lab/*) are versioned by the
+    // Compose-managed local build images (frontend-observability-lab/*) are versioned by the
     // repo's own release tag, not by a digest — the digest pin requirement
     // applies to *external* base images, checked separately via Dockerfiles.
-    if (image.startsWith("chicek-lab/")) continue;
+    if (image.startsWith("frontend-observability-lab/")) continue;
     const [, tag] = image.split(":");
     if (!tag) {
       findings.push(`${service}: image "${image}" has no tag.`);
@@ -315,7 +315,7 @@ export function checkNamedOpenobserveVolume(doc) {
 /**
  * The lab must not enable OpenObserve's own web-UI RUM instrumentation.
  * Browser telemetry for this project is produced only by tests/fixtures/apps/browser-app
- * through @chicek/browser-observability. If the admin UI instruments itself,
+ * through @frontend-observability/browser-observability. If the admin UI instruments itself,
  * it sends noisy /rum and /replay requests to the browser-facing self-signed
  * endpoint and can make dashboard UX appear frozen.
  */

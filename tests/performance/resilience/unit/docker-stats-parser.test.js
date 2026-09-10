@@ -76,7 +76,7 @@ describe("parsePercent", () => {
 });
 
 const validRawLine = JSON.stringify({
-  Name: "chicek-lab-openobserve-1",
+  Name: "frontend-observability-lab-openobserve-1",
   CPUPerc: "1.23%",
   MemUsage: "512MiB / 3GiB",
   MemPerc: "16.67%",
@@ -88,7 +88,7 @@ const validRawLine = JSON.stringify({
 describe("parseDockerStatsLine", () => {
   it("parses a well-formed line into a normalized snapshot", () => {
     expect(parseDockerStatsLine(validRawLine)).toEqual({
-      name: "chicek-lab-openobserve-1",
+      name: "frontend-observability-lab-openobserve-1",
       cpuPercent: 1.23,
       memUsageBytes: 512 * 1024 ** 2,
       memLimitBytes: 3 * 1024 ** 3,
@@ -128,7 +128,7 @@ describe("parseDockerStatsSnapshot", () => {
   it("parses multiple NDJSON lines and skips blank lines", () => {
     const snapshot = parseDockerStatsSnapshot(`${validRawLine}\n\n${validRawLine}\n`);
     expect(snapshot).toHaveLength(2);
-    expect(snapshot[0].name).toBe("chicek-lab-openobserve-1");
+    expect(snapshot[0].name).toBe("frontend-observability-lab-openobserve-1");
   });
 
   it("returns an empty array for empty output", () => {

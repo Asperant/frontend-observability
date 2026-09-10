@@ -1,8 +1,8 @@
 # Integration Guide
 
-Install `@chicek/browser-observability` from the produced private tarball or a private registry.
+Install `@frontend-observability/browser-observability` from npm, or from a self-hosted registry if you build and publish the package yourself.
 
-Expose only these exact browser routes at the company ingress/WAF:
+Expose only these exact browser routes at your ingress/WAF:
 
 - `POST /rum/v1/default/rum`
 - `POST /rum/v1/default/logs`

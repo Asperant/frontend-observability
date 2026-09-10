@@ -68,7 +68,7 @@ function logPayload(message) {
     date: Date.now(),
     message,
     status: "info",
-    service: "chicek-browser-app",
+    service: "frontend-observability-browser-app",
     env: "lab",
     version: "0.1.0",
   });
@@ -168,9 +168,13 @@ function mergeTrafficSummary(target, source) {
 }
 
 function sampleOpenObserveDiskKiB() {
-  const result = spawnSync("docker", ["exec", "chicek-lab-openobserve-1", "du", "-sk", "/data"], {
-    encoding: "utf8",
-  });
+  const result = spawnSync(
+    "docker",
+    ["exec", "frontend-observability-lab-openobserve-1", "du", "-sk", "/data"],
+    {
+      encoding: "utf8",
+    },
+  );
   if (result.status !== 0) return null;
   const value = Number.parseInt(result.stdout.trim().split(/\s+/)[0], 10);
   return Number.isFinite(value) ? value : null;

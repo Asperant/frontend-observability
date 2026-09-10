@@ -104,7 +104,7 @@ importers:
 
   apps/observability-control-plane:
     dependencies:
-      '@chicek/observability-contracts':
+      '@frontend-observability/observability-contracts':
         specifier: workspace:*
         version: link:../../packages/observability-contracts
 
@@ -112,13 +112,13 @@ importers:
 
   apps/telemetry-delivery-worker:
     dependencies:
-      '@chicek/telemetry-delivery-core':
+      '@frontend-observability/telemetry-delivery-core':
         specifier: workspace:*
         version: link:../../packages/telemetry-delivery-core
 
   apps/telemetry-ingest:
     dependencies:
-      '@chicek/telemetry-delivery-core':
+      '@frontend-observability/telemetry-delivery-core':
         specifier: workspace:*
         version: link:../../packages/telemetry-delivery-core
 
@@ -152,7 +152,7 @@ importers:
 
   tests/fixtures/apps/browser-app:
     dependencies:
-      '@chicek/browser-observability':
+      '@frontend-observability/browser-observability':
         specifier: workspace:*
         version: link:../../../../packages/browser-observability
       react:

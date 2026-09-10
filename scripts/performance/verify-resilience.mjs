@@ -116,7 +116,7 @@ function rumPayload(overrides = {}) {
   return JSON.stringify({
     date: Date.now(),
     type: "view",
-    application_id: "chicek-browser-app",
+    application_id: "frontend-observability-browser-app",
     service: DEMO_IDENTITY.service,
     env: DEMO_IDENTITY.environment,
     version: DEMO_IDENTITY.version,
@@ -443,7 +443,7 @@ async function checkNotificationReadinessHealthy() {
 function readStartedAt(service) {
   const result = spawnSync(
     "docker",
-    ["inspect", "--format", "{{.State.StartedAt}}", `chicek-lab-${service}-1`],
+    ["inspect", "--format", "{{.State.StartedAt}}", `frontend-observability-lab-${service}-1`],
     { encoding: "utf8" },
   );
   return result.status === 0 ? result.stdout.trim() : null;
@@ -610,8 +610,8 @@ async function runRestartRecoveryMatrix() {
 // --- 8. network partition (docker network disconnect/connect) --------------
 
 async function runNetworkPartitionScenario() {
-  const network = "chicek-lab_app-internal";
-  const service = "chicek-lab-http-test-service-1";
+  const network = "frontend-observability-lab_app-internal";
+  const service = "frontend-observability-lab-http-test-service-1";
   // Compose attaches two DNS records per container on a service network:
   // the container name (always restored by a plain `docker network
   // connect`) and the service name alias (`http-test-service`), which Docker does
@@ -644,7 +644,7 @@ async function runNetworkPartitionScenario() {
   const health = await waitForHealthy({ services: ["http-test-service"], timeoutMs: 30_000 });
   const dnsCheck = spawnSync("docker", [
     "exec",
-    "chicek-lab-reverse-proxy-1",
+    "frontend-observability-lab-reverse-proxy-1",
     "getent",
     "hosts",
     serviceAlias,

@@ -6,7 +6,7 @@
 // reload (a fresh globalThis) may ever clear this registry; the
 // resetControlRegistryForTests() escape hatch below exists purely for test
 // isolation and must never be called from production code paths.
-const CONTROL_SYMBOL = Symbol.for("@chicek/browser-observability/runtime-control");
+const CONTROL_SYMBOL = Symbol.for("@frontend-observability/browser-observability/runtime-control");
 
 function createInitialRegistry() {
   return {

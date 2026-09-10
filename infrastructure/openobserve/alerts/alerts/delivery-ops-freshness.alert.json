@@ -5,7 +5,7 @@
   "description": "The internal telemetry-delivery-worker has not emitted aggregate operational data recently.",
   "metricId": "delivery_ops_freshness",
   "queryId": "telemetry-delivery-worker-state",
-  "stream": "_chicek_delivery_ops",
+  "stream": "_frontend_observability_delivery_ops",
   "severity": "medium",
   "enabledByDefault": false,
   "requiredScope": {

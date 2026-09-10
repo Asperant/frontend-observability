@@ -21,7 +21,11 @@
 // through the caller-supplied `baseUrl`.
 import { createHash } from "node:crypto";
 
-export const CANONICAL_STREAMS = Object.freeze(["_rumdata", "_rumlog", "_chicek_delivery_ops"]);
+export const CANONICAL_STREAMS = Object.freeze([
+  "_rumdata",
+  "_rumlog",
+  "_frontend_observability_delivery_ops",
+]);
 const NON_SECRET_HEADER_NAMES = new Set(["content-type", "accept"]);
 export const DEFAULT_BASE_URL = "http://127.0.0.1:5080";
 

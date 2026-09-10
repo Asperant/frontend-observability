@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "starterId": "performance-resources",
   "starterVersion": 8,
-  "folderName": "CHICEK Starters",
+  "folderName": "FRONTEND_OBSERVABILITY Starters",
   "title": "Performance and Resources",
   "description": "Web Vital percentiles (LCP/CLS/INP) with sample counts, LCP by browser family, long task trend, and resource failure/latency/type breakdowns. Version-scoped performance breakdown is not included in this starter template (out of scope for this stage's bounded panel set) \u2014 use the version_clause-capable query catalog entries directly if needed. Installed by pnpm lab:dashboards:install-starters as an initial template \u2014 edit or delete freely from the OpenObserve UI; this stage never overwrites your changes.",
   "tabs": [

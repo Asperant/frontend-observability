@@ -318,9 +318,9 @@ async function verifyInstallLifecycle(auth) {
   }
 
   const folders = await listFolders(auth);
-  const starterFolder = folders.find((folder) => folder.name === "CHICEK Starters");
+  const starterFolder = folders.find((folder) => folder.name === "FRONTEND_OBSERVABILITY Starters");
   if (!starterFolder) {
-    findings.push("'CHICEK Starters' folder missing after install.");
+    findings.push("'FRONTEND_OBSERVABILITY Starters' folder missing after install.");
     return findings;
   }
 
@@ -432,7 +432,7 @@ async function verifyExportBackupImport(secretValues) {
   // starter must report SKIP_EXISTING_TITLE under the default skip policy.
   const dryRun = await dashboardsImport({
     dir: exportResult.outDir,
-    folderName: "CHICEK Starters",
+    folderName: "FRONTEND_OBSERVABILITY Starters",
     conflictPolicy: "skip",
     apply: false,
   });
@@ -450,9 +450,9 @@ async function verifyExportBackupImport(secretValues) {
 async function verifyLiveAuditDetectsRisk(auth) {
   const findings = [];
   const folders = await listFolders(auth);
-  const starterFolder = folders.find((folder) => folder.name === "CHICEK Starters");
+  const starterFolder = folders.find((folder) => folder.name === "FRONTEND_OBSERVABILITY Starters");
   if (!starterFolder) {
-    findings.push("'CHICEK Starters' folder missing for the audit-detection test.");
+    findings.push("'FRONTEND_OBSERVABILITY Starters' folder missing for the audit-detection test.");
     return findings;
   }
 
@@ -602,7 +602,7 @@ async function driveCanaryBrowser(browserType, testRunId) {
   try {
     const context = await browser.newContext({ ignoreHTTPSErrors: true });
     await context.addInitScript((runId) => {
-      globalThis.__CHICEK_TEST_RUN_ID__ = runId;
+      globalThis.__FRONTEND_OBSERVABILITY_TEST_RUN_ID__ = runId;
     }, testRunId);
     const page = await context.newPage();
     await page.goto(DEMO_URL);

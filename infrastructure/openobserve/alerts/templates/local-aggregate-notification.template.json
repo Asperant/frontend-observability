@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "local-aggregate-notification",
-  "openObserveTemplateName": "chicek-alert-governance-local-aggregate",
+  "openObserveTemplateName": "frontend-observability-alert-governance-local-aggregate",
   "type": "http",
   "body": "{\"alert\":\"{alert_name}\",\"evaluationWindowMinutes\":\"{alert_period}\",\"firingTime\":\"{alert_trigger_time_str}\",\"stream\":\"{stream_name}\",\"org\":\"{org_name}\",\"description\":\"{alert_description}\"}",
   "privacy": {

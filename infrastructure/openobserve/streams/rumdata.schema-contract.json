@@ -4,8 +4,8 @@
   "derivedFrom": [
     "Real Chromium/Firefox @openobserve/browser-rum output ingested into this lab's own _rumdata stream (docs/openobserve-v0.91-stream-capabilities.md capability #5).",
     "scripts/lab/verify-openobserve-ingestion.mjs's existing regression assertions (service/env/version/application_id present on every RUM record type).",
-    "infrastructure/openobserve/sanitization/rum.vrl and cleanup.vrl (sanitization — forbidden-field deletions and controlled chicek.* field allow-list).",
-    "infrastructure/openobserve/correlation/correlation-contract.json (correlation — chicek.correlation.* logical/flattened field names)."
+    "infrastructure/openobserve/sanitization/rum.vrl and cleanup.vrl (sanitization — forbidden-field deletions and controlled frontend-observability.* field allow-list).",
+    "infrastructure/openobserve/correlation/correlation-contract.json (correlation — frontend-observability.correlation.* logical/flattened field names)."
   ],
   "requiredNativeFields": [
     "_timestamp",
@@ -157,12 +157,12 @@
     ]
   },
   "controlledFields": [
-    "chicek_correlation_schema_version",
-    "chicek_correlation_epoch_id",
-    "chicek_correlation_session_id",
-    "chicek_correlation_view_id",
-    "chicek_correlation_action_id",
-    "chicek_policy_version",
+    "frontend_observability_correlation_schema_version",
+    "frontend_observability_correlation_epoch_id",
+    "frontend_observability_correlation_session_id",
+    "frontend_observability_correlation_view_id",
+    "frontend_observability_correlation_action_id",
+    "frontend_observability_policy_version",
     "test_run_id"
   ],
   "knownFieldTypes": {
@@ -191,12 +191,12 @@
     "action_type": "Utf8",
     "application_id": "Utf8",
     "batch_time": "Utf8",
-    "chicek_correlation_action_id": "Utf8",
-    "chicek_correlation_epoch_id": "Utf8",
-    "chicek_correlation_schema_version": "Utf8",
-    "chicek_correlation_session_id": "Utf8",
-    "chicek_correlation_view_id": "Utf8",
-    "chicek_policy_version": "Utf8",
+    "frontend_observability_correlation_action_id": "Utf8",
+    "frontend_observability_correlation_epoch_id": "Utf8",
+    "frontend_observability_correlation_schema_version": "Utf8",
+    "frontend_observability_correlation_session_id": "Utf8",
+    "frontend_observability_correlation_view_id": "Utf8",
+    "frontend_observability_policy_version": "Utf8",
     "connectivity_effective_type": "Utf8",
     "connectivity_status": "Utf8",
     "date": "Int64",

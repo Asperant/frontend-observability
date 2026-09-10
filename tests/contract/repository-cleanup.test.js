@@ -10,7 +10,7 @@ describe("packages/privacy-policy stays removed", () => {
     expect(existsSync(join(repoRoot, "packages/privacy-policy"))).toBe(false);
   });
 
-  it("no workspace package.json depends on @chicek/privacy-policy", () => {
+  it("no workspace package.json depends on @frontend-observability/privacy-policy", () => {
     const roots = ["apps", "packages"];
     const offenders = [];
     for (const root of roots) {
@@ -20,7 +20,7 @@ describe("packages/privacy-policy stays removed", () => {
         if (!existsSync(pkgPath)) continue;
         const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
         const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-        if (deps["@chicek/privacy-policy"]) offenders.push(pkgPath);
+        if (deps["@frontend-observability/privacy-policy"]) offenders.push(pkgPath);
       }
     }
     expect(offenders).toEqual([]);

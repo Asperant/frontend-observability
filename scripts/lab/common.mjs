@@ -98,7 +98,7 @@ export const killSwitchLockPath = join(generatedDir, "kill-switch.lock");
 export const runtimeControlDaemonPidPath = join(generatedDir, "runtime-control-daemon.pid");
 export const sessionMetadataDaemonPidPath = join(generatedDir, "session-metadata-daemon.pid");
 
-export const COMPOSE_PROJECT_NAME = "chicek-lab";
+export const COMPOSE_PROJECT_NAME = "frontend-observability-lab";
 
 export const SERVICES = [
   "reverse-proxy",

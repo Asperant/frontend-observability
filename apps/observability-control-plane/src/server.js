@@ -3,7 +3,8 @@ import { createServer } from "node:http";
 import { createControlPlaneState } from "./state.js";
 
 const PORT = Number.parseInt(process.env.PORT ?? "4314", 10);
-const STATE_DIR = process.env.OBSERVABILITY_CONTROL_STATE_DIR ?? "/var/lib/chicek-control-plane";
+const STATE_DIR =
+  process.env.OBSERVABILITY_CONTROL_STATE_DIR ?? "/var/lib/frontend-observability-control-plane";
 
 const controlPlane = createControlPlaneState(STATE_DIR);
 

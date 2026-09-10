@@ -162,12 +162,12 @@ export default [
               group: [
                 "@openobserve/*",
                 "openobserve*",
-                "@chicek/browser-observability/*",
+                "@frontend-observability/browser-observability/*",
                 "**/browser-observability/src/**",
                 "**/http-test-service-fixture/**",
               ],
               message:
-                "browser-app may only import the public @chicek/browser-observability API, never OpenObserve packages, internal package paths, or http-test-service source.",
+                "browser-app may only import the public @frontend-observability/browser-observability API, never OpenObserve packages, internal package paths, or http-test-service source.",
             },
           ],
         },

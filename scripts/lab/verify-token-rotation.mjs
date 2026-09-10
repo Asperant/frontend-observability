@@ -41,7 +41,7 @@ import { waitForHealthy } from "./wait.mjs";
 const OPENOBSERVE_ADMIN_BASE_URL = "http://127.0.0.1:5080";
 const ORG_ID = "default";
 const RUM_PATH = "/rum/v1/default/rum";
-const PROBE_TOKEN_NAME = "chicek_token_rotation_probe";
+const PROBE_TOKEN_NAME = "frontend_observability_token_rotation_probe";
 const RABBITMQ_EXCLUSIVE_LOCK_PATH = join(generatedDir, "rabbitmq-exclusive.lock");
 
 function newPassword() {
@@ -100,7 +100,7 @@ function rumEvent(marker) {
     date: Date.now(),
     type: "view",
     marker,
-    application_id: "chicek-browser-app",
+    application_id: "frontend-observability-browser-app",
     service: "browser-app",
     env: "lab",
     version: "2026.07.1",
@@ -177,7 +177,7 @@ async function verifyTokenRotation() {
   if (admission.statusCode !== 202) {
     findings.push(`pre-rotation admission returned ${admission.statusCode}, expected 202.`);
   }
-  const queuedBefore = await waitForQueueDepth("chicek.frontend.rum.q", 1, 45_000);
+  const queuedBefore = await waitForQueueDepth("frontend-observability.frontend.rum.q", 1, 45_000);
   if (!queuedBefore.ok)
     findings.push(`expected 1 queued message before rotation, got ${queuedBefore.depth}.`);
 
@@ -207,7 +207,7 @@ async function verifyTokenRotation() {
   }
 
   resumeDelivery();
-  const drained = await waitForQueueDepth("chicek.frontend.rum.q", 0, 120_000);
+  const drained = await waitForQueueDepth("frontend-observability.frontend.rum.q", 0, 120_000);
   if (!drained.ok) {
     findings.push(
       `message queued before rotation did not drain with the new worker credential (depth=${drained.depth}).`,
@@ -225,7 +225,7 @@ async function verifyTokenRotation() {
       `post-rotation admission (new ingest credential) returned ${postAdmission.statusCode}, expected 202.`,
     );
   }
-  const postDrained = await waitForQueueDepth("chicek.frontend.rum.q", 0, 60_000);
+  const postDrained = await waitForQueueDepth("frontend-observability.frontend.rum.q", 0, 60_000);
   if (!postDrained.ok) {
     findings.push(`post-rotation message did not drain (depth=${postDrained.depth}).`);
   }
@@ -283,11 +283,14 @@ async function verifyTokenRotation() {
     }
 
     const probeAuth = `Basic ${Buffer.from(`${ORG_ID}:${probe.token}`).toString("base64")}`;
-    const workingWrite = await requestHttp(`/api/${ORG_ID}/chicek_token_rotation_probe/_json`, {
-      method: "POST",
-      headers: { Authorization: probeAuth, "Content-Type": "application/json" },
-      body: JSON.stringify([{ date: Date.now(), marker: "token-rotation-probe-enabled" }]),
-    });
+    const workingWrite = await requestHttp(
+      `/api/${ORG_ID}/frontend_observability_token_rotation_probe/_json`,
+      {
+        method: "POST",
+        headers: { Authorization: probeAuth, "Content-Type": "application/json" },
+        body: JSON.stringify([{ date: Date.now(), marker: "token-rotation-probe-enabled" }]),
+      },
+    );
     if (workingWrite.statusCode !== 200) {
       findings.push(`enabled probe token write returned ${workingWrite.statusCode}, expected 200.`);
     }
@@ -299,11 +302,14 @@ async function verifyTokenRotation() {
     if (disable.status !== 200)
       findings.push(`disabling probe token failed (status ${disable.status}).`);
 
-    const rejectedWrite = await requestHttp(`/api/${ORG_ID}/chicek_token_rotation_probe/_json`, {
-      method: "POST",
-      headers: { Authorization: probeAuth, "Content-Type": "application/json" },
-      body: JSON.stringify([{ date: Date.now(), marker: "token-rotation-probe-disabled" }]),
-    });
+    const rejectedWrite = await requestHttp(
+      `/api/${ORG_ID}/frontend_observability_token_rotation_probe/_json`,
+      {
+        method: "POST",
+        headers: { Authorization: probeAuth, "Content-Type": "application/json" },
+        body: JSON.stringify([{ date: Date.now(), marker: "token-rotation-probe-disabled" }]),
+      },
+    );
     if (rejectedWrite.statusCode !== 401 && rejectedWrite.statusCode !== 403) {
       findings.push(
         `disabled probe token write returned ${rejectedWrite.statusCode}, expected 401/403.`,

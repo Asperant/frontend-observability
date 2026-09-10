@@ -40,7 +40,7 @@ describe("validateDestructiveTarget", () => {
   it("rejects a disposable-shaped name with an unsafe suffix", () => {
     const result = validateDestructiveTarget({
       org: CANONICAL_ORG,
-      streamName: "_chicek_lifecycle_test_../etc",
+      streamName: "_frontend_observability_lifecycle_test_../etc",
       confirmed: true,
     });
     expect(result).toEqual({ allowed: false, reason: GUARD_REASON.NOT_DISPOSABLE_PREFIX });

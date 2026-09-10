@@ -1,5 +1,5 @@
 // security-acceptance live-lab adversarial checks. Every check runs only against the
-// local `chicek-lab` (real reverse proxy on https://127.0.0.1:8443, real
+// local `frontend-observability-lab` (real reverse proxy on https://127.0.0.1:8443, real
 // OpenObserve admin API on http://127.0.0.1:5080 loopback, real Docker
 // containers) — never a real external target. Follows the existing
 // scripts/lab/verify-*.mjs pattern: pure functions returning
@@ -239,7 +239,7 @@ export async function checkManagementPlaneUnreachableViaProxy() {
 export async function checkLiveReplayRejection() {
   const findings = [];
   const canary = `security-acceptance-replay-canary-${RUN_ID}`;
-  const boundary = "----chicekSecurityAcceptanceBoundary";
+  const boundary = "----frontend-observabilitySecurityAcceptanceBoundary";
   const segment = Buffer.from(`replay-segment-${canary}`);
   const eventJson = JSON.stringify({
     session: { id: RUN_ID },
@@ -432,7 +432,7 @@ export async function checkRuntimeControlAdversarialDocuments() {
 // ---------------------------------------------------------------------------
 export async function checkKillSwitchSymlinkAttack() {
   const findings = [];
-  const targetPath = "/tmp/chicek-security-acceptance-symlink-target";
+  const targetPath = "/tmp/frontend-observability-security-acceptance-symlink-target";
   writeFileSync(targetPath, "attacker-controlled content\n");
   try {
     unlinkSync(proxyGatePath);

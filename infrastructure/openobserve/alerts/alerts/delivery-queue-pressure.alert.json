@@ -5,7 +5,7 @@
   "description": "The durable frontend telemetry buffer is accumulating messages or dead letters.",
   "metricId": "delivery_queue_pressure",
   "queryId": "delivery-queue-depth",
-  "stream": "_chicek_delivery_ops",
+  "stream": "_frontend_observability_delivery_ops",
   "severity": "high",
   "enabledByDefault": false,
   "requiredScope": {

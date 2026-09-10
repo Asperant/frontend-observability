@@ -233,7 +233,7 @@ test.describe("OpenObserve integration OpenObserve RUM/browser-logs integration"
     // The browser-app's own production build re-hashes this chunk's
     // filename (e.g. "adapter-openobserve-XXXXXXXX.js"), so the pattern
     // must not assume the exact unhashed name used inside the
-    // @chicek/browser-observability package's own build output, or a
+    // @frontend-observability/browser-observability package's own build output, or a
     // trailing ".js" (a query string may follow it).
     await page.route("**/adapter-openobserve*", (route) => route.abort("failed"));
 

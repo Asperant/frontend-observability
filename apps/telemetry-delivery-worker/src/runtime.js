@@ -9,7 +9,7 @@ import {
   readSecret,
   requiredEnv,
   retryRoutingKey,
-} from "@chicek/telemetry-delivery-core";
+} from "@frontend-observability/telemetry-delivery-core";
 import { createServer } from "node:http";
 import {
   controlStateChanged,
@@ -85,7 +85,7 @@ async function initializeRabbit() {
       host: requiredEnv("RABBITMQ_HOST"),
       vhost: process.env.RABBITMQ_VHOST ?? "/",
     }),
-    clientProperties: { connection_name: "chicek-telemetry-delivery-worker" },
+    clientProperties: { connection_name: "frontend-observability-telemetry-delivery-worker" },
   });
   connection.on("close", () => exitOnAmqpFailure("delivery_worker_rabbitmq_closed"));
   connection.on("error", (error) =>
@@ -288,7 +288,7 @@ async function emitOpsSummary(reason) {
     const event = {
       date: Date.now(),
       service: "telemetry-delivery-worker",
-      stream: "_chicek_delivery_ops",
+      stream: "_frontend_observability_delivery_ops",
       reason,
       held: controlState.held,
       controlReady: controlState.ready,
@@ -298,7 +298,7 @@ async function emitOpsSummary(reason) {
       counters,
       queues: summaries,
     };
-    await fetch(`${openObserve.baseUrl}/api/default/_chicek_delivery_ops/_json`, {
+    await fetch(`${openObserve.baseUrl}/api/default/_frontend_observability_delivery_ops/_json`, {
       method: "POST",
       headers: {
         Authorization: `Basic ${Buffer.from(`default:${openObserve.deliveryOpsToken}`).toString(

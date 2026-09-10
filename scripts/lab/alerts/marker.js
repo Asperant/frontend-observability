@@ -1,4 +1,4 @@
-const MARKER_PREFIX = "CHICEK_STAGE17_ALERT";
+const MARKER_PREFIX = "FRONTEND_OBSERVABILITY_STAGE17_ALERT";
 
 export function buildMarker({ starterId, starterVersion }) {
   return `${MARKER_PREFIX} starterId=${starterId} starterVersion=${starterVersion}`;

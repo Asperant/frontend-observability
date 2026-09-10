@@ -2,8 +2,8 @@ FROM docker.io/library/rabbitmq:4.1.4-management-alpine@sha256:55c83be05396805ae
 
 COPY rabbitmq.conf /etc/rabbitmq/rabbitmq.conf
 COPY definitions.json /etc/rabbitmq/definitions.json
-COPY entrypoint.sh /usr/local/bin/chicek-rabbitmq-entrypoint.sh
-RUN chmod 0755 /usr/local/bin/chicek-rabbitmq-entrypoint.sh
+COPY entrypoint.sh /usr/local/bin/frontend-observability-rabbitmq-entrypoint.sh
+RUN chmod 0755 /usr/local/bin/frontend-observability-rabbitmq-entrypoint.sh
 
-ENTRYPOINT ["chicek-rabbitmq-entrypoint.sh"]
+ENTRYPOINT ["frontend-observability-rabbitmq-entrypoint.sh"]
 CMD ["rabbitmq-server"]

@@ -19,8 +19,8 @@
 //      — instead of a full purge, which would also wipe the OpenObserve
 //      dashboards/alerts/streams state the later recovery/backup gate
 //      depends on for a real, non-empty backup source.
-//   3. `test:recovery` uses its own fully disposable `chicek-recovery-*`
-//      compose projects and never touches `chicek-lab`; no reset needed.
+//   3. `test:recovery` uses its own fully disposable `frontend-observability-recovery-*`
+//      compose projects and never touches `frontend-observability-lab`; no reset needed.
 //
 // Deliberately excludes the long-running real/soak durable-outage test
 // (`lab:durable-outage-soak:evidence-only`) — that evidence is not

@@ -12,7 +12,11 @@ const CONTRACT = Object.freeze({
     view: ["view_id", "view_url"],
     error: ["error_id", "error_message"],
   },
-  controlledFields: ["chicek_correlation_session_id", "chicek_policy_version", "test_run_id"],
+  controlledFields: [
+    "frontend_observability_correlation_session_id",
+    "frontend_observability_policy_version",
+    "test_run_id",
+  ],
   knownFieldTypes: {
     _timestamp: "Int64",
     type: "Utf8",
@@ -33,7 +37,7 @@ describe("validateRecord", () => {
       service: "demo",
       view_id: "v1",
       view_url: "https://example.test/page",
-      chicek_correlation_session_id: "abc",
+      frontend_observability_correlation_session_id: "abc",
       test_run_id: "run-1",
     };
     const validation = validateRecord(CONTRACT, record);
@@ -75,24 +79,26 @@ describe("validateRecord", () => {
     expect(validation.forbiddenPatternMatches).toEqual(["request_cookie"]);
   });
 
-  it("flags an uncontrolled chicek.*-shaped field", () => {
+  it("flags an uncontrolled frontend-observability.*-shaped field", () => {
     const validation = validateRecord(CONTRACT, {
       _timestamp: 1,
       type: "view",
       service: "demo",
-      chicek_experimental_flag: "x",
+      frontend_observability_experimental_flag: "x",
     });
-    expect(validation.uncontrolledChicek).toEqual(["chicek_experimental_flag"]);
+    expect(validation.uncontrolledFrontendObservability).toEqual([
+      "frontend_observability_experimental_flag",
+    ]);
   });
 
-  it("does not flag a controlled chicek.* field", () => {
+  it("does not flag a controlled frontend-observability.* field", () => {
     const validation = validateRecord(CONTRACT, {
       _timestamp: 1,
       type: "view",
       service: "demo",
-      chicek_policy_version: "telemetry-sanitization-v1",
+      frontend_observability_policy_version: "telemetry-sanitization-v1",
     });
-    expect(validation.uncontrolledChicek).toEqual([]);
+    expect(validation.uncontrolledFrontendObservability).toEqual([]);
     expect(validation.unknownAdditive).toEqual([]);
   });
 

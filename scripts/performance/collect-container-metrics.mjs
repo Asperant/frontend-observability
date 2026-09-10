@@ -1,5 +1,5 @@
 // CLI + reusable function: samples `docker stats --no-stream` for every
-// chicek-lab service, parsed through scripts/performance/lib/docker-stats-parser.js
+// frontend-observability-lab service, parsed through scripts/performance/lib/docker-stats-parser.js
 // (100%-coverage-gated pure logic) and optionally aggregated through
 // scripts/performance/lib/metrics-collector.js. This module itself is
 // I/O-only (spawns docker), not coverage-gated — mirrors
@@ -15,7 +15,7 @@ function containerNameFor(service) {
 }
 
 /**
- * One instantaneous snapshot across every chicek-lab service, keyed by
+ * One instantaneous snapshot across every frontend-observability-lab service, keyed by
  * service name. `docker stats` has been observed to occasionally return a
  * transient EOF against the Docker socket under concurrent load (soak/
  * benchmark runs sample this repeatedly while other requests are in
@@ -70,7 +70,7 @@ export function readRestartCount(service) {
   return Number.isFinite(count) ? count : null;
 }
 
-/** Restart counts for every chicek-lab service, keyed by service name. */
+/** Restart counts for every frontend-observability-lab service, keyed by service name. */
 export function readAllRestartCounts() {
   const counts = {};
   for (const service of SERVICES) counts[service] = readRestartCount(service);

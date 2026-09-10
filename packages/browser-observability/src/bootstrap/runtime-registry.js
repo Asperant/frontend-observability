@@ -1,7 +1,7 @@
 import { createAdapter } from "../adapter/openobserve/create-adapter.js";
 import { createInitialRuntimeState } from "../lifecycle/state-machine.js";
 
-export const RUNTIME_SYMBOL = Symbol.for("@chicek/browser-observability/runtime");
+export const RUNTIME_SYMBOL = Symbol.for("@frontend-observability/browser-observability/runtime");
 
 // The only place in the package that references a concrete adapter
 // implementation. createAdapter() is a cheap, synchronous factory — it does

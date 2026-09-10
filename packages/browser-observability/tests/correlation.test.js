@@ -95,20 +95,33 @@ describe("correlation epoch and ID validation", () => {
 });
 
 describe("reserved-field stripping", () => {
-  it.each(["chicek", "correlation.id", "session_id", "view", "action", "trace", "span", "_dd"])(
-    "recognizes %s as reserved",
-    (key) => {
-      expect(isReservedCorrelationKey(key)).toBe(true);
-    },
-  );
+  it.each([
+    "frontend-observability",
+    "correlation.id",
+    "session_id",
+    "view",
+    "action",
+    "trace",
+    "span",
+    "_dd",
+  ])("recognizes %s as reserved", (key) => {
+    expect(isReservedCorrelationKey(key)).toBe(true);
+  });
 
   it("removes reserved fields from user context without traversing nested objects", () => {
     const counters = createCounters();
     const result = stripReservedFields(
-      { safe: "yes", chicek: "forge", nested: { chicek: "left alone" } },
+      {
+        safe: "yes",
+        "frontend-observability": "forge",
+        nested: { "frontend-observability": "left alone" },
+      },
       { counters },
     );
-    expect(result.value).toEqual({ safe: "yes", nested: { chicek: "left alone" } });
+    expect(result.value).toEqual({
+      safe: "yes",
+      nested: { "frontend-observability": "left alone" },
+    });
     expect(result.removed).toBe(true);
     expect(snapshotCorrelationCounters(counters).reservedFieldRemoved).toBe(1);
   });
@@ -194,11 +207,11 @@ describe("RUM and log enrichment", () => {
     expect(enrichRumEvent(event, undefined, correlation, { counters })).toBeUndefined();
     expect(event.context).toMatchObject({
       safe: "ok",
-      "chicek.correlation.schema_version": "1",
-      "chicek.correlation.epoch_id": correlation.epochId,
-      "chicek.correlation.session_id": "session-1",
-      "chicek.correlation.view_id": "view-1",
-      "chicek.correlation.action_id": "action-1",
+      "frontend-observability.correlation.schema_version": "1",
+      "frontend-observability.correlation.epoch_id": correlation.epochId,
+      "frontend-observability.correlation.session_id": "session-1",
+      "frontend-observability.correlation.view_id": "view-1",
+      "frontend-observability.correlation.action_id": "action-1",
     });
     expect(snapshotCorrelationCounters(counters).enriched).toBe(1);
   });
@@ -216,7 +229,7 @@ describe("RUM and log enrichment", () => {
     };
     expect(enrichRumEvent(event, {}, correlation, { counters })).toBeUndefined();
     expect(event.context).not.toHaveProperty("correlation");
-    expect(event.context).not.toHaveProperty("chicek.correlation.action_id");
+    expect(event.context).not.toHaveProperty("frontend-observability.correlation.action_id");
     expect(snapshotCorrelationCounters(counters)).toMatchObject({
       partial: 1,
       reservedFieldRemoved: 1,
@@ -233,8 +246,8 @@ describe("RUM and log enrichment", () => {
       view: { id: "view-view" },
     };
     expect(enrichRumEvent(event, {}, correlation, { counters })).toBeUndefined();
-    expect(event.context["chicek.correlation.session_id"]).toBe("session-view");
-    expect(event.context["chicek.correlation.view_id"]).toBe("view-view");
+    expect(event.context["frontend-observability.correlation.session_id"]).toBe("session-view");
+    expect(event.context["frontend-observability.correlation.view_id"]).toBe("view-view");
     expect(snapshotCorrelationCounters(counters).enriched).toBe(1);
   });
 
@@ -245,12 +258,12 @@ describe("RUM and log enrichment", () => {
     const event = { type: "resource" };
     expect(enrichRumEvent(event, {}, correlation, { counters })).toBeUndefined();
     expect(event.context).toEqual({
-      "chicek.correlation.schema_version": "1",
-      "chicek.correlation.epoch_id": correlation.epochId,
+      "frontend-observability.correlation.schema_version": "1",
+      "frontend-observability.correlation.epoch_id": correlation.epochId,
     });
     expect(createMetadata("bad\nid", { sessionId: {}, viewId: [], actionId: "ok" })).toEqual({
-      "chicek.correlation.schema_version": "1",
-      "chicek.correlation.action_id": "ok",
+      "frontend-observability.correlation.schema_version": "1",
+      "frontend-observability.correlation.action_id": "ok",
     });
     expect(snapshotCorrelationCounters(counters).partial).toBe(1);
   });
@@ -283,9 +296,9 @@ describe("RUM and log enrichment", () => {
     ).toBeUndefined();
     expect(event.context).toMatchObject({
       safe: true,
-      "chicek.correlation.epoch_id": correlation.epochId,
-      "chicek.correlation.session_id": "session-log",
-      "chicek.correlation.view_id": "view-log",
+      "frontend-observability.correlation.epoch_id": correlation.epochId,
+      "frontend-observability.correlation.session_id": "session-log",
+      "frontend-observability.correlation.view_id": "view-log",
     });
     expect(event.context).not.toHaveProperty("trace");
   });
@@ -297,8 +310,8 @@ describe("RUM and log enrichment", () => {
     const event = {};
     expect(enrichLogEvent(event, {}, correlation, { counters })).toBeUndefined();
     expect(event.context).toEqual({
-      "chicek.correlation.schema_version": "1",
-      "chicek.correlation.epoch_id": correlation.epochId,
+      "frontend-observability.correlation.schema_version": "1",
+      "frontend-observability.correlation.epoch_id": correlation.epochId,
     });
     expect(snapshotCorrelationCounters(counters).partial).toBe(1);
   });

@@ -81,7 +81,7 @@ describe("observability control-plane scoped state", () => {
 });
 
 function createState() {
-  stateDir = mkdtempSync(join(tmpdir(), "chicek-control-plane-state-"));
+  stateDir = mkdtempSync(join(tmpdir(), "frontend-observability-control-plane-state-"));
   return createControlPlaneState(stateDir);
 }
 

@@ -21,7 +21,7 @@ const FORBIDDEN_EXPORT_NAMES = [
   "internal",
 ];
 
-describe("@chicek/browser-observability public API surface (source-level)", () => {
+describe("@frontend-observability/browser-observability public API surface (source-level)", () => {
   it("exports exactly the approved public functions, nothing more and nothing less", async () => {
     const mod = await import(packageSrcUrl.href);
     expect(Object.keys(mod).sort()).toEqual(EXPECTED_EXPORTS);

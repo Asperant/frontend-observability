@@ -13,7 +13,7 @@ let fixtureDir;
 beforeAll(() => {
   const tarballPath = packBrowserObservability();
 
-  fixtureDir = mkdtempSync(join(tmpdir(), "chicek-consumer-vanilla-"));
+  fixtureDir = mkdtempSync(join(tmpdir(), "frontend-observability-consumer-vanilla-"));
 
   writeFileSync(
     join(fixtureDir, "package.json"),
@@ -24,7 +24,7 @@ beforeAll(() => {
         private: true,
         type: "module",
         devDependencies: { vite: PINNED_VERSIONS.vite },
-        dependencies: { "@chicek/browser-observability": `file:${tarballPath}` },
+        dependencies: { "@frontend-observability/browser-observability": `file:${tarballPath}` },
       },
       null,
       2,
@@ -65,7 +65,7 @@ export default defineConfig({
   recordAction,
   setTrackingConsent,
   shutdownObservability,
-} from "@chicek/browser-observability";
+} from "@frontend-observability/browser-observability";
 
 globalThis.fetch = () => Promise.resolve(new Response(JSON.stringify({
   schemaVersion: "1.0.0",

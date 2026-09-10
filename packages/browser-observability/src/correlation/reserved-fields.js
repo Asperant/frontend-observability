@@ -3,7 +3,7 @@ import { isReservedObjectKey, normalizeKeyForPolicy } from "../sanitization/dete
 import { recordCorrelation } from "./counters.js";
 
 const RESERVED_KEY_CATEGORIES = Object.freeze([
-  "chicek",
+  "frontendobservability",
   "correlation",
   "session",
   "view",

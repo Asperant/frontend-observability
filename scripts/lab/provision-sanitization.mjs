@@ -17,20 +17,20 @@ const STREAM_TYPE = "logs";
 const SANITIZATION_DIR = join(repoRoot, "infrastructure/openobserve/sanitization");
 
 const FUNCTIONS = {
-  rum: "chicek_rum_sanitize_v1",
-  rumlog: "chicek_rumlog_sanitize_v1",
-  correlation: "chicek_correlation_normalize_v1",
-  cleanup: "chicek_sanitization_cleanup_v1",
+  rum: "frontend_observability_rum_sanitize_v1",
+  rumlog: "frontend_observability_rumlog_sanitize_v1",
+  correlation: "frontend_observability_correlation_normalize_v1",
+  cleanup: "frontend_observability_sanitization_cleanup_v1",
 };
 
 const PIPELINES = [
   {
-    name: "chicek_rumdata_sanitize_pipeline_v1",
+    name: "frontend_observability_rumdata_sanitize_pipeline_v1",
     stream: "_rumdata",
     sanitizeFunction: FUNCTIONS.rum,
   },
   {
-    name: "chicek_rumlog_sanitize_pipeline_v1",
+    name: "frontend_observability_rumlog_sanitize_pipeline_v1",
     stream: "_rumlog",
     sanitizeFunction: FUNCTIONS.rumlog,
   },
@@ -206,7 +206,7 @@ function createPipelinePayload({ name, stream, sanitizeFunction }) {
             conditions: [
               {
                 filterType: "condition",
-                column: "_chicek_drop",
+                column: "_frontend_observability_drop",
                 operator: "=",
                 value: false,
                 logicalOperator: "AND",

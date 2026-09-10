@@ -87,7 +87,7 @@ export function ensureCertificates({ force = false } = {}) {
     return { caCreated: false, leafCreated: false };
   }
 
-  const scratch = mkdtempSync(join(tmpdir(), "chicek-lab-certs-"));
+  const scratch = mkdtempSync(join(tmpdir(), "frontend-observability-lab-certs-"));
   try {
     const needsCa = !caValid;
     if (needsCa) {
@@ -108,7 +108,7 @@ export function ensureCertificates({ force = false } = {}) {
           "-out",
           "lab-ca.crt",
           "-subj",
-          "/CN=Chicek Lab Local CA",
+          "/CN=Frontend Observability Lab Local CA",
           "-addext",
           "basicConstraints=critical,CA:true",
           "-addext",

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getObservabilityStatus, recordError } from "@chicek/browser-observability";
+import { getObservabilityStatus, recordError } from "@frontend-observability/browser-observability";
 
 import * as scenarios from "./scenarios.js";
 
@@ -221,11 +221,12 @@ export default function App() {
   return (
     <main>
       <header>
-        <h1>Chicek Frontend Observability — Demo Test Fixture</h1>
+        <h1>Frontend Observability — Demo Test Fixture</h1>
         <p role="note">
           Bu sayfa bir üretim uygulaması değildir. Yalnızca{" "}
-          <code>@chicek/browser-observability</code> paketinin senaryo testleri için kullanılan bir
-          test fixture&apos;ıdır. Gerçek şirket verisi veya gerçek OpenObserve bağlantısı içermez.
+          <code>@frontend-observability/browser-observability</code> paketinin senaryo testleri için
+          kullanılan bir test fixture&apos;ıdır. Gerçek şirket verisi veya gerçek OpenObserve
+          bağlantısı içermez.
         </p>
       </header>
 
@@ -266,7 +267,7 @@ export default function App() {
               id="demo-full-name"
               type="text"
               name="fullName"
-              data-chicek-privacy="mask"
+              data-frontend-observability-privacy="mask"
               defaultValue="Jane Example"
             />
           </label>
@@ -276,7 +277,7 @@ export default function App() {
               id="demo-password"
               type="password"
               name="password"
-              data-chicek-privacy="block"
+              data-frontend-observability-privacy="block"
               defaultValue="not-a-real-secret"
             />
           </label>

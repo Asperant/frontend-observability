@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "starterId": "session-investigation",
   "starterVersion": 10,
-  "folderName": "CHICEK Starters",
+  "folderName": "FRONTEND_OBSERVABILITY Starters",
   "title": "Session Investigation",
   "description": "Browse recent sessions, then drill into exactly one by session_id: summary, views/actions, errors, resources, and browser logs. The Recent sessions tab is a bounded (LIMIT 50, most-recent-first) list \u2014 like Error Analysis's own recent-errors-detail panel, session_id/view_url appear only as list columns, never grouped/aggregated on. Copy a session_id from there into the Session records tab's session_id variable to drill in. Panels use OpenObserve's own $session_id dashboard-variable substitution, which this stage's backend-only capability audit could not independently verify (docs/openobserve-v0.91-dashboard-capabilities.md capability #13/#13a, since that substitution happens inside OpenObserve's own web UI) \u2014 verify visually after install, or edit a panel's query to a literal session_id if it does not behave as expected on your OpenObserve build. No Session Replay panel or replay link is included, and no panel here ever queries the _sessionreplay stream \u2014 Session Replay is Security Blocked (see docs/session-replay-security-decision.md) and this dashboard exists precisely because OpenObserve's own native RUM -> Sessions page can't list a session without _sessionreplay data. Installed by pnpm lab:dashboards:install-starters as an initial template \u2014 edit or delete freely from the OpenObserve UI; this stage never overwrites your changes.",
   "tabs": [

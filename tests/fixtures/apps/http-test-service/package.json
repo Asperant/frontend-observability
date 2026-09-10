@@ -1,5 +1,5 @@
 {
-  "name": "@chicek/http-test-service-fixture",
+  "name": "@frontend-observability/http-test-service-fixture",
   "version": "0.1.0",
   "private": true,
   "type": "module",

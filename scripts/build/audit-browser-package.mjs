@@ -2,7 +2,7 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -12,7 +12,7 @@ const evidenceDir = join(repoRoot, "evidence/acceptance");
 mkdirSync(artifactDir, { recursive: true });
 mkdirSync(evidenceDir, { recursive: true });
 
-execFileSync("pnpm", ["--filter", "@chicek/browser-observability", "build"], {
+execFileSync("pnpm", ["--filter", "@frontend-observability/browser-observability", "build"], {
   cwd: repoRoot,
   stdio: "inherit",
 });
@@ -27,7 +27,7 @@ execFileSync("pnpm", ["pack", "--pack-destination", artifactDir], {
   stdio: "inherit",
 });
 const tarball = readdirSync(artifactDir)
-  .filter((name) => /^chicek-browser-observability-.*\.tgz$/.test(name))
+  .filter((name) => /^frontend-observability-browser-observability-.*\.tgz$/.test(name))
   .sort()
   .at(-1);
 if (!tarball) throw new Error("browser package tarball was not created");
@@ -55,7 +55,7 @@ if (!allowed || forbiddenText) {
 
 const report = {
   schemaVersion: "1.0.0",
-  artifact: tarballPath,
+  artifact: relative(repoRoot, tarballPath),
   sha256,
   entries,
 };

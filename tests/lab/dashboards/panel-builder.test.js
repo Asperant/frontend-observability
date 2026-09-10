@@ -296,7 +296,9 @@ describe("buildStarterDashboardBody", () => {
     expect(body.version).toBe(8);
     expect(body.dashboardId).toBe("");
     expect(body.title).toBe("Frontend Operations");
-    expect(body.description).toBe("Overview dashboard. [chicek:starter:frontend-operations:v1]");
+    expect(body.description).toBe(
+      "Overview dashboard. [frontend-observability:starter:frontend-operations:v1]",
+    );
     expect(body.owner).toBe("admin@example.com");
     expect(body.created).toBe("2026-07-20T00:00:00.000Z");
     expect(body.tabs).toHaveLength(1);

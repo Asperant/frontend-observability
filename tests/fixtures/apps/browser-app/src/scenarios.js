@@ -5,7 +5,7 @@ import {
   recordError,
   setTrackingConsent,
   shutdownObservability,
-} from "@chicek/browser-observability";
+} from "@frontend-observability/browser-observability";
 
 import { DEMO_IDENTITY } from "./identity.js";
 
@@ -15,7 +15,7 @@ const BASE_OPTIONS = DEMO_IDENTITY;
 const TEST_RUN_ID_PATTERN = /^[a-zA-Z0-9_.:-]{1,80}$/;
 
 function testRunContext(extra = {}) {
-  const testRunId = globalThis.__CHICEK_TEST_RUN_ID__;
+  const testRunId = globalThis.__FRONTEND_OBSERVABILITY_TEST_RUN_ID__;
   if (typeof testRunId === "string" && TEST_RUN_ID_PATTERN.test(testRunId)) {
     return { ...extra, test_run_id: testRunId };
   }

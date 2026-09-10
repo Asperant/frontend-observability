@@ -42,16 +42,16 @@ export function purgeQueues({ confirm }) {
     throw new Error("purge requires --confirm PURGE-DURABLE-FRONTEND-TELEMETRY");
   }
   const queues = [
-    "chicek.frontend.rum.q",
-    "chicek.frontend.log.q",
-    "chicek.frontend.rum.retry.1.q",
-    "chicek.frontend.rum.retry.2.q",
-    "chicek.frontend.rum.retry.3.q",
-    "chicek.frontend.log.retry.1.q",
-    "chicek.frontend.log.retry.2.q",
-    "chicek.frontend.log.retry.3.q",
-    "chicek.frontend.rum.dlq",
-    "chicek.frontend.log.dlq",
+    "frontend-observability.frontend.rum.q",
+    "frontend-observability.frontend.log.q",
+    "frontend-observability.frontend.rum.retry.1.q",
+    "frontend-observability.frontend.rum.retry.2.q",
+    "frontend-observability.frontend.rum.retry.3.q",
+    "frontend-observability.frontend.log.retry.1.q",
+    "frontend-observability.frontend.log.retry.2.q",
+    "frontend-observability.frontend.log.retry.3.q",
+    "frontend-observability.frontend.rum.dlq",
+    "frontend-observability.frontend.log.dlq",
   ];
   const results = [];
   for (const queue of queues) {

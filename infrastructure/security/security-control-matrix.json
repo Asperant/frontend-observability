@@ -179,7 +179,7 @@
     "controlId": "S18-17",
     "stage": 6,
     "threat": "An active kill switch does not actually stop new RUM ingestion from reaching upstream storage",
-    "attackSurface": "Reverse proxy $chicek_kill_switch_active gate on both ingestion locations",
+    "attackSurface": "Reverse proxy $frontend_observability_kill_switch_active gate on both ingestion locations",
     "expectedBehavior": "410 Gone on both ingestion paths; canary content never reaches OpenObserve storage",
     "testType": "live adversarial request + admin-side read-back",
     "evidence": "tests/security/adversarial/lab-adversarial.mjs:checkKillSwitchClosesUpstream",

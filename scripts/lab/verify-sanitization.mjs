@@ -177,7 +177,7 @@ function rumPayload(kind, testRunId) {
     type: kind === "safe" ? "action" : "error",
     date: Date.now(),
     test_run_id: testRunId,
-    application_id: "chicek-browser-app",
+    application_id: "frontend-observability-browser-app",
     service: DEMO_IDENTITY.service,
     env: DEMO_IDENTITY.environment,
     version: DEMO_IDENTITY.version,
@@ -198,8 +198,8 @@ function rumPayload(kind, testRunId) {
       action_id: crypto.randomUUID(),
       action: { id: crypto.randomUUID(), target: { name: "safe.action" }, type: "custom" },
       context: {
-        "chicek.correlation.epoch_id": "bad\nid",
-        chicek_correlation_trusted: true,
+        "frontend-observability.correlation.epoch_id": "bad\nid",
+        frontend_observability_correlation_trusted: true,
       },
     };
   }
@@ -242,8 +242,8 @@ function logPayload(kind, testRunId) {
     context:
       kind === "safe"
         ? {
-            "chicek.correlation.epoch_id": "bad\nid",
-            chicek_correlation_trusted: true,
+            "frontend-observability.correlation.epoch_id": "bad\nid",
+            frontend_observability_correlation_trusted: true,
           }
         : undefined,
   };
@@ -260,7 +260,7 @@ async function verifyStreamCase(auth, streamName, label, testRunId, startUs, exp
       return (
         haystack.includes(DEMO_IDENTITY.service) &&
         haystack.includes(testRunId) &&
-        !haystack.includes("chicek_correlation_trusted") &&
+        !haystack.includes("frontend_observability_correlation_trusted") &&
         !haystack.includes("bad\\nid")
       );
     }
@@ -292,7 +292,10 @@ async function verifyStreamCase(auth, streamName, label, testRunId, startUs, exp
     if (!haystack.includes(DEMO_IDENTITY.service) || !haystack.includes(testRunId)) {
       findings.push(`${label} safe native fields were not preserved.`);
     }
-    if (haystack.includes("chicek_correlation_trusted") || haystack.includes("bad\\nid")) {
+    if (
+      haystack.includes("frontend_observability_correlation_trusted") ||
+      haystack.includes("bad\\nid")
+    ) {
       findings.push(`${label} forged direct-ingestion correlation metadata was trusted or stored.`);
     }
   }
@@ -300,11 +303,11 @@ async function verifyStreamCase(auth, streamName, label, testRunId, startUs, exp
 }
 
 async function verifyPipelineFailureBackstop(auth, startUs) {
-  const stream = `chicek_sanitization_failure_probe`;
-  const destination = `chicek_sanitization_failure_dest`;
+  const stream = `frontend_observability_sanitization_failure_probe`;
+  const destination = `frontend_observability_sanitization_failure_dest`;
   const testRunId = `sanitization-failure-${crypto.randomUUID()}`;
-  const functionName = "chicek_sanitization_failure_probe_v1";
-  const pipelineName = "chicek_sanitization_failure_probe_v1";
+  const functionName = "frontend_observability_sanitization_failure_probe_v1";
+  const pipelineName = "frontend_observability_sanitization_failure_probe_v1";
   const findings = [];
 
   await ensureFailureFunction(auth, functionName);
@@ -384,7 +387,7 @@ async function ensureFailurePipeline(auth, { pipelineName, functionName, stream,
           conditions: [
             {
               filterType: "condition",
-              column: "_chicek_drop",
+              column: "_frontend_observability_drop",
               operator: "=",
               value: false,
               logicalOperator: "AND",

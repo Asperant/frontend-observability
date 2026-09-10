@@ -61,14 +61,14 @@ export function checkContainerSecurity() {
   }
 
   const nodeCheck = runInImage(
-    "chicek-lab/browser-app-fixture:6.0.0",
+    "frontend-observability-lab/browser-app-fixture:6.0.0",
     "command -v node || echo MISSING",
   );
   if (!nodeCheck.stdout.includes("MISSING")) {
     findings.push("browser-app image contains a node executable.");
   }
   const pnpmCheck = runInImage(
-    "chicek-lab/browser-app-fixture:6.0.0",
+    "frontend-observability-lab/browser-app-fixture:6.0.0",
     "command -v pnpm || echo MISSING",
   );
   if (!pnpmCheck.stdout.includes("MISSING")) {
@@ -76,7 +76,7 @@ export function checkContainerSecurity() {
   }
 
   const mapCheck = runInImage(
-    "chicek-lab/browser-app-fixture:6.0.0",
+    "frontend-observability-lab/browser-app-fixture:6.0.0",
     "grep -rl sourceMappingURL /usr/share/nginx/html || echo NO_MAPS",
   );
   if (!mapCheck.stdout.includes("NO_MAPS")) {

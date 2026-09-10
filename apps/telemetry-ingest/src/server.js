@@ -12,7 +12,7 @@ import {
   readSecret,
   requiredEnv,
   validateAdmissionRequest,
-} from "@chicek/telemetry-delivery-core";
+} from "@frontend-observability/telemetry-delivery-core";
 import { createRuntimeControlGuard, validateControlUrl } from "./runtime-control.js";
 
 const PORT = optionalIntEnv("PORT", 4313);
@@ -46,7 +46,7 @@ async function initializeRabbit() {
       host: requiredEnv("RABBITMQ_HOST"),
       vhost: process.env.RABBITMQ_VHOST ?? "/",
     }),
-    clientProperties: { connection_name: "chicek-telemetry-ingest" },
+    clientProperties: { connection_name: "frontend-observability-telemetry-ingest" },
   });
   connection.on("blocked", () => {
     blocked = true;

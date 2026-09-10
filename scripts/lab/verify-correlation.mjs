@@ -18,34 +18,34 @@ const POLL_INTERVAL_MS = 750;
 
 const CORRELATION_KEYS = Object.freeze({
   schemaVersion: [
-    "chicek.correlation.schema_version",
-    "chicek_correlation_schema_version",
-    "context_chicek_correlation_schema_version",
-    "context_chicek.correlation.schema_version",
+    "frontend-observability.correlation.schema_version",
+    "frontend_observability_correlation_schema_version",
+    "context_frontend_observability_correlation_schema_version",
+    "context_frontend-observability.correlation.schema_version",
   ],
   epochId: [
-    "chicek.correlation.epoch_id",
-    "chicek_correlation_epoch_id",
-    "context_chicek_correlation_epoch_id",
-    "context_chicek.correlation.epoch_id",
+    "frontend-observability.correlation.epoch_id",
+    "frontend_observability_correlation_epoch_id",
+    "context_frontend_observability_correlation_epoch_id",
+    "context_frontend-observability.correlation.epoch_id",
   ],
   sessionId: [
-    "chicek.correlation.session_id",
-    "chicek_correlation_session_id",
-    "context_chicek_correlation_session_id",
-    "context_chicek.correlation.session_id",
+    "frontend-observability.correlation.session_id",
+    "frontend_observability_correlation_session_id",
+    "context_frontend_observability_correlation_session_id",
+    "context_frontend-observability.correlation.session_id",
   ],
   viewId: [
-    "chicek.correlation.view_id",
-    "chicek_correlation_view_id",
-    "context_chicek_correlation_view_id",
-    "context_chicek.correlation.view_id",
+    "frontend-observability.correlation.view_id",
+    "frontend_observability_correlation_view_id",
+    "context_frontend_observability_correlation_view_id",
+    "context_frontend-observability.correlation.view_id",
   ],
   actionId: [
-    "chicek.correlation.action_id",
-    "chicek_correlation_action_id",
-    "context_chicek_correlation_action_id",
-    "context_chicek.correlation.action_id",
+    "frontend-observability.correlation.action_id",
+    "frontend_observability_correlation_action_id",
+    "context_frontend_observability_correlation_action_id",
+    "context_frontend-observability.correlation.action_id",
   ],
 });
 
@@ -101,7 +101,7 @@ async function driveBrowser(browserType, testRunId) {
   try {
     const context = await browser.newContext({ ignoreHTTPSErrors: true });
     await context.addInitScript((id) => {
-      globalThis.__CHICEK_TEST_RUN_ID__ = id;
+      globalThis.__FRONTEND_OBSERVABILITY_TEST_RUN_ID__ = id;
     }, testRunId);
     const page = await context.newPage();
     await page.goto(DEMO_URL);
@@ -221,7 +221,7 @@ async function verifyBrowser(browserName, browserType, auth) {
   if (!statuses.grantedStatus.includes("correlationState")) {
     findings.push(`${browserName}: status did not include safe correlation snapshot.`);
   }
-  if (JSON.stringify(statuses).includes("chicek.correlation.epoch_id")) {
+  if (JSON.stringify(statuses).includes("frontend-observability.correlation.epoch_id")) {
     findings.push(`${browserName}: status leaked a correlation field name/value unexpectedly.`);
   }
   assertNoForbiddenHeaders(statuses.headerPresence, findings, browserName);

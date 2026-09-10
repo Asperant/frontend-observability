@@ -3,7 +3,7 @@
   "destinationRefs": [
     {
       "id": "local-alert-sink",
-      "name": "CHICEK alert-governance Local Alert Sink",
+      "name": "FRONTEND_OBSERVABILITY alert-governance Local Alert Sink",
       "type": "http",
       "scope": "lab",
       "credentialPolicy": "NO_CREDENTIALS",

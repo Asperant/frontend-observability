@@ -33,7 +33,7 @@ afterEach(() => {
 });
 
 function writeAndScan(fileName, content) {
-  workDir = mkdtempSync(join(tmpdir(), "chicek-secret-scan-"));
+  workDir = mkdtempSync(join(tmpdir(), "frontend-observability-secret-scan-"));
   writeFileSync(join(workDir, fileName), content, "utf8");
   return scanForSecrets([workDir]);
 }
@@ -93,7 +93,7 @@ describe("scanForSecrets (arbitrary directory walk)", () => {
   });
 
   it("does not descend into ignored directories such as node_modules", () => {
-    workDir = mkdtempSync(join(tmpdir(), "chicek-secret-scan-"));
+    workDir = mkdtempSync(join(tmpdir(), "frontend-observability-secret-scan-"));
     const nodeModulesDir = join(workDir, "node_modules");
     mkdirSync(nodeModulesDir, { recursive: true });
     const beginMarker = "-----BEGIN" + " RSA PRIVATE KEY-----";
@@ -115,7 +115,7 @@ function buildFakeCredentialLine() {
 }
 
 function initTempGitRepo() {
-  const dir = mkdtempSync(join(tmpdir(), "chicek-secret-scan-tracked-"));
+  const dir = mkdtempSync(join(tmpdir(), "frontend-observability-secret-scan-tracked-"));
   execFileSync("git", ["init", "-q"], { cwd: dir });
   execFileSync("git", ["config", "user.email", "scanner-test@example.invalid"], { cwd: dir });
   execFileSync("git", ["config", "user.name", "Scanner Test"], { cwd: dir });

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://chicek.internal/schemas/custom-action.schema.json",
-  "title": "ChicekCustomAction",
+  "$id": "https://frontend-observability.internal/schemas/custom-action.schema.json",
+  "title": "FrontendObservabilityCustomAction",
   "description": "Payload shape accepted by recordAction(name, attributes).",
   "type": "object",
   "additionalProperties": false,

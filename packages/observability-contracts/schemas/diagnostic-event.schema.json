@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://chicek.internal/schemas/diagnostic-event.schema.json",
-  "title": "ChicekDiagnosticEvent",
+  "$id": "https://frontend-observability.internal/schemas/diagnostic-event.schema.json",
+  "title": "FrontendObservabilityDiagnosticEvent",
   "description": "Internal diagnostic/status event shape used by getObservabilityStatus() and internal error reporting.",
   "type": "object",
   "additionalProperties": false,

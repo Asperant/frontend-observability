@@ -20,7 +20,7 @@ import {
 let scratchDir;
 
 beforeEach(() => {
-  scratchDir = mkdtempSync(join(tmpdir(), "chicek-lab-atomic-write-"));
+  scratchDir = mkdtempSync(join(tmpdir(), "frontend-observability-lab-atomic-write-"));
 });
 
 afterEach(() => {

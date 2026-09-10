@@ -12,7 +12,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // OpenObserve admin UI.
 export const RUM_SITE = "localhost:8443";
 export const RUM_ORGANIZATION_IDENTIFIER = "default";
-export const RUM_APPLICATION_ID = "chicek-browser-app";
+export const RUM_APPLICATION_ID = "frontend-observability-browser-app";
 export const RUM_API_VERSION = "v1";
 
 /**

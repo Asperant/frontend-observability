@@ -42,15 +42,17 @@ export function enrichRumEvent(event, domainContext, correlation, { counters } =
 
 export function createMetadata(epochId, native = {}) {
   const metadata = {
-    "chicek.correlation.schema_version": CORRELATION_SCHEMA_VERSION,
+    "frontend-observability.correlation.schema_version": CORRELATION_SCHEMA_VERSION,
   };
-  if (validateCorrelationId(epochId)) metadata["chicek.correlation.epoch_id"] = epochId;
+  if (validateCorrelationId(epochId))
+    metadata["frontend-observability.correlation.epoch_id"] = epochId;
   if (validateCorrelationId(native.sessionId)) {
-    metadata["chicek.correlation.session_id"] = native.sessionId;
+    metadata["frontend-observability.correlation.session_id"] = native.sessionId;
   }
-  if (validateCorrelationId(native.viewId)) metadata["chicek.correlation.view_id"] = native.viewId;
+  if (validateCorrelationId(native.viewId))
+    metadata["frontend-observability.correlation.view_id"] = native.viewId;
   if (validateCorrelationId(native.actionId)) {
-    metadata["chicek.correlation.action_id"] = native.actionId;
+    metadata["frontend-observability.correlation.action_id"] = native.actionId;
   }
   return Object.freeze(metadata);
 }

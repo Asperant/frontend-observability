@@ -120,7 +120,7 @@ export async function checkTlsAndProxy() {
     body: JSON.stringify({
       date: Date.now(),
       type: "view",
-      service: "chicek-browser-app",
+      service: "frontend-observability-browser-app",
       env: "lab",
       version: "2026.07.1",
       session_id: "tls-proxy-smoke-session",
@@ -136,7 +136,7 @@ export async function checkTlsAndProxy() {
       date: Date.now(),
       message: "tls proxy smoke log",
       status: "info",
-      service: "chicek-browser-app",
+      service: "frontend-observability-browser-app",
       env: "lab",
       version: "2026.07.1",
     }),

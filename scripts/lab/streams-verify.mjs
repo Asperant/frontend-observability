@@ -17,8 +17,8 @@ import { diffSettings, normalizeServerSettings } from "./streams/manifest.js";
 import { detectTypeChanges } from "./streams/schema-contract.js";
 
 const PIPELINE_NAME_BY_STREAM = Object.freeze({
-  _rumdata: "chicek_rumdata_sanitize_pipeline_v1",
-  _rumlog: "chicek_rumlog_sanitize_pipeline_v1",
+  _rumdata: "frontend_observability_rumdata_sanitize_pipeline_v1",
+  _rumlog: "frontend_observability_rumlog_sanitize_pipeline_v1",
 });
 
 function hashSettings(normalizedSettings) {
@@ -60,7 +60,7 @@ export async function streamsVerify() {
                   missingRequired: [],
                   forbiddenPresent: [],
                   forbiddenPatternMatches: [],
-                  uncontrolledChicek: [],
+                  uncontrolledFrontendObservability: [],
                   unknownAdditive: [],
                   urlLeaks: [],
                   valuePatternMatches: [],

@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "starterId": "delivery-operations",
   "starterVersion": 1,
-  "folderName": "CHICEK Starters",
-  "title": "CHICEK Delivery Operations",
-  "description": "Aggregate telemetry delivery delivery operations. This dashboard reads only _chicek_delivery_ops summaries emitted by internal services; it never displays queued RUM/log payloads.",
+  "folderName": "FRONTEND_OBSERVABILITY Starters",
+  "title": "FRONTEND_OBSERVABILITY Delivery Operations",
+  "description": "Aggregate telemetry delivery delivery operations. This dashboard reads only _frontend_observability_delivery_ops summaries emitted by internal services; it never displays queued RUM/log payloads.",
   "tabs": [
     {
       "tabId": "delivery",

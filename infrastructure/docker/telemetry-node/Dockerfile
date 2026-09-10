@@ -1,7 +1,7 @@
 FROM node:24.18.0-alpine@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc
 
-RUN addgroup -g 10001 chicek \
-  && adduser -D -H -u 10001 -G chicek chicek
+RUN addgroup -g 10001 frontend-observability \
+  && adduser -D -H -u 10001 -G frontend-observability frontend-observability
 
 WORKDIR /workspace
 
@@ -19,12 +19,12 @@ COPY apps/session-metadata-sync/package.json apps/session-metadata-sync/package.
 RUN npm install --global pnpm@11.15.0 \
   && pnpm install --frozen-lockfile --prod
 
-COPY --chown=chicek:chicek packages/telemetry-delivery-core/src packages/telemetry-delivery-core/src
-COPY --chown=chicek:chicek packages/observability-contracts/src packages/observability-contracts/src
-COPY --chown=chicek:chicek packages/observability-contracts/schemas packages/observability-contracts/schemas
-COPY --chown=chicek:chicek apps/telemetry-ingest/src apps/telemetry-ingest/src
-COPY --chown=chicek:chicek apps/telemetry-delivery-worker/src apps/telemetry-delivery-worker/src
-COPY --chown=chicek:chicek apps/observability-control-plane/src apps/observability-control-plane/src
-COPY --chown=chicek:chicek apps/session-metadata-sync/src apps/session-metadata-sync/src
+COPY --chown=frontend-observability:frontend-observability packages/telemetry-delivery-core/src packages/telemetry-delivery-core/src
+COPY --chown=frontend-observability:frontend-observability packages/observability-contracts/src packages/observability-contracts/src
+COPY --chown=frontend-observability:frontend-observability packages/observability-contracts/schemas packages/observability-contracts/schemas
+COPY --chown=frontend-observability:frontend-observability apps/telemetry-ingest/src apps/telemetry-ingest/src
+COPY --chown=frontend-observability:frontend-observability apps/telemetry-delivery-worker/src apps/telemetry-delivery-worker/src
+COPY --chown=frontend-observability:frontend-observability apps/observability-control-plane/src apps/observability-control-plane/src
+COPY --chown=frontend-observability:frontend-observability apps/session-metadata-sync/src apps/session-metadata-sync/src
 
-USER chicek:chicek
+USER frontend-observability:frontend-observability

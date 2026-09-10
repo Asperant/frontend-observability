@@ -13,7 +13,7 @@ let fixtureDir;
 beforeAll(() => {
   const tarballPath = packBrowserObservability();
 
-  fixtureDir = mkdtempSync(join(tmpdir(), "chicek-consumer-react-"));
+  fixtureDir = mkdtempSync(join(tmpdir(), "frontend-observability-consumer-react-"));
 
   writeFileSync(
     join(fixtureDir, "package.json"),
@@ -28,7 +28,7 @@ beforeAll(() => {
           "@vitejs/plugin-react": PINNED_VERSIONS["@vitejs/plugin-react"],
         },
         dependencies: {
-          "@chicek/browser-observability": `file:${tarballPath}`,
+          "@frontend-observability/browser-observability": `file:${tarballPath}`,
           react: PINNED_VERSIONS.react,
           "react-dom": PINNED_VERSIONS["react-dom"],
         },
@@ -76,7 +76,7 @@ import {
   recordAction,
   setTrackingConsent,
   shutdownObservability,
-} from "@chicek/browser-observability";
+} from "@frontend-observability/browser-observability";
 
 globalThis.fetch = () => Promise.resolve(new Response(JSON.stringify({
   schemaVersion: "1.0.0",

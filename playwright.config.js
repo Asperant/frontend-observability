@@ -29,7 +29,7 @@ export default defineConfig({
       timeout: 30_000,
     },
     {
-      command: `pnpm --filter @chicek/browser-app-fixture exec vite --port ${DEMO_PORT} --strictPort`,
+      command: `pnpm --filter @frontend-observability/browser-app-fixture exec vite --port ${DEMO_PORT} --strictPort`,
       url: `http://127.0.0.1:${DEMO_PORT}`,
       reuseExistingServer: !process.env.CI,
       env: { VITE_MOCK_API_BASE_URL: `http://127.0.0.1:${MOCK_API_PORT}` },

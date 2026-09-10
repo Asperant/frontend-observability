@@ -11,25 +11,25 @@ export const ROUTES = Object.freeze({
 });
 
 export const RABBITMQ = Object.freeze({
-  exchange: "chicek.frontend.telemetry",
+  exchange: "frontend-observability.frontend.telemetry",
   routingKeys: Object.freeze({
     rum: "frontend.rum",
     logs: "frontend.log",
   }),
   queues: Object.freeze({
-    rum: "chicek.frontend.rum.q",
-    logs: "chicek.frontend.log.q",
+    rum: "frontend-observability.frontend.rum.q",
+    logs: "frontend-observability.frontend.log.q",
   }),
   retryQueues: Object.freeze({
     rum: Object.freeze([
-      "chicek.frontend.rum.retry.1.q",
-      "chicek.frontend.rum.retry.2.q",
-      "chicek.frontend.rum.retry.3.q",
+      "frontend-observability.frontend.rum.retry.1.q",
+      "frontend-observability.frontend.rum.retry.2.q",
+      "frontend-observability.frontend.rum.retry.3.q",
     ]),
     logs: Object.freeze([
-      "chicek.frontend.log.retry.1.q",
-      "chicek.frontend.log.retry.2.q",
-      "chicek.frontend.log.retry.3.q",
+      "frontend-observability.frontend.log.retry.1.q",
+      "frontend-observability.frontend.log.retry.2.q",
+      "frontend-observability.frontend.log.retry.3.q",
     ]),
   }),
   dlqRoutingKeys: Object.freeze({
@@ -37,8 +37,8 @@ export const RABBITMQ = Object.freeze({
     logs: "frontend.log.dlq",
   }),
   dlqs: Object.freeze({
-    rum: "chicek.frontend.rum.dlq",
-    logs: "chicek.frontend.log.dlq",
+    rum: "frontend-observability.frontend.rum.dlq",
+    logs: "frontend-observability.frontend.log.dlq",
   }),
   maxDeliveryAttempts: 16,
 });

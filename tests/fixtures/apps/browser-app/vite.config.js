@@ -19,7 +19,7 @@ const CONTROL_ENDPOINT_PATH = "/observability/control.json";
  */
 function runtimeControlDevMiddleware() {
   return {
-    name: "chicek-runtime-control-dev-fixture",
+    name: "frontend-observability-runtime-control-dev-fixture",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         if (req.url !== CONTROL_ENDPOINT_PATH || !["GET", "HEAD"].includes(req.method)) {

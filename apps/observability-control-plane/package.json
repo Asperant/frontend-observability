@@ -1,5 +1,5 @@
 {
-  "name": "@chicek/observability-control-plane",
+  "name": "@frontend-observability/observability-control-plane",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,6 +7,6 @@
     "start": "node src/server.js"
   },
   "dependencies": {
-    "@chicek/observability-contracts": "workspace:*"
+    "@frontend-observability/observability-contracts": "workspace:*"
   }
 }

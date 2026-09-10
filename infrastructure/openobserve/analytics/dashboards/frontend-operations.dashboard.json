@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "starterId": "frontend-operations",
   "starterVersion": 8,
-  "folderName": "CHICEK Starters",
+  "folderName": "FRONTEND_OBSERVABILITY Starters",
   "title": "Frontend Operations",
   "description": "High-level health overview: session/view volume, error and resource failure rates, browser log levels, telemetry freshness, and error/resource/performance trends. Installed by pnpm lab:dashboards:install-starters as an initial template \u2014 edit or delete freely from the OpenObserve UI; this stage never overwrites your changes.",
   "tabs": [

@@ -75,7 +75,7 @@ export function classifySchemaFindings(validation, typeChanges = []) {
   }
   if (
     validation.missingRequired.length > 0 ||
-    validation.uncontrolledChicek.length > 0 ||
+    validation.uncontrolledFrontendObservability.length > 0 ||
     typeChanges.length > 0 ||
     validation.unknownAdditive.length > MAX_SAFE_ADDITIVE_FIELDS_PER_CANARY
   ) {

@@ -1,4 +1,4 @@
-._chicek_drop = false
+._frontend_observability_drop = false
 valid_correlation_id = r'\A[\x20-\x7e]{1,128}\z'
 forbidden_correlation_control = r'[\x00-\x1f\x7f]'
 valid_test_run_id = r'\A[a-zA-Z0-9_.:-]{1,120}\z'
@@ -7,7 +7,7 @@ del(._oo.configuration.beta_encode_cookie_options)
 
 raw = encode_json(.)
 if match(raw, r'(?i)(authorization|cookie|set-cookie|bearer\s+[a-z0-9._~+/=-]{16,}|api[_-]?key\s*[=:\"]|secret\s*[=:\"]|password\s*[=:\"]|private key)') {
-  ._chicek_drop = true
+  ._frontend_observability_drop = true
 }
 
 del(.usr)
@@ -29,12 +29,12 @@ del(.responseBody)
 del(.graphql)
 del(.graphql_variables)
 del(.graphqlVariables)
-del(.chicek_correlation_schema_version)
-del(.chicek_correlation_epoch_id)
-del(.chicek_correlation_session_id)
-del(.chicek_correlation_view_id)
-del(.chicek_correlation_action_id)
-del(.chicek_correlation_trusted)
+del(.frontend_observability_correlation_schema_version)
+del(.frontend_observability_correlation_epoch_id)
+del(.frontend_observability_correlation_session_id)
+del(.frontend_observability_correlation_view_id)
+del(.frontend_observability_correlation_action_id)
+del(.frontend_observability_correlation_trusted)
 
 if exists(.context.test_run_id) {
   test_run_value = to_string(.context.test_run_id) ?? ""
@@ -50,72 +50,72 @@ if exists(.context_test_run_id) {
   del(.context_test_run_id)
 }
 
-if exists(.context."chicek.correlation.schema_version") {
-  correlation_value = to_string(.context."chicek.correlation.schema_version") ?? ""
-  if is_string(.context."chicek.correlation.schema_version") && correlation_value == "1" {
-    ."chicek.correlation.schema_version" = correlation_value
+if exists(.context."frontend-observability.correlation.schema_version") {
+  correlation_value = to_string(.context."frontend-observability.correlation.schema_version") ?? ""
+  if is_string(.context."frontend-observability.correlation.schema_version") && correlation_value == "1" {
+    ."frontend-observability.correlation.schema_version" = correlation_value
   }
 }
-if exists(.context."chicek.correlation.epoch_id") {
-  correlation_value = to_string(.context."chicek.correlation.epoch_id") ?? ""
-  if is_string(.context."chicek.correlation.epoch_id") && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
-    ."chicek.correlation.epoch_id" = correlation_value
+if exists(.context."frontend-observability.correlation.epoch_id") {
+  correlation_value = to_string(.context."frontend-observability.correlation.epoch_id") ?? ""
+  if is_string(.context."frontend-observability.correlation.epoch_id") && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
+    ."frontend-observability.correlation.epoch_id" = correlation_value
   }
 }
-if exists(.context."chicek.correlation.session_id") {
-  correlation_value = to_string(.context."chicek.correlation.session_id") ?? ""
-  if is_string(.context."chicek.correlation.session_id") && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
-    ."chicek.correlation.session_id" = correlation_value
+if exists(.context."frontend-observability.correlation.session_id") {
+  correlation_value = to_string(.context."frontend-observability.correlation.session_id") ?? ""
+  if is_string(.context."frontend-observability.correlation.session_id") && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
+    ."frontend-observability.correlation.session_id" = correlation_value
   }
 }
-if exists(.context."chicek.correlation.view_id") {
-  correlation_value = to_string(.context."chicek.correlation.view_id") ?? ""
-  if is_string(.context."chicek.correlation.view_id") && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
-    ."chicek.correlation.view_id" = correlation_value
+if exists(.context."frontend-observability.correlation.view_id") {
+  correlation_value = to_string(.context."frontend-observability.correlation.view_id") ?? ""
+  if is_string(.context."frontend-observability.correlation.view_id") && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
+    ."frontend-observability.correlation.view_id" = correlation_value
   }
 }
-if exists(.context."chicek.correlation.action_id") {
-  correlation_value = to_string(.context."chicek.correlation.action_id") ?? ""
-  if is_string(.context."chicek.correlation.action_id") && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
-    ."chicek.correlation.action_id" = correlation_value
+if exists(.context."frontend-observability.correlation.action_id") {
+  correlation_value = to_string(.context."frontend-observability.correlation.action_id") ?? ""
+  if is_string(.context."frontend-observability.correlation.action_id") && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
+    ."frontend-observability.correlation.action_id" = correlation_value
   }
 }
-if exists(.context_chicek_correlation_schema_version) {
-  correlation_value = to_string(.context_chicek_correlation_schema_version) ?? ""
-  if is_string(.context_chicek_correlation_schema_version) && correlation_value == "1" {
-    ."chicek.correlation.schema_version" = correlation_value
+if exists(.context_frontend_observability_correlation_schema_version) {
+  correlation_value = to_string(.context_frontend_observability_correlation_schema_version) ?? ""
+  if is_string(.context_frontend_observability_correlation_schema_version) && correlation_value == "1" {
+    ."frontend-observability.correlation.schema_version" = correlation_value
   }
-  del(.context_chicek_correlation_schema_version)
+  del(.context_frontend_observability_correlation_schema_version)
 }
-if exists(.context_chicek_correlation_epoch_id) {
-  correlation_value = to_string(.context_chicek_correlation_epoch_id) ?? ""
-  if is_string(.context_chicek_correlation_epoch_id) && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
-    ."chicek.correlation.epoch_id" = correlation_value
+if exists(.context_frontend_observability_correlation_epoch_id) {
+  correlation_value = to_string(.context_frontend_observability_correlation_epoch_id) ?? ""
+  if is_string(.context_frontend_observability_correlation_epoch_id) && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
+    ."frontend-observability.correlation.epoch_id" = correlation_value
   }
-  del(.context_chicek_correlation_epoch_id)
+  del(.context_frontend_observability_correlation_epoch_id)
 }
-if exists(.context_chicek_correlation_session_id) {
-  correlation_value = to_string(.context_chicek_correlation_session_id) ?? ""
-  if is_string(.context_chicek_correlation_session_id) && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
-    ."chicek.correlation.session_id" = correlation_value
+if exists(.context_frontend_observability_correlation_session_id) {
+  correlation_value = to_string(.context_frontend_observability_correlation_session_id) ?? ""
+  if is_string(.context_frontend_observability_correlation_session_id) && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
+    ."frontend-observability.correlation.session_id" = correlation_value
   }
-  del(.context_chicek_correlation_session_id)
+  del(.context_frontend_observability_correlation_session_id)
 }
-if exists(.context_chicek_correlation_view_id) {
-  correlation_value = to_string(.context_chicek_correlation_view_id) ?? ""
-  if is_string(.context_chicek_correlation_view_id) && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
-    ."chicek.correlation.view_id" = correlation_value
+if exists(.context_frontend_observability_correlation_view_id) {
+  correlation_value = to_string(.context_frontend_observability_correlation_view_id) ?? ""
+  if is_string(.context_frontend_observability_correlation_view_id) && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
+    ."frontend-observability.correlation.view_id" = correlation_value
   }
-  del(.context_chicek_correlation_view_id)
+  del(.context_frontend_observability_correlation_view_id)
 }
-if exists(.context_chicek_correlation_action_id) {
-  correlation_value = to_string(.context_chicek_correlation_action_id) ?? ""
-  if is_string(.context_chicek_correlation_action_id) && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
-    ."chicek.correlation.action_id" = correlation_value
+if exists(.context_frontend_observability_correlation_action_id) {
+  correlation_value = to_string(.context_frontend_observability_correlation_action_id) ?? ""
+  if is_string(.context_frontend_observability_correlation_action_id) && match(correlation_value, valid_correlation_id) && !match(correlation_value, forbidden_correlation_control) && !contains(correlation_value, "\n") && !contains(correlation_value, "\r") && !contains(correlation_value, "\t") {
+    ."frontend-observability.correlation.action_id" = correlation_value
   }
-  del(.context_chicek_correlation_action_id)
+  del(.context_frontend_observability_correlation_action_id)
 }
-del(.context_chicek_correlation_trusted)
+del(.context_frontend_observability_correlation_trusted)
 
 del(.context)
 del(.context_password)

@@ -34,7 +34,7 @@ async function findOrCreateFolder(auth, name) {
   if (existing) return existing.folderId;
   const result = await createFolder(auth, {
     name,
-    description: "CHICEK dashboard-governance starter dashboards",
+    description: "FRONTEND_OBSERVABILITY dashboard-governance starter dashboards",
   });
   if (result.status === 200) return result.body.folderId;
   const retry = (await listFolders(auth)).find((folder) => folder.name === name);

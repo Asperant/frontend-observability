@@ -12,7 +12,7 @@ import { dirname, join } from "node:path";
 
 const SOURCE_STREAM = "_rumdata";
 const TARGET_STREAM = "_sessionreplay";
-const OPS_STREAM = "_chicek_session_metadata_sync";
+const OPS_STREAM = "_frontend_observability_session_metadata_sync";
 const METADATA_SCHEMA_VERSION = "1.0.0";
 const DEFAULT_LOOKBACK_MS = 10 * 60 * 1000;
 const MAX_SESSION_DURATION_US = 8 * 60 * 60 * 1_000_000;
@@ -174,7 +174,8 @@ export function optionsFromEnv(env = process.env) {
       readSecret(requiredEnv(env, "OPENOBSERVE_SESSION_WRITE_TOKEN_FILE")),
     ),
     watermarkPath:
-      env.SESSION_METADATA_WATERMARK_PATH ?? "/var/lib/chicek-session-metadata/watermark.json",
+      env.SESSION_METADATA_WATERMARK_PATH ??
+      "/var/lib/frontend-observability-session-metadata/watermark.json",
     lookbackMs: intEnv(env, "SESSION_METADATA_LOOKBACK_MS", DEFAULT_LOOKBACK_MS),
     limit: intEnv(env, "SESSION_METADATA_BATCH_LIMIT", 1000),
   };

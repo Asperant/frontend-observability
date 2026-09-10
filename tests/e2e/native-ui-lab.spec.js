@@ -146,9 +146,9 @@ test.describe("native OpenObserve v0.91.2 UI (requires `pnpm lab:up` already run
     // Mirrors the already-working folder-navigation pattern from the
     // Frontend Operations dashboard test below — exact:true here, unlike
     // the other getByText calls in this file, because a loose match against
-    // "CHICEK Starters" is ambiguous (folder tab vs. other on-page text) and
+    // "FRONTEND_OBSERVABILITY Starters" is ambiguous (folder tab vs. other on-page text) and
     // was observed live to pick the wrong element on Firefox.
-    await page.getByText("CHICEK Starters", { exact: true }).click();
+    await page.getByText("FRONTEND_OBSERVABILITY Starters", { exact: true }).click();
     await page.waitForTimeout(500);
     await page.getByText("Session Investigation", { exact: false }).first().click();
     await page.waitForTimeout(1500);
@@ -215,7 +215,7 @@ test.describe("native OpenObserve v0.91.2 UI (requires `pnpm lab:up` already run
     await page.goto(`${OPENOBSERVE_UI_BASE_URL}/web/dashboards?org_identifier=default`, {
       waitUntil: "networkidle",
     });
-    await page.getByText("CHICEK Starters", { exact: true }).click();
+    await page.getByText("FRONTEND_OBSERVABILITY Starters", { exact: true }).click();
     await page.waitForTimeout(500);
     await page.getByText("Frontend Operations", { exact: false }).first().click();
     await page.waitForTimeout(1500);

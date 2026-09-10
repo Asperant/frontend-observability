@@ -11,7 +11,7 @@ const policy = Object.freeze({
   rum: Object.freeze({
     site: "localhost:8443",
     organizationIdentifier: "default",
-    applicationId: "chicek-browser-app",
+    applicationId: "frontend-observability-browser-app",
     clientToken: "a".repeat(48),
     apiVersion: "v1",
   }),

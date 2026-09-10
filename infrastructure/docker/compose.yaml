@@ -1,4 +1,4 @@
-name: chicek-lab
+name: frontend-observability-lab
 
 x-logging: &default-logging
   driver: json-file
@@ -13,7 +13,7 @@ services:
     build:
       context: ./reverse-proxy
       dockerfile: Dockerfile
-    image: chicek-lab/reverse-proxy:6.0.0
+    image: frontend-observability-lab/reverse-proxy:6.0.0
     user: "${LAB_UID:-101}:${LAB_GID:-101}"
     read_only: true
     security_opt:
@@ -32,12 +32,12 @@ services:
       # comment — same underlying hazard as proxy-dynamic below). Only the
       # leaf cert/key live here; the CA private key stays in .runtime/certs,
       # which is never mounted into any container.
-      - ../../.runtime/generated/tls-leaf:/etc/chicek/tls:ro
+      - ../../.runtime/generated/tls-leaf:/etc/frontend-observability/tls:ro
       # A directory bind mount, not two single-file mounts: the kill switch
       # must take effect on an `nginx -s reload` alone, and single-file
       # binds pin an already-running container to the inode they saw at
       # mount time (see scripts/lab/common.mjs's proxyDynamicDir comment).
-      - ../../.runtime/generated/proxy-dynamic:/etc/chicek/dynamic:ro
+      - ../../.runtime/generated/proxy-dynamic:/etc/frontend-observability/dynamic:ro
     networks:
       - app-internal
       - observability-internal
@@ -88,7 +88,7 @@ services:
     build:
       context: ../../
       dockerfile: infrastructure/docker/browser-app-fixture/Dockerfile
-    image: chicek-lab/browser-app-fixture:6.0.0
+    image: frontend-observability-lab/browser-app-fixture:6.0.0
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -121,7 +121,7 @@ services:
     build:
       context: ../../tests/fixtures/apps/http-test-service
       dockerfile: ../../../../infrastructure/docker/http-test-service-fixture/Dockerfile
-    image: chicek-lab/http-test-service-fixture:6.0.0
+    image: frontend-observability-lab/http-test-service-fixture:6.0.0
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -160,7 +160,7 @@ services:
     build:
       context: ../../
       dockerfile: infrastructure/docker/telemetry-node/Dockerfile
-    image: chicek-lab/telemetry-ingest:6.0.0
+    image: frontend-observability-lab/telemetry-ingest:6.0.0
     user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
     command: ["node", "apps/telemetry-ingest/src/server.js"]
     read_only: true
@@ -217,7 +217,7 @@ services:
     build:
       context: ./rabbitmq
       dockerfile: Dockerfile
-    image: chicek-lab/rabbitmq:6.0.0
+    image: frontend-observability-lab/rabbitmq:6.0.0
     hostname: rabbitmq
     user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
     read_only: true
@@ -250,7 +250,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "for i in $(seq 1 45); do test -f /tmp/chicek-rabbitmq-ready && rabbitmq-diagnostics -q ping && exit 0; sleep 1; done; exit 1",
+          "for i in $(seq 1 45); do test -f /tmp/frontend-observability-rabbitmq-ready && rabbitmq-diagnostics -q ping && exit 0; sleep 1; done; exit 1",
         ]
       interval: 10s
       timeout: 50s
@@ -271,7 +271,7 @@ services:
     build:
       context: ../../
       dockerfile: infrastructure/docker/telemetry-node/Dockerfile
-    image: chicek-lab/telemetry-delivery-worker:6.0.0
+    image: frontend-observability-lab/telemetry-delivery-worker:6.0.0
     user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
     command: ["node", "apps/telemetry-delivery-worker/src/worker.js"]
     read_only: true
@@ -282,7 +282,7 @@ services:
     tmpfs:
       - /tmp:size=32m,mode=1777
     volumes:
-      - ../../.runtime/generated/proxy-dynamic:/etc/chicek/dynamic:ro
+      - ../../.runtime/generated/proxy-dynamic:/etc/frontend-observability/dynamic:ro
     secrets:
       - rabbitmq_worker_username
       - rabbitmq_worker_password
@@ -298,7 +298,7 @@ services:
       OPENOBSERVE_INTERNAL_URL: "http://openobserve:5080"
       OPENOBSERVE_RUM_TOKEN_FILE: "/run/secrets/openobserve_rum_ingest_token"
       OPENOBSERVE_DELIVERY_OPS_TOKEN_FILE: "/run/secrets/openobserve_delivery_ops_ingest_token"
-      DELIVERY_CONTROL_FILE: "/etc/chicek/dynamic/delivery-control.json"
+      DELIVERY_CONTROL_FILE: "/etc/frontend-observability/dynamic/delivery-control.json"
       WORKER_PREFETCH: "16"
       OPENOBSERVE_DELIVERY_TIMEOUT_MS: "10000"
       OPS_EMIT_INTERVAL_MS: "30000"
@@ -341,7 +341,7 @@ services:
     build:
       context: ../../
       dockerfile: infrastructure/docker/telemetry-node/Dockerfile
-    image: chicek-lab/observability-control-plane:6.0.0
+    image: frontend-observability-lab/observability-control-plane:6.0.0
     user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
     command: ["node", "apps/observability-control-plane/src/server.js"]
     read_only: true
@@ -352,12 +352,12 @@ services:
     tmpfs:
       - /tmp:size=16m,mode=1777
     volumes:
-      - ../../.runtime/control-plane:/var/lib/chicek-control-plane
+      - ../../.runtime/control-plane:/var/lib/frontend-observability-control-plane
     networks:
       - observability-internal
     environment:
       PORT: "4314"
-      OBSERVABILITY_CONTROL_STATE_DIR: "/var/lib/chicek-control-plane"
+      OBSERVABILITY_CONTROL_STATE_DIR: "/var/lib/frontend-observability-control-plane"
     healthcheck:
       test:
         [
@@ -385,7 +385,7 @@ services:
     build:
       context: ../../
       dockerfile: infrastructure/docker/telemetry-node/Dockerfile
-    image: chicek-lab/session-metadata-sync:6.0.0
+    image: frontend-observability-lab/session-metadata-sync:6.0.0
     user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
     command: ["node", "apps/session-metadata-sync/src/server.js"]
     read_only: true
@@ -396,7 +396,7 @@ services:
     tmpfs:
       - /tmp:size=16m,mode=1777
     volumes:
-      - ../../.runtime/session-metadata-state:/var/lib/chicek-session-metadata
+      - ../../.runtime/session-metadata-state:/var/lib/frontend-observability-session-metadata
     secrets:
       - openobserve_session_read_token
       - openobserve_session_write_token
@@ -405,11 +405,11 @@ services:
     environment:
       PORT: "4315"
       OPENOBSERVE_INTERNAL_URL: "http://openobserve:5080"
-      OPENOBSERVE_SESSION_READ_USERNAME: "chicek-session-metadata-read@chicek-lab.invalid"
-      OPENOBSERVE_SESSION_WRITE_USERNAME: "chicek-session-metadata-write@chicek-lab.invalid"
+      OPENOBSERVE_SESSION_READ_USERNAME: "frontend-observability-session-metadata-read@frontend-observability-lab.invalid"
+      OPENOBSERVE_SESSION_WRITE_USERNAME: "frontend-observability-session-metadata-write@frontend-observability-lab.invalid"
       OPENOBSERVE_SESSION_READ_TOKEN_FILE: "/run/secrets/openobserve_session_read_token"
       OPENOBSERVE_SESSION_WRITE_TOKEN_FILE: "/run/secrets/openobserve_session_write_token"
-      SESSION_METADATA_WATERMARK_PATH: "/var/lib/chicek-session-metadata/watermark.json"
+      SESSION_METADATA_WATERMARK_PATH: "/var/lib/frontend-observability-session-metadata/watermark.json"
       SESSION_METADATA_SYNC_INTERVAL_MS: "60000"
     healthcheck:
       test:
@@ -441,7 +441,7 @@ services:
     build:
       context: ../../tests/fixtures/apps/http-test-service
       dockerfile: ../../../../infrastructure/docker/http-test-service-fixture/Dockerfile
-    image: chicek-lab/http-test-service-fixture:6.0.0
+    image: frontend-observability-lab/http-test-service-fixture:6.0.0
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -507,7 +507,7 @@ services:
     build:
       context: ./openobserve
       dockerfile: Dockerfile
-    image: chicek-lab/openobserve:6.0.0
+    image: frontend-observability-lab/openobserve:6.0.0
     user: "${LAB_UID:-10001}:${LAB_GID:-10001}"
     read_only: true
     security_opt:

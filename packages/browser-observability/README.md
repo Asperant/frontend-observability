@@ -1,6 +1,6 @@
-# @chicek/browser-observability
+# @frontend-observability/browser-observability
 
-Framework-independent browser observability client for Chicek frontend telemetry.
+Framework-independent browser observability client for frontend telemetry.
 
 Public ESM API:
 

@@ -95,7 +95,7 @@ export function writeCompose(runDir, name, version, port) {
     build:
       context: ${JSON.stringify(contextDir)}
       dockerfile: Dockerfile
-    image: chicek-recovery/${name}-openobserve:${version === "source" ? SOURCE.tag : TARGET.tag}
+    image: frontend-observability-recovery/${name}-openobserve:${version === "source" ? SOURCE.tag : TARGET.tag}
     user: "${process.getuid?.() ?? 10001}:${process.getgid?.() ?? 10001}"
     read_only: true
     security_opt:
@@ -127,7 +127,7 @@ export function writeCompose(runDir, name, version, port) {
       start_period: 30s
       retries: 6
   alert-sink:
-    image: chicek-lab/http-test-service-fixture:6.0.0
+    image: frontend-observability-lab/http-test-service-fixture:6.0.0
     read_only: true
     security_opt:
       - no-new-privileges:true

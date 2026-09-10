@@ -39,7 +39,7 @@ function parseArgs(argv) {
     apply: argv.includes("--apply"),
     conflictPolicy: IMPORT_CONFLICT_POLICY.SKIP,
     dir: null,
-    folder: "CHICEK Starters",
+    folder: "FRONTEND_OBSERVABILITY Starters",
   };
   for (const arg of argv) {
     if (arg.startsWith("--dir=")) flags.dir = arg.slice("--dir=".length);

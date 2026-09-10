@@ -30,10 +30,10 @@ COPY scripts/build scripts/build
 
 ENV VITE_MOCK_API_BASE_URL=/mock
 
-RUN pnpm --filter @chicek/browser-observability build \
+RUN pnpm --filter @frontend-observability/browser-observability build \
   && node scripts/build/generate-artifact-manifest.js \
   && node scripts/build/verify-build-gate.js \
-  && pnpm --filter @chicek/browser-app-fixture build
+  && pnpm --filter @frontend-observability/browser-app-fixture build
 
 # --- runtime stage: static files served by non-root Nginx, no Node/pnpm ---
 FROM nginxinc/nginx-unprivileged:1.30.4-alpine@sha256:dcb6a40a82e08e071f696805a23b45d5bb6582a7508509930d3035b16b441069

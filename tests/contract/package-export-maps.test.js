@@ -5,7 +5,7 @@ function readJson(relativePath) {
   return JSON.parse(readFileSync(new URL(relativePath, import.meta.url), "utf8"));
 }
 
-describe("@chicek/browser-observability package.json export map", () => {
+describe("@frontend-observability/browser-observability package.json export map", () => {
   const pkg = readJson("../../packages/browser-observability/package.json");
 
   it("declares ESM-only 'module' type", () => {
@@ -42,7 +42,7 @@ describe("@chicek/browser-observability package.json export map", () => {
   });
 });
 
-describe("@chicek/observability-contracts package.json export map", () => {
+describe("@frontend-observability/observability-contracts package.json export map", () => {
   const pkg = readJson("../../packages/observability-contracts/package.json");
 
   it("exposes only the documented entry points", () => {

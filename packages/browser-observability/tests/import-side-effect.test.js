@@ -11,7 +11,7 @@ describe("import side effects", () => {
   });
 
   it("does not attach anything to the global scope", () => {
-    expect(globalThis.chicek).toBeUndefined();
-    expect(globalThis.__CHICEK_OBSERVABILITY__).toBeUndefined();
+    expect(globalThis.frontendObservability).toBeUndefined();
+    expect(globalThis.__FRONTEND_OBSERVABILITY__).toBeUndefined();
   });
 });

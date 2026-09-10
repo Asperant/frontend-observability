@@ -41,8 +41,8 @@ function jsonPayload(size, stream) {
           return {
             date: Date.now(),
             type: "view",
-            application_id: "chicek-browser-app",
-            service: "chicek-browser-app",
+            application_id: "frontend-observability-browser-app",
+            service: "frontend-observability-browser-app",
             env: "lab",
             version: "2026.07.1",
             session_id: sessionId,
@@ -55,7 +55,7 @@ function jsonPayload(size, stream) {
           date: Date.now(),
           message: "proxy-security-log",
           status: "info",
-          service: "chicek-browser-app",
+          service: "frontend-observability-browser-app",
           env: "lab",
           version: "2026.07.1",
         };

@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Builds and packages @chicek/browser-observability twice, independently,
+// Builds and packages @frontend-observability/browser-observability twice, independently,
 // and proves the resulting tarballs are byte-for-byte identical. Guards
 // against a regression of the reproducible-build property documented in
 // docs/production-handoff.md — never runs against the committed release
@@ -20,7 +20,7 @@ const ALLOWED_ENTRY =
 
 function buildAndPack(destDir) {
   rmSync(distDir, { recursive: true, force: true });
-  execFileSync("pnpm", ["--filter", "@chicek/browser-observability", "build"], {
+  execFileSync("pnpm", ["--filter", "@frontend-observability/browser-observability", "build"], {
     cwd: repoRoot,
     stdio: "inherit",
   });
@@ -34,7 +34,7 @@ function buildAndPack(destDir) {
     stdio: "inherit",
   });
   const tarball = readdirSync(destDir)
-    .filter((name) => /^chicek-browser-observability-.*\.tgz$/.test(name))
+    .filter((name) => /^frontend-observability-browser-observability-.*\.tgz$/.test(name))
     .sort()
     .at(-1);
   if (!tarball) throw new Error(`browser package tarball was not created in ${destDir}`);
@@ -63,7 +63,7 @@ function extractedFileHashes(tarballPath, extractDir) {
   return hashes;
 }
 
-const workDir = mkdtempSync(join(tmpdir(), "chicek-browser-observability-repro-"));
+const workDir = mkdtempSync(join(tmpdir(), "frontend-observability-browser-observability-repro-"));
 try {
   const run1Dir = join(workDir, "run-1");
   const run2Dir = join(workDir, "run-2");

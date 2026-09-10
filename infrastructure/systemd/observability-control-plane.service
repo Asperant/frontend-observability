@@ -1,14 +1,14 @@
 [Unit]
-Description=Chicek Observability Control Plane
+Description=Frontend Observability Control Plane
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=chicek-control-plane
-Group=chicek-control-plane
-WorkingDirectory=/opt/chicek-observability/current
-EnvironmentFile=/etc/chicek-observability/observability-control-plane.env
+User=frontend-observability-control-plane
+Group=frontend-observability-control-plane
+WorkingDirectory=/opt/frontend-observability/current
+EnvironmentFile=/etc/frontend-observability/observability-control-plane.env
 ExecStart=/usr/bin/node apps/observability-control-plane/src/server.js
 Restart=on-failure
 RestartSec=5s
@@ -20,8 +20,8 @@ PrivateTmp=true
 PrivateDevices=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/chicek-observability/control-plane
-ReadOnlyPaths=/etc/chicek-observability
+ReadWritePaths=/var/lib/frontend-observability/control-plane
+ReadOnlyPaths=/etc/frontend-observability
 CapabilityBoundingSet=
 LockPersonality=true
 MemoryDenyWriteExecute=true

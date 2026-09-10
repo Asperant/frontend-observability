@@ -9,7 +9,9 @@ import {
 
 describe("buildMarker", () => {
   it("builds a marker string for a valid starterId/version", () => {
-    expect(buildMarker("frontend-operations", 1)).toBe("[chicek:starter:frontend-operations:v1]");
+    expect(buildMarker("frontend-operations", 1)).toBe(
+      "[frontend-observability:starter:frontend-operations:v1]",
+    );
   });
 
   it("throws for an invalid starterId", () => {
@@ -31,7 +33,9 @@ describe("buildMarker", () => {
 
 describe("parseMarker", () => {
   it("parses a valid marker out of a description", () => {
-    expect(parseMarker("some text [chicek:starter:error-analysis:v2] more text")).toEqual({
+    expect(
+      parseMarker("some text [frontend-observability:starter:error-analysis:v2] more text"),
+    ).toEqual({
       starterId: "error-analysis",
       starterVersion: 2,
     });
@@ -49,7 +53,7 @@ describe("parseMarker", () => {
 
 describe("stripMarker", () => {
   it("removes the marker and trims surrounding whitespace", () => {
-    expect(stripMarker("hello [chicek:starter:x:v1]")).toBe("hello");
+    expect(stripMarker("hello [frontend-observability:starter:x:v1]")).toBe("hello");
   });
 
   it("returns an empty string for a non-string input", () => {
@@ -64,25 +68,25 @@ describe("stripMarker", () => {
 describe("embedMarker", () => {
   it("appends a marker to non-empty base text", () => {
     expect(embedMarker("Some description.", "frontend-operations", 1)).toBe(
-      "Some description. [chicek:starter:frontend-operations:v1]",
+      "Some description. [frontend-observability:starter:frontend-operations:v1]",
     );
   });
 
   it("produces just the marker when the base description is empty", () => {
     expect(embedMarker("", "frontend-operations", 1)).toBe(
-      "[chicek:starter:frontend-operations:v1]",
+      "[frontend-observability:starter:frontend-operations:v1]",
     );
   });
 
   it("replaces an existing marker rather than duplicating it", () => {
     const first = embedMarker("desc", "frontend-operations", 1);
     const second = embedMarker(first, "frontend-operations", 2);
-    expect(second).toBe("desc [chicek:starter:frontend-operations:v2]");
+    expect(second).toBe("desc [frontend-observability:starter:frontend-operations:v2]");
   });
 
   it("defaults a null/undefined description to just the marker", () => {
     expect(embedMarker(undefined, "frontend-operations", 1)).toBe(
-      "[chicek:starter:frontend-operations:v1]",
+      "[frontend-observability:starter:frontend-operations:v1]",
     );
   });
 });

@@ -20,7 +20,7 @@ export const PINNED_VERSIONS = Object.freeze({
 export function ensureBrowserObservabilityBuilt() {
   const distIndex = join(browserObservabilityDir, "dist", "index.js");
   if (!existsSync(distIndex)) {
-    execFileSync("pnpm", ["--filter", "@chicek/browser-observability", "build"], {
+    execFileSync("pnpm", ["--filter", "@frontend-observability/browser-observability", "build"], {
       cwd: repoRoot,
       stdio: "inherit",
     });
@@ -29,13 +29,13 @@ export function ensureBrowserObservabilityBuilt() {
 }
 
 /**
- * Builds and `pnpm pack`s @chicek/browser-observability, returning the
+ * Builds and `pnpm pack`s @frontend-observability/browser-observability, returning the
  * absolute path to the resulting tarball. Consumer tests install from this
  * tarball (never from workspace source) so packaging mistakes cannot hide.
  */
 export function packBrowserObservability() {
   ensureBrowserObservabilityBuilt();
-  const packOutputDir = mkdtempSync(join(tmpdir(), "chicek-pack-"));
+  const packOutputDir = mkdtempSync(join(tmpdir(), "frontend-observability-pack-"));
   execFileSync("pnpm", ["pack", "--pack-destination", packOutputDir], {
     cwd: browserObservabilityDir,
     stdio: "inherit",

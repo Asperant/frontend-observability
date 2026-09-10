@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "starterId": "error-analysis",
   "starterVersion": 5,
-  "folderName": "CHICEK Starters",
+  "folderName": "FRONTEND_OBSERVABILITY Starters",
   "title": "Error Analysis",
   "description": "Error classification, browser/version breakdowns, error trend, and a bounded recent-errors detail table (session_id column only, for manual drill-down into the Session Investigation dashboard's session_id variable \u2014 this stage does not verify deep-linking between dashboards). Normalized per-route breakdown is not supported on this pinned schema: no low-cardinality route field exists (only raw, high-cardinality view_url) without adding a new pipeline-derived field, which is out of this stage's scope \u2014 see docs/openobserve-query-dashboard-governance.md. Installed by pnpm lab:dashboards:install-starters as an initial template \u2014 edit or delete freely from the OpenObserve UI; this stage never overwrites your changes.",
   "tabs": [

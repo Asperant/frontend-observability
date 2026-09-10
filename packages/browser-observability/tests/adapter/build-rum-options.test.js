@@ -11,7 +11,7 @@ const policy = Object.freeze({
   rum: Object.freeze({
     site: "localhost:8443",
     organizationIdentifier: "default",
-    applicationId: "chicek-browser-app",
+    applicationId: "frontend-observability-browser-app",
     clientToken: "a".repeat(48),
     apiVersion: "v1",
   }),
@@ -26,7 +26,7 @@ describe("buildRumOptions", () => {
     expect(options.version).toBe("1.2.3");
     expect(options.site).toBe("localhost:8443");
     expect(options.organizationIdentifier).toBe("default");
-    expect(options.applicationId).toBe("chicek-browser-app");
+    expect(options.applicationId).toBe("frontend-observability-browser-app");
     expect(options.clientToken).toBe(policy.rum.clientToken);
     expect(options.apiVersion).toBe("v1");
   });

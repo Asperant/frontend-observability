@@ -1,5 +1,5 @@
 {
-  "name": "@chicek/session-metadata-sync",
+  "name": "@frontend-observability/session-metadata-sync",
   "version": "0.1.0",
   "private": true,
   "type": "module",

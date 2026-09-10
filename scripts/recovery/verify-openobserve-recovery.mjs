@@ -243,12 +243,16 @@ async function createDashboardFixture(baseUrl, auth) {
   const owner = readFileSync(emailSecretPath, "utf8").trim();
   const folder = await apiFetch(baseUrl, auth, `/api/v2/${ORG_ID}/folders/dashboards`, {
     method: "POST",
-    body: JSON.stringify({ name: "CHICEK Recovery Fixture", description: "recovery disposable" }),
+    body: JSON.stringify({
+      name: "FRONTEND_OBSERVABILITY Recovery Fixture",
+      description: "recovery disposable",
+    }),
   });
   const folders = await apiFetch(baseUrl, auth, `/api/v2/${ORG_ID}/folders/dashboards`);
   const folderId =
     folder.body?.folderId ??
-    folders.body?.list?.find((item) => item.name === "CHICEK Recovery Fixture")?.folderId;
+    folders.body?.list?.find((item) => item.name === "FRONTEND_OBSERVABILITY Recovery Fixture")
+      ?.folderId;
   if (!folderId) throw new Error("recovery dashboard folder was not created");
   const starter = loadAllStarterDashboards()[0];
   const queries = new Map(loadAllQueryManifests().map((manifest) => [manifest.id, manifest]));
@@ -287,7 +291,7 @@ async function createAlertFixture(baseUrl, auth) {
   await apiFetch(baseUrl, auth, `/api/${ORG_ID}/alerts/destinations?module=alert`, {
     method: "POST",
     body: JSON.stringify({
-      name: "chicek-recovery-local-alert-sink",
+      name: "frontend-observability-recovery-local-alert-sink",
       type: "http",
       url: "http://127.0.0.1:4312/alert-sink",
       method: "post",
@@ -308,7 +312,7 @@ async function createAlertFixture(baseUrl, auth) {
       environment: DEMO_IDENTITY.environment,
       version: DEMO_IDENTITY.version,
     },
-    destinationName: "chicek-recovery-local-alert-sink",
+    destinationName: "frontend-observability-recovery-local-alert-sink",
     templateName: template.openObserveTemplateName,
   });
   await assertOk(
@@ -404,13 +408,13 @@ async function bootstrapCanonicalStreams(baseUrl, auth) {
       ]),
     });
   }
-  await apiFetch(baseUrl, auth, `/api/${ORG_ID}/_chicek_delivery_ops/_json`, {
+  await apiFetch(baseUrl, auth, `/api/${ORG_ID}/_frontend_observability_delivery_ops/_json`, {
     method: "POST",
     body: JSON.stringify([
       {
         _timestamp: Date.now() * 1000,
         service: "telemetry-delivery-worker",
-        stream: "_chicek_delivery_ops",
+        stream: "_frontend_observability_delivery_ops",
         reason: "recovery-lazy-stream-create",
         held: false,
         draining: false,
@@ -550,8 +554,8 @@ async function runRecoveryProof() {
 
   // ---- Section 1.2: cold backup of the TARGET data volume via a live
   // clone — the canonical main lab service is never stopped or touched.
-  const cloneVolume = `chicek-recovery-target-clone-${runId}`;
-  cloneVolumeLive("chicek-lab_openobserve-data", cloneVolume);
+  const cloneVolume = `frontend-observability-recovery-target-clone-${runId}`;
+  cloneVolumeLive("frontend-observability-lab_openobserve-data", cloneVolume);
   const mainArchive = join(backupDir, "target-openobserve-data.tar");
   tarVolume(cloneVolume, mainArchive);
   run("docker", ["volume", "rm", "-f", cloneVolume], { capture: true, allowFailure: true });
@@ -559,14 +563,14 @@ async function runRecoveryProof() {
     archive: repoPath(mainArchive),
     sha256: sha256File(mainArchive),
     bytes: statSync(mainArchive).size,
-    volumeSizeKiB: volumeSizeKiB("chicek-lab_openobserve-data"),
+    volumeSizeKiB: volumeSizeKiB("frontend-observability-lab_openobserve-data"),
     method: "live-clone (main lab service never stopped)",
   };
 
   // ---- Logical round trip on a disposable target ----
   const roundTripProject = await startProject({
     runDir,
-    project: "chicek-recovery-roundtrip",
+    project: "frontend-observability-recovery-roundtrip",
     version: "target",
     port: 15090,
   });
@@ -638,7 +642,7 @@ async function runRecoveryProof() {
   // ---- Restore validation: disposable target from the cold cloned backup
   const targetRestore = await startProject({
     runDir,
-    project: "chicek-recovery-target-restore",
+    project: "frontend-observability-recovery-target-restore",
     version: "target",
     port: 15080,
     archivePath: mainArchive,
@@ -660,7 +664,7 @@ async function runRecoveryProof() {
   // real provisioner, with asserted read-back (Section 1.3).
   const sourceProject = await startProject({
     runDir,
-    project: "chicek-recovery-source",
+    project: "frontend-observability-recovery-source",
     version: "source",
     port: 15081,
   });
@@ -692,13 +696,28 @@ async function runRecoveryProof() {
   const chainSteps = [
     {
       key: "sourceRestore",
-      project: "chicek-recovery-source-restore",
+      project: "frontend-observability-recovery-source-restore",
       version: "source",
       port: 15082,
     },
-    { key: "upgrade", project: "chicek-recovery-upgrade", version: "target", port: 15083 },
-    { key: "rollback", project: "chicek-recovery-rollback", version: "source", port: 15084 },
-    { key: "reUpgrade", project: "chicek-recovery-reupgrade", version: "target", port: 15085 },
+    {
+      key: "upgrade",
+      project: "frontend-observability-recovery-upgrade",
+      version: "target",
+      port: 15083,
+    },
+    {
+      key: "rollback",
+      project: "frontend-observability-recovery-rollback",
+      version: "source",
+      port: 15084,
+    },
+    {
+      key: "reUpgrade",
+      project: "frontend-observability-recovery-reupgrade",
+      version: "target",
+      port: 15085,
+    },
   ];
 
   for (const step of chainSteps) {
@@ -745,7 +764,7 @@ async function runRecoveryProof() {
   // re-upgrade, not just that raw data survived.
   const finalProject = await startProject({
     runDir,
-    project: "chicek-recovery-target-logical-restore",
+    project: "frontend-observability-recovery-target-logical-restore",
     version: "target",
     port: 15086,
     archivePath: sourceArchive,

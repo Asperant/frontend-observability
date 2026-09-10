@@ -12,7 +12,7 @@ import {
 
 const OPENOBSERVE_ADMIN_BASE_URL = "http://127.0.0.1:5080";
 const ORG_ID = "default";
-const TOKEN_NAME = "chicek_delivery_ops";
+const TOKEN_NAME = "frontend_observability_delivery_ops";
 
 function rootAuth() {
   const email = readFileSync(emailSecretPath, "utf8").trim();
@@ -47,7 +47,8 @@ async function createToken() {
     method: "POST",
     body: {
       name: TOKEN_NAME,
-      description: "CHICEK delivery operations aggregate ingestion only. Not a browser credential.",
+      description:
+        "FRONTEND_OBSERVABILITY delivery operations aggregate ingestion only. Not a browser credential.",
     },
   });
   const token = body?.data?.token;

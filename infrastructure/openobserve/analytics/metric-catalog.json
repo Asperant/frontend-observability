@@ -398,8 +398,8 @@
       "id": "delivery_queue_pressure",
       "queryId": "delivery-queue-depth",
       "displayName": "Durable delivery queue pressure",
-      "description": "Aggregate durable RUM/log queue and DLQ depth emitted by the telemetry-delivery-worker into _chicek_delivery_ops.",
-      "stream": "_chicek_delivery_ops",
+      "description": "Aggregate durable RUM/log queue and DLQ depth emitted by the telemetry-delivery-worker into _frontend_observability_delivery_ops.",
+      "stream": "_frontend_observability_delivery_ops",
       "eventScope": "aggregate operational summaries only",
       "numerator": "max queue and DLQ depth fields",
       "denominator": null,
@@ -410,10 +410,10 @@
       "timeRangeCeilingHours": 168,
       "cardinalityRisk": "LOW — scalar aggregate, no group-by.",
       "schemaDependencies": [
-        "_chicek_delivery_ops.queues_rum_queuedepth",
-        "_chicek_delivery_ops.queues_logs_queuedepth",
-        "_chicek_delivery_ops.queues_rum_deadletterdepth",
-        "_chicek_delivery_ops.queues_logs_deadletterdepth"
+        "_frontend_observability_delivery_ops.queues_rum_queuedepth",
+        "_frontend_observability_delivery_ops.queues_logs_queuedepth",
+        "_frontend_observability_delivery_ops.queues_rum_deadletterdepth",
+        "_frontend_observability_delivery_ops.queues_logs_deadletterdepth"
       ],
       "alertReady": {
         "alertReady": true,
@@ -432,7 +432,7 @@
       "queryId": "telemetry-delivery-worker-state",
       "displayName": "Durable delivery ops freshness",
       "description": "Freshness/state evidence from internal telemetry-delivery-worker aggregate operational summaries.",
-      "stream": "_chicek_delivery_ops",
+      "stream": "_frontend_observability_delivery_ops",
       "eventScope": "aggregate operational summaries only",
       "numerator": "latest aggregate operational event",
       "denominator": null,
@@ -443,10 +443,10 @@
       "timeRangeCeilingHours": 168,
       "cardinalityRisk": "LOW — bounded latest-state table.",
       "schemaDependencies": [
-        "_chicek_delivery_ops._timestamp",
-        "_chicek_delivery_ops.held",
-        "_chicek_delivery_ops.draining",
-        "_chicek_delivery_ops.lastsuccessfuldeliveryat"
+        "_frontend_observability_delivery_ops._timestamp",
+        "_frontend_observability_delivery_ops.held",
+        "_frontend_observability_delivery_ops.draining",
+        "_frontend_observability_delivery_ops.lastsuccessfuldeliveryat"
       ],
       "alertReady": {
         "alertReady": true,

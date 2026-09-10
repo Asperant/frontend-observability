@@ -58,7 +58,7 @@ const sbom = {
     tools: [{ vendor: "nodejs.org", name: "node", version: process.version.replace(/^v/, "") }],
     component: {
       type: "application",
-      name: "chicek-frontend-observability",
+      name: "frontend-observability",
     },
   },
   components,

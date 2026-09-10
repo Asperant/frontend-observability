@@ -29,18 +29,21 @@ const RUM_PATH = "/rum/v1/default/rum";
 const LOGS_PATH = "/rum/v1/default/logs";
 const DURABLE_DELIVERY_RUNTIME_DIR = join(generatedDir, "durable_delivery");
 const ALL_QUEUES = [
-  "chicek.frontend.rum.q",
-  "chicek.frontend.log.q",
-  "chicek.frontend.rum.retry.1.q",
-  "chicek.frontend.rum.retry.2.q",
-  "chicek.frontend.rum.retry.3.q",
-  "chicek.frontend.log.retry.1.q",
-  "chicek.frontend.log.retry.2.q",
-  "chicek.frontend.log.retry.3.q",
-  "chicek.frontend.rum.dlq",
-  "chicek.frontend.log.dlq",
+  "frontend-observability.frontend.rum.q",
+  "frontend-observability.frontend.log.q",
+  "frontend-observability.frontend.rum.retry.1.q",
+  "frontend-observability.frontend.rum.retry.2.q",
+  "frontend-observability.frontend.rum.retry.3.q",
+  "frontend-observability.frontend.log.retry.1.q",
+  "frontend-observability.frontend.log.retry.2.q",
+  "frontend-observability.frontend.log.retry.3.q",
+  "frontend-observability.frontend.rum.dlq",
+  "frontend-observability.frontend.log.dlq",
 ];
-const DLQ_QUEUES = ["chicek.frontend.rum.dlq", "chicek.frontend.log.dlq"];
+const DLQ_QUEUES = [
+  "frontend-observability.frontend.rum.dlq",
+  "frontend-observability.frontend.log.dlq",
+];
 const SCANNER_IMAGE =
   "node:24.18.0-alpine@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc";
 
@@ -60,7 +63,7 @@ function rumEvent(marker) {
     date: Date.now(),
     type: "view",
     marker,
-    application_id: "chicek-browser-app",
+    application_id: "frontend-observability-browser-app",
     service: "browser-app",
     env: "lab",
     version: "2026.07.1",
@@ -247,20 +250,20 @@ async function driveBrowserTraffic(browserType, { runId, accepted, unexpected, s
   try {
     await page.goto("https://localhost:8443", { waitUntil: "domcontentloaded", timeout: 30_000 });
     await page.evaluate((value) => {
-      globalThis.__CHICEK_TEST_RUN_ID__ = value;
+      globalThis.__FRONTEND_OBSERVABILITY_TEST_RUN_ID__ = value;
     }, runId);
     await click("consent-grant");
     await click("initialize-runtime-config");
     await page.reload({ waitUntil: "domcontentloaded", timeout: 30_000 });
     await page.evaluate((value) => {
-      globalThis.__CHICEK_TEST_RUN_ID__ = value;
+      globalThis.__FRONTEND_OBSERVABILITY_TEST_RUN_ID__ = value;
     }, runId);
     await click("initialize-runtime-config");
     await click("consent-grant");
     let iteration = 0;
     while (performance.now() < stopAtMs) {
       await page.evaluate((value) => {
-        globalThis.__CHICEK_TEST_RUN_ID__ = value;
+        globalThis.__FRONTEND_OBSERVABILITY_TEST_RUN_ID__ = value;
       }, runId);
       for (const id of ["record-action", "record-error", "success-request"]) {
         await click(id);
@@ -270,7 +273,7 @@ async function driveBrowserTraffic(browserType, { runId, accepted, unexpected, s
       if (iteration % 10 === 0) {
         await page.reload({ waitUntil: "domcontentloaded", timeout: 30_000 });
         await page.evaluate((value) => {
-          globalThis.__CHICEK_TEST_RUN_ID__ = value;
+          globalThis.__FRONTEND_OBSERVABILITY_TEST_RUN_ID__ = value;
         }, runId);
         await click("initialize-runtime-config");
         await click("consent-grant");
@@ -572,7 +575,7 @@ async function verifyDurableDelivery() {
   } else {
     accounting.durablyAccepted += 1;
   }
-  const queued = await waitForQueueDepth("chicek.frontend.rum.q", 1, 45_000);
+  const queued = await waitForQueueDepth("frontend-observability.frontend.rum.q", 1, 45_000);
   if (!queued.ok) findings.push(`outage queue depth expected 1, got ${queued.depth}.`);
 
   runDockerCompose(["start", "openobserve"]);
@@ -580,7 +583,7 @@ async function verifyDurableDelivery() {
     services: ["openobserve", "alert-sink", "telemetry-delivery-worker"],
     timeoutMs: 120_000,
   });
-  const drained = await waitForQueueDepth("chicek.frontend.rum.q", 0, 90_000);
+  const drained = await waitForQueueDepth("frontend-observability.frontend.rum.q", 0, 90_000);
   if (!drained.ok) findings.push(`post-recovery drain expected depth 0, got ${drained.depth}.`);
 
   const rabbitDown = (() => {
@@ -623,7 +626,7 @@ async function verifyDurableDelivery() {
 
   const opsToken = readFileSync(openObserveDeliveryOpsIngestTokenSecretPath, "utf8").trim();
   const opsMarker = `durable_delivery-ops-credential-${crypto.randomUUID()}`;
-  const opsWrite = await requestHttp("/api/default/_chicek_delivery_ops/_json", {
+  const opsWrite = await requestHttp("/api/default/_frontend_observability_delivery_ops/_json", {
     method: "POST",
     headers: {
       Authorization: openObserveIngestAuth(opsToken),
@@ -646,16 +649,19 @@ async function verifyDurableDelivery() {
       );
     }
   }
-  const unrelatedWrite = await requestHttp("/api/default/chicek_unrelated_probe/_json", {
-    method: "POST",
-    headers: {
-      Authorization: openObserveIngestAuth(opsToken),
-      "Content-Type": "application/json",
+  const unrelatedWrite = await requestHttp(
+    "/api/default/frontend_observability_unrelated_probe/_json",
+    {
+      method: "POST",
+      headers: {
+        Authorization: openObserveIngestAuth(opsToken),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify([
+        { date: Date.now(), service: "durable_delivery_gate", marker: opsMarker },
+      ]),
     },
-    body: JSON.stringify([
-      { date: Date.now(), service: "durable_delivery_gate", marker: opsMarker },
-    ]),
-  });
+  );
   if (unrelatedWrite.statusCode === 200) {
     log(
       "durable delivery: OpenObserve v0.91.2 org ingestion tokens are not stream-scoped; unrelated stream write succeeded as documented product limitation.",
@@ -665,9 +671,11 @@ async function verifyDurableDelivery() {
   }
 
   accounting.currentlyQueued =
-    queueDepth("chicek.frontend.rum.q") + queueDepth("chicek.frontend.log.q");
+    queueDepth("frontend-observability.frontend.rum.q") +
+    queueDepth("frontend-observability.frontend.log.q");
   accounting.deadLettered =
-    queueDepth("chicek.frontend.rum.dlq") + queueDepth("chicek.frontend.log.dlq");
+    queueDepth("frontend-observability.frontend.rum.dlq") +
+    queueDepth("frontend-observability.frontend.log.dlq");
   accounting.delivered =
     accounting.durablyAccepted -
     accounting.currentlyQueued -
@@ -755,7 +763,7 @@ async function verifyQueueStoragePrivacy() {
     }
   }
 
-  const queued = await waitForQueueAtLeast("chicek.frontend.rum.q", 1, 45_000);
+  const queued = await waitForQueueAtLeast("frontend-observability.frontend.rum.q", 1, 45_000);
   if (!queued.ok) findings.push(`positive-control queue depth expected >=1, got ${queued.depth}.`);
   runDockerCompose(["stop", "rabbitmq"]);
   const scan = scanRabbitVolume({ positiveMarker, sensitiveCanaries: sensitiveValues });
@@ -784,7 +792,7 @@ async function verifyQueueStoragePrivacy() {
       "RabbitMQ restart recovery did not return telemetry-ingest and worker to healthy.",
     );
   }
-  const survived = await waitForQueueAtLeast("chicek.frontend.rum.q", 1, 45_000);
+  const survived = await waitForQueueAtLeast("frontend-observability.frontend.rum.q", 1, 45_000);
   if (!survived.ok)
     findings.push(`safe queued batch did not survive RabbitMQ restart (${survived.depth}).`);
   resumeDelivery();
@@ -821,7 +829,7 @@ async function verifyQueueStoragePrivacy() {
     openObserveHaystack = [
       await openObserveRecentHaystack("_rumdata"),
       await optionalOpenObserveRecentHaystack("_rumlog"),
-      await optionalOpenObserveRecentHaystack("_chicek_delivery_ops"),
+      await optionalOpenObserveRecentHaystack("_frontend_observability_delivery_ops"),
     ].join("\n");
   } catch (error) {
     findings.push(`OpenObserve recent-row canary scan failed: ${error.message}`);
@@ -888,7 +896,7 @@ async function verifyPreAckRedelivery() {
   if (admission.statusCode !== 202 || !ids) {
     findings.push(`pre-ACK admission returned ${admission.statusCode} with ids=${Boolean(ids)}.`);
   }
-  const queued = await waitForQueueAtLeast("chicek.frontend.rum.q", 1, 45_000);
+  const queued = await waitForQueueAtLeast("frontend-observability.frontend.rum.q", 1, 45_000);
   if (!queued.ok) findings.push(`pre-ACK test queue depth expected >=1, got ${queued.depth}.`);
   resumeDelivery();
   const harnessRun = ids
@@ -919,7 +927,7 @@ async function verifyPreAckRedelivery() {
       `pre-ACK harness did not exit at the before-ACK point (exit ${harnessRun.status}).`,
     );
   }
-  const retained = await waitForQueueAtLeast("chicek.frontend.rum.q", 1, 45_000);
+  const retained = await waitForQueueAtLeast("frontend-observability.frontend.rum.q", 1, 45_000);
   if (!retained.ok)
     findings.push(`unacked message was not retained after crash (${retained.depth}).`);
   runDockerCompose(["up", "-d", "--force-recreate", "telemetry-delivery-worker"]);
@@ -1193,7 +1201,7 @@ async function verifyRealDurableOutageSoak() {
 }
 
 // Every command in this file mutates shared RabbitMQ/worker container state against the
-// single `chicek-lab` compose project (stop/start rabbitmq or telemetry-delivery-worker,
+// single `frontend-observability-lab` compose project (stop/start rabbitmq or telemetry-delivery-worker,
 // hold/resume delivery, purge queues). Running two of these commands concurrently corrupts
 // each other's in-flight state, so only one may run at a time. Since a full run (real-soak
 // especially) can take far longer than withExclusiveLock's short bounded retry, a second

@@ -1,9 +1,10 @@
 {
-  "name": "@chicek/browser-observability",
+  "name": "@frontend-observability/browser-observability",
   "version": "1.0.0-rc.1",
+  "license": "MIT",
   "private": false,
   "publishConfig": {
-    "access": "restricted"
+    "access": "public"
   },
   "type": "module",
   "sideEffects": false,

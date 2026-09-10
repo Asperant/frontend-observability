@@ -12,7 +12,10 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 
-import { hasDuplicateObjectKeys, validateRuntimeConfig } from "@chicek/observability-contracts";
+import {
+  hasDuplicateObjectKeys,
+  validateRuntimeConfig,
+} from "@frontend-observability/observability-contracts";
 
 const CONTROL_SCHEMA_VERSION = 1;
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;

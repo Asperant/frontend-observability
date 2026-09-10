@@ -4,7 +4,7 @@ set -eu
 export RABBITMQ_DEFAULT_USER="$(cat /run/secrets/rabbitmq_admin_username)"
 export RABBITMQ_DEFAULT_PASS="$(cat /run/secrets/rabbitmq_admin_password)"
 export RABBITMQ_DEFAULT_VHOST="/"
-ready_file="/tmp/chicek-rabbitmq-ready"
+ready_file="/tmp/frontend-observability-rabbitmq-ready"
 rm -f "$ready_file"
 
 docker-entrypoint.sh "$@" &
@@ -47,7 +47,7 @@ create_user \
   /run/secrets/rabbitmq_ingest_password \
   "" \
   "^$" \
-  "^chicek\\.frontend\\.telemetry$" \
+  "^frontend-observability\\.frontend\\.telemetry$" \
   "^$"
 
 create_user \
@@ -55,8 +55,8 @@ create_user \
   /run/secrets/rabbitmq_worker_password \
   "" \
   "^$" \
-  "^chicek\\.frontend\\.telemetry$" \
-  "^chicek\\.frontend\\..*"
+  "^frontend-observability\\.frontend\\.telemetry$" \
+  "^frontend-observability\\.frontend\\..*"
 
 create_user \
   /run/secrets/rabbitmq_monitoring_username \
@@ -64,7 +64,7 @@ create_user \
   "monitoring" \
   "^$" \
   "^$" \
-  "^chicek\\.frontend\\..*"
+  "^frontend-observability\\.frontend\\..*"
 
 touch "$ready_file"
 

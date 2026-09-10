@@ -4,8 +4,8 @@
   "derivedFrom": [
     "Real Chromium/Firefox @openobserve/browser-logs output ingested into this lab's own _rumlog stream (docs/openobserve-v0.91-stream-capabilities.md capability #5).",
     "scripts/lab/verify-openobserve-ingestion.mjs's existing regression assertions (message/status/service/env/version/application_id present on the browser-log canary).",
-    "infrastructure/openobserve/sanitization/rumlog.vrl and cleanup.vrl (sanitization — forbidden-field deletions and controlled chicek.* field allow-list).",
-    "infrastructure/openobserve/correlation/correlation-contract.json (correlation — chicek.correlation.* logical/flattened field names)."
+    "infrastructure/openobserve/sanitization/rumlog.vrl and cleanup.vrl (sanitization — forbidden-field deletions and controlled frontend-observability.* field allow-list).",
+    "infrastructure/openobserve/correlation/correlation-contract.json (correlation — frontend-observability.correlation.* logical/flattened field names)."
   ],
   "requiredNativeFields": [
     "_timestamp",
@@ -36,25 +36,25 @@
     ]
   },
   "controlledFields": [
-    "chicek_correlation_schema_version",
-    "chicek_correlation_epoch_id",
-    "chicek_correlation_session_id",
-    "chicek_correlation_view_id",
-    "chicek_correlation_action_id",
-    "chicek_policy_version",
-    "_chicek_sanitization_policy",
+    "frontend_observability_correlation_schema_version",
+    "frontend_observability_correlation_epoch_id",
+    "frontend_observability_correlation_session_id",
+    "frontend_observability_correlation_view_id",
+    "frontend_observability_correlation_action_id",
+    "frontend_observability_policy_version",
+    "_frontend_observability_sanitization_policy",
     "test_run_id"
   ],
   "knownFieldTypes": {
-    "_chicek_sanitization_policy": "Utf8",
+    "_frontend_observability_sanitization_policy": "Utf8",
     "_timestamp": "Int64",
     "application_id": "Utf8",
-    "chicek_correlation_action_id": "Utf8",
-    "chicek_correlation_epoch_id": "Utf8",
-    "chicek_correlation_schema_version": "Utf8",
-    "chicek_correlation_session_id": "Utf8",
-    "chicek_correlation_view_id": "Utf8",
-    "chicek_policy_version": "Utf8",
+    "frontend_observability_correlation_action_id": "Utf8",
+    "frontend_observability_correlation_epoch_id": "Utf8",
+    "frontend_observability_correlation_schema_version": "Utf8",
+    "frontend_observability_correlation_session_id": "Utf8",
+    "frontend_observability_correlation_view_id": "Utf8",
+    "frontend_observability_policy_version": "Utf8",
     "component": "Utf8",
     "date": "Int64",
     "env": "Utf8",

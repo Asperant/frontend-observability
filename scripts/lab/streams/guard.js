@@ -5,11 +5,12 @@
 
 export const CANONICAL_STREAMS = Object.freeze(["_rumdata", "_rumlog"]);
 export const CANONICAL_ORG = "default";
-export const DISPOSABLE_STREAM_PREFIX = "_chicek_lifecycle_test_";
+export const DISPOSABLE_STREAM_PREFIX = "_frontend_observability_lifecycle_test_";
 
 // Bounded: a run-id suffix long enough to be collision-safe, short enough
 // to reject obviously-malformed/injected input.
-const DISPOSABLE_STREAM_PATTERN = /^_chicek_lifecycle_test_[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/;
+const DISPOSABLE_STREAM_PATTERN =
+  /^_frontend_observability_lifecycle_test_[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/;
 
 export const GUARD_REASON = Object.freeze({
   OK: "OK",

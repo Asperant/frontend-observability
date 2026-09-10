@@ -13,7 +13,7 @@ import {
 let scratchDir;
 
 beforeEach(() => {
-  scratchDir = mkdtempSync(join(tmpdir(), "chicek-lab-cert-metadata-"));
+  scratchDir = mkdtempSync(join(tmpdir(), "frontend-observability-lab-cert-metadata-"));
 });
 
 afterEach(() => {

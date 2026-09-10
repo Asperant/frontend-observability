@@ -10,7 +10,7 @@
 // one of ours, and which starter is it" from the marker, not from the
 // (unstable) id.
 
-const MARKER_PATTERN = /\[chicek:starter:([a-z0-9-]+):v(\d+)\]/;
+const MARKER_PATTERN = /\[frontend-observability:starter:([a-z0-9-]+):v(\d+)\]/;
 const STARTER_ID_PATTERN = /^[a-z0-9-]+$/;
 
 export function buildMarker(starterId, starterVersion) {
@@ -20,7 +20,7 @@ export function buildMarker(starterId, starterVersion) {
   if (!Number.isInteger(starterVersion) || starterVersion < 1) {
     throw new Error(`buildMarker: invalid starterVersion ${JSON.stringify(starterVersion)}`);
   }
-  return `[chicek:starter:${starterId}:v${starterVersion}]`;
+  return `[frontend-observability:starter:${starterId}:v${starterVersion}]`;
 }
 
 export function parseMarker(description) {

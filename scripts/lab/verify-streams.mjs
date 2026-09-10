@@ -10,7 +10,7 @@
 //      _rumdata/_rumlog must be refused before any HTTP call is made);
 //   5. a full disposable-stream lifecycle
 //      (create/canary-ingest/settings-apply/idempotent-reapply/delete/
-//      cleanup-verify) on a uniquely-named _chicek_lifecycle_test_* stream;
+//      cleanup-verify) on a uniquely-named _frontend_observability_lifecycle_test_* stream;
 //   6. management-plane isolation (the browser-facing :8443 proxy must
 //      still refuse every admin/stream/schema endpoint);
 //   7. a real Chromium + Firefox schema canary driven through the actual
@@ -316,7 +316,7 @@ async function driveCanaryBrowser(browserType, testRunId) {
   try {
     const context = await browser.newContext({ ignoreHTTPSErrors: true });
     await context.addInitScript((runId) => {
-      globalThis.__CHICEK_TEST_RUN_ID__ = runId;
+      globalThis.__FRONTEND_OBSERVABILITY_TEST_RUN_ID__ = runId;
     }, testRunId);
     const page = await context.newPage();
     await page.goto(DEMO_URL);
@@ -492,7 +492,10 @@ async function runBrowserCanary(browserLabel, browserType, auth) {
 
   // correlation correlation must still be attached to real actions.
   for (const hit of actions.hits) {
-    if (!hit.chicek_correlation_session_id || !hit.chicek_correlation_epoch_id) {
+    if (
+      !hit.frontend_observability_correlation_session_id ||
+      !hit.frontend_observability_correlation_epoch_id
+    ) {
       findings.push(`[${browserLabel}] real action record missing correlation correlation fields.`);
     }
   }

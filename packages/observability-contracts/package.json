@@ -1,5 +1,5 @@
 {
-  "name": "@chicek/observability-contracts",
+  "name": "@frontend-observability/observability-contracts",
   "version": "0.1.0",
   "private": true,
   "type": "module",

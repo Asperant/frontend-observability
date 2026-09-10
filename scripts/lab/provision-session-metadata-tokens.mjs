@@ -14,8 +14,10 @@ import {
 
 const OPENOBSERVE_ADMIN_BASE_URL = "http://127.0.0.1:5080";
 const ORG_ID = "default";
-export const SESSION_METADATA_READ_USERNAME = "chicek-session-metadata-read@chicek-lab.invalid";
-export const SESSION_METADATA_WRITE_USERNAME = "chicek-session-metadata-write@chicek-lab.invalid";
+export const SESSION_METADATA_READ_USERNAME =
+  "frontend-observability-session-metadata-read@frontend-observability-lab.invalid";
+export const SESSION_METADATA_WRITE_USERNAME =
+  "frontend-observability-session-metadata-write@frontend-observability-lab.invalid";
 
 function rootAuth() {
   const email = readFileSync(emailSecretPath, "utf8").trim();

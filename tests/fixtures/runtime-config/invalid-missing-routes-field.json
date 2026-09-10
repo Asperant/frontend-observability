@@ -12,7 +12,7 @@
   },
   "rum": {
     "site": "telemetry.example-test.invalid",
-    "organizationIdentifier": "chicek-fixture-org",
+    "organizationIdentifier": "frontend-observability-fixture-org",
     "applicationId": "browser-app-fixture",
     "clientToken": "fixture client token test value",
     "apiVersion": "v1"

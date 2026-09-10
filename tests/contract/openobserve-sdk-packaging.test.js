@@ -19,7 +19,7 @@ describe("OpenObserve SDK dependency resolution (no duplicate/mismatched version
       [
         "list",
         "--filter",
-        "@chicek/browser-observability",
+        "@frontend-observability/browser-observability",
         "@openobserve/browser-core",
         "--depth",
         "5",
@@ -45,7 +45,7 @@ describe("built dist/ never loads the SDK unless a dynamic import actually runs"
   it("dist/index.js has no top-level side effects that touch the SDK chunk", async () => {
     if (!existsSync(`${distDir}index.js`)) {
       throw new Error(
-        "dist/index.js is missing — run `pnpm --filter @chicek/browser-observability build` first.",
+        "dist/index.js is missing — run `pnpm --filter @frontend-observability/browser-observability build` first.",
       );
     }
     // Importing the built artifact must never fetch/execute adapter-openobserve.js.

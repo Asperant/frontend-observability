@@ -18,7 +18,7 @@ describe("alert starter guard", () => {
       starterVersion: 1,
     });
     expect(parseMarker("none")).toBeNull();
-    expect(parseMarker("CHICEK_STAGE17_ALERT starterId=x")).toBeNull();
+    expect(parseMarker("FRONTEND_OBSERVABILITY_STAGE17_ALERT starterId=x")).toBeNull();
   });
 
   it("creates only missing never-installed starters", () => {
