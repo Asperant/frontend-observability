@@ -77,8 +77,8 @@ Telemetry must pass through the queue-backed delivery path; there is no browser 
 - `pnpm install --frozen-lockfile`
 - `pnpm run format:check`
 - `pnpm run lint`
+- `pnpm run build` (required before `pnpm run test`: contract tests inspect the built `dist/`)
 - `pnpm run test`
-- `pnpm run build`
 - `pnpm run package:audit`
 - `pnpm run test:consumer`
 - `pnpm run test:durable-delivery`

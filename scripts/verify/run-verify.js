@@ -21,9 +21,9 @@ const steps = [
   { label: "format:check", command: "pnpm", args: ["run", "format:check"] },
   { label: "lint", command: "pnpm", args: ["run", "lint"] },
   { label: "unit tests", command: "pnpm", args: ["run", "test:unit"] },
+  { label: "build", command: "pnpm", args: ["run", "build"] },
   { label: "contract tests", command: "pnpm", args: ["run", "test:contract"] },
   { label: "coverage", command: "pnpm", args: ["run", "test:coverage"] },
-  { label: "build", command: "pnpm", args: ["run", "build"] },
   { label: "consumer tests", command: "pnpm", args: ["run", "test:consumer"] },
   { label: "playwright end-to-end tests", command: "pnpm", args: ["run", "test:e2e"] },
   {
