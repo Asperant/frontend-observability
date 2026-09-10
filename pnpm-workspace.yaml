@@ -35,5 +35,12 @@ onlyBuiltDependencies: []
 # workspace's usage (session/request-id UUID generation only), so the
 # transitive version is pinned forward to the fixed release here instead of
 # waiting on an upstream @openobserve/browser-rum-core release.
+#
+# ajv@8.20.0 (the newest release) still resolves the transitive `fast-uri`
+# dependency to 3.1.3, vulnerable to several SSRF/host-confusion advisories
+# (GHSA-5jgf-p345-68v8, GHSA-f65p-4m7j-42xc, GHSA-jqff-g426-hqxp, patched in
+# 3.1.6+). ajv's own declared range (`^3.0.1`) already permits the patched
+# release, so this override just forces resolution forward.
 overrides:
   uuid: 13.0.2
+  fast-uri: ^3.1.7
