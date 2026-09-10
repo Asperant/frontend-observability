@@ -24,8 +24,8 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright browser for the lab suite (chromium only)
-        run: pnpm exec playwright install --with-deps chromium
+      - name: Install Playwright browsers for the lab suite
+        run: pnpm exec playwright install --with-deps chromium firefox
 
       - name: pnpm verify (offline, Docker-independent)
         run: pnpm run verify
