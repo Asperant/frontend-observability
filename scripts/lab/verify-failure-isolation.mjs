@@ -60,7 +60,13 @@ export async function checkFailureIsolation() {
   if (!httpTestServiceBackHealthy.healthy)
     findings.push("http-test-service did not return to healthy after restart.");
 
-  const finalHealth = await waitForHealthy({ timeoutMs: 90_000 });
+  // 150s (not the usual 90s) because this check follows two restart cycles
+  // in immediate succession; on a CPU-constrained CI runner, the resulting
+  // resource contention can delay unrelated services (e.g. an AMQP
+  // heartbeat timeout on telemetry-ingest's RabbitMQ connection, which then
+  // has to crash-loop-reconnect) well past the budget that's comfortable on
+  // a dedicated dev machine.
+  const finalHealth = await waitForHealthy({ timeoutMs: 150_000 });
   if (!finalHealth.healthy) {
     findings.push(
       `Not all services are healthy at the end of the failure-isolation test: ${finalHealth.stillWaiting?.join(", ")}`,
