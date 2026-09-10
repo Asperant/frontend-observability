@@ -6,7 +6,17 @@ x-logging: &default-logging
     max-size: "5m"
     max-file: "3"
 
-x-restart-policy: &default-restart "on-failure:5"
+# Docker's restart backoff for "on-failure" starts at 100ms and doubles per
+# attempt, so a cap of 5 exhausts in ~2 seconds — any service whose startup
+# hard-crashes on a dependency it can't reach yet (rather than retrying
+# in-process) permanently dies to a transient blip that short. Observed in
+# practice: telemetry-ingest crash-looped past its RabbitMQ retry budget
+# during the lab's failure-isolation test on a CI runner slow/contended
+# enough to briefly delay RabbitMQ, even though RabbitMQ itself recovered
+# within seconds. 20 gives real dependency blips (not a truly broken
+# service) tens of seconds of cumulative backoff to clear before Docker
+# gives up.
+x-restart-policy: &default-restart "on-failure:20"
 
 services:
   reverse-proxy:
